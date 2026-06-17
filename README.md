@@ -1,8 +1,8 @@
 # Metropolis Web
 
-역할 기반 토론 플랫폼 MVP입니다.
+역할 기반 토론 플랫폼 **Metropolis**의 웹 애플리케이션입니다.
 
-운영자가 토론 주제를 만들고, 유저는 주제에 참가하면 찬성 또는 반대 역할을 자동으로 배정받습니다. 유저는 자신에게 배정된 역할에 맞춰 게시글과 댓글을 작성하며, 부적절한 게시글이나 댓글은 신고할 수 있습니다. 관리자는 주제와 신고를 관리할 수 있습니다.
+운영자가 토론 주제를 만들고, 유저는 주제에 참가하면 찬성 또는 반대 역할을 배정받습니다. 참가자는 자신의 역할에 맞춰 게시글과 댓글을 작성할 수 있으며, 부적절한 게시글이나 댓글은 신고할 수 있습니다. 관리자는 주제, 공지사항, 신고를 관리할 수 있습니다.
 
 ## 배포 주소
 
@@ -10,21 +10,35 @@
 https://metropolisweb.vercel.app
 ```
 
+## 현재 버전
+
+```txt
+v0.2.0
+```
+
 ## 주요 기능
 
 ### 사용자 기능
 
 * 이메일 기반 회원가입 / 로그인 / 로그아웃
-* 프로필 확인
+* 내 계정 확인
 * 닉네임 수정
 * 토론 주제 목록 확인
 * 토론 주제 상세 확인
 * 주제 참가
 * 찬성 / 반대 역할 자동 배정
-* 역할 기반 게시글 작성
+* 토론방 입장
+* 게시글 작성
+* 게시글 이미지 첨부
+* 게시글 상세 보기
+* 게시글 삭제
 * 댓글 작성
+* 댓글 삭제
 * 게시글 / 댓글 신고
-* 찬성 / 반대 / 전체 글 필터
+* 전체 / 찬성 / 반대 글 필터
+* 공지사항 목록 확인
+* 공지사항 상세 확인
+* 올리브 가지 물주기
 * 모바일 화면 대응
 
 ### 관리자 기능
@@ -34,10 +48,27 @@ https://metropolisweb.vercel.app
 * 토론 주제 수정
 * 토론 주제 상태 변경
 * 토론 주제 보관 처리
+* 토론 주제 삭제 처리
+* 공지사항 작성
+* 공지사항 수정
+* 공지사항 삭제
+* 공지사항 고정
 * 신고 목록 확인
 * 신고 상태 변경
 * 게시글 / 댓글 숨김 처리
 * 신고 기각 처리
+
+### UI / UX 기능
+
+* 반응형 레이아웃
+* 토론방 UI 개선
+* 게시글 상세 페이지 분리
+* 이미지 미리보기 / 이미지 뷰어
+* 확인 버튼 컴포넌트
+* 스타일 미리보기 페이지
+* 아테나 / 포세이돈 콘셉트 UI 실험
+* 국가 테마 UI 실험
+* 다크 테마 기반 화면 구성
 
 ## 기술 스택
 
@@ -47,6 +78,7 @@ https://metropolisweb.vercel.app
 * Tailwind CSS
 * Supabase Auth
 * Supabase Postgres
+* Supabase Storage
 * Supabase Row Level Security
 * Vercel
 * pnpm
@@ -62,7 +94,16 @@ metropolisweb/
 │     │  ├─ admin/
 │     │  ├─ login/
 │     │  ├─ me/
+│     │  ├─ notices/
+│     │  ├─ olive/
 │     │  ├─ settings/
+│     │  ├─ style-agora-record/
+│     │  ├─ style-athena-poseidon/
+│     │  ├─ style-country-themes/
+│     │  ├─ style-experimental-layouts/
+│     │  ├─ style-gazette-variations/
+│     │  ├─ style-preview/
+│     │  ├─ style-previews/
 │     │  ├─ topics/
 │     │  ├─ layout.tsx
 │     │  └─ page.tsx
@@ -72,7 +113,6 @@ metropolisweb/
 │     │  ├─ auth.ts
 │     │  └─ datetime.ts
 │     ├─ public/
-│     ├─ .env.local
 │     ├─ package.json
 │     └─ next.config.ts
 ├─ README.md
@@ -84,7 +124,7 @@ metropolisweb/
 ### 1. 저장소 클론
 
 ```bash
-git clone https://github.com/본인아이디/metropolisweb.git
+git clone https://github.com/YGW1235/metropolisweb.git
 cd metropolisweb
 ```
 
@@ -104,14 +144,14 @@ NEXT_PUBLIC_SUPABASE_URL=본인_SUPABASE_PROJECT_URL
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=본인_SUPABASE_PUBLISHABLE_KEY
 ```
 
-주의: 아래 키는 절대 넣지 않습니다.
+주의: 아래 키는 프론트엔드 프로젝트에 넣지 않습니다.
 
 ```env
 SUPABASE_SERVICE_ROLE_KEY=
 SUPABASE_SECRET_KEY=
 ```
 
-현재 프로젝트는 Supabase RLS와 DB 함수 기반으로 동작하므로 service role key가 필요하지 않습니다.
+현재 프로젝트는 Supabase RLS와 DB 함수 기반으로 동작하므로 클라이언트 앱에 service role key가 필요하지 않습니다.
 
 ### 4. 개발 서버 실행
 
@@ -154,20 +194,48 @@ topic_participants
 debate_posts
 debate_comments
 reports
+notices
+olive_trees
+olive_watering_logs
 ```
 
 주요 DB 함수는 다음과 같습니다.
 
 ```txt
 handle_new_user
+is_admin
+is_topic_participant
 join_topic
 create_debate_post
 create_debate_comment
+delete_my_debate_comment
 create_report
 moderate_report
 update_my_profile
-is_admin
-is_topic_participant
+water_olive
+```
+
+## Supabase Storage 설정
+
+게시글 이미지 업로드를 위해 Supabase Storage 버킷이 필요합니다.
+
+```txt
+Bucket name:
+debate-images
+```
+
+이미지 업로드 조건:
+
+```txt
+허용 형식: JPG, PNG, WEBP
+최대 크기: 5MB
+```
+
+게시글 이미지 정보는 `debate_posts` 테이블의 이미지 관련 컬럼에 저장됩니다.
+
+```txt
+image_url
+image_path
 ```
 
 ## Supabase Auth URL 설정
@@ -243,6 +311,38 @@ archived
 - 참가 / 작성 불가
 ```
 
+## 공지사항 상태
+
+공지사항은 다음 상태를 가집니다.
+
+```txt
+draft
+- 관리자 작성 중 상태
+- 일반 유저에게 보이지 않음
+
+published
+- 일반 유저에게 공개
+- 공지 목록과 상세 페이지에서 확인 가능
+```
+
+공지사항은 고정 여부를 설정할 수 있습니다.
+
+```txt
+is_pinned = true
+```
+
+## 올리브 가지 기능
+
+올리브 가지는 유저 참여를 유도하기 위한 가벼운 리텐션 기능입니다.
+
+```txt
+- 로그인한 유저가 하루에 한 번 물주기 가능
+- 총 물주기 횟수 기록
+- 연속 물주기 일수 기록
+- 최고 연속 기록 저장
+- 오늘 물을 줬는지 여부 표시
+```
+
 ## Vercel 배포
 
 Vercel에서 GitHub 저장소를 Import합니다.
@@ -310,18 +410,52 @@ GitHub에 push하면 Vercel이 자동으로 Production 배포를 진행합니다
 [ ] 관리자 주제 생성
 [ ] 관리자 주제 수정
 [ ] 관리자 주제 상태 변경
+[ ] 관리자 주제 삭제 처리
 [ ] 일반 유저 주제 목록 확인
 [ ] 일반 유저 주제 참가
 [ ] 찬성 / 반대 역할 자동 배정
 [ ] 토론방 입장
 [ ] 게시글 작성
+[ ] 이미지 첨부 게시글 작성
+[ ] 게시글 상세 보기
+[ ] 게시글 삭제
 [ ] 댓글 작성
+[ ] 댓글 삭제
 [ ] 찬성 / 반대 필터
 [ ] 게시글 신고
 [ ] 댓글 신고
 [ ] 관리자 신고 확인
 [ ] 관리자 숨김 처리
+[ ] 공지사항 목록 확인
+[ ] 공지사항 상세 확인
+[ ] 관리자 공지 작성
+[ ] 관리자 공지 수정
+[ ] 관리자 공지 삭제
+[ ] 올리브 가지 물주기
 [ ] 모바일 화면 확인
+```
+
+## 운영 전 확인할 항목
+
+현재 개발 편의를 위해 남아 있는 테스트성 라우트는 실제 유저 테스트 전 정리하는 것이 좋습니다.
+
+```txt
+/supabase-test
+/style-preview
+/style-previews
+/style-athena-poseidon
+/style-country-themes
+/style-experimental-layouts
+/style-gazette-variations
+/style-agora-record
+```
+
+선택지는 다음과 같습니다.
+
+```txt
+1. 삭제
+2. 관리자 전용으로 보호
+3. 개발 환경에서만 접근 가능하게 제한
 ```
 
 ## 보안 메모
@@ -332,19 +466,17 @@ GitHub에 push하면 Vercel이 자동으로 Production 배포를 진행합니다
 * 관리자 페이지는 서버에서 admin 권한을 확인합니다.
 * 주요 데이터 변경은 Server Action과 Supabase DB 함수를 통해 처리합니다.
 * 공개 테이블에는 RLS를 적용합니다.
-
-## 현재 버전
-
-```txt
-v0.2.0
-```
+* 이미지 업로드는 파일 형식과 크기를 제한합니다.
+* 삭제 기능은 실제 삭제와 소프트 삭제를 구분해서 관리합니다.
 
 ## 향후 개선 예정
 
 * Supabase SQL migration 파일 정리
 * 관리자 운영 문서 작성
-* 유저 제재 기능 강화
+* 테스트 라우트 정리
+* 스타일 미리보기 라우트 보호 또는 제거
 * 신고 처리 이력 관리
+* 유저 제재 기능 강화
 * 토론 품질 개선 기능
 * 실제 유저 테스트
 * 커스텀 도메인 연결
