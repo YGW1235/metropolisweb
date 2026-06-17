@@ -1,6 +1,8 @@
-import { joinTopic } from "@/app/actions/participants";
-import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 import { notFound } from "next/navigation";
+
+import { joinTopic } from "@/app/actions/topics";
+import { createClient } from "@/lib/supabase/server";
 
 type TopicDetailPageProps = {
   params: Promise<{
@@ -8,46 +10,317 @@ type TopicDetailPageProps = {
   }>;
   searchParams: Promise<{
     message?: string;
+    type?: string;
   }>;
 };
 
-function sideLabel(side: string | null | undefined) {
-  if (side === "pro") return "찬성";
-  if (side === "con") return "반대";
-  return "미배정";
+type Topic = {
+  id: string;
+  title: string;
+  description: string | null;
+  status: string | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  created_at: string | null;
+  athena_position: string | null;
+  poseidon_position: string | null;
+};
+
+type Participation = {
+  assigned_side: string | null;
+  side_index: number | null;
+};
+
+function AthenaIcon() {
+  return (
+    <span className="flex h-14 w-14 items-center justify-center rounded-full border border-[var(--theme-gold)] bg-[var(--athena-surface-soft)] text-3xl text-[var(--athena-text)] shadow-[var(--shadow-athena-icon)] transition-[background-color,box-shadow,color,border-color] duration-300">
+      ♜
+    </span>
+  );
 }
 
-function topicStatusLabel(status: string) {
-  if (status === "draft") return "준비 중";
+function PoseidonIcon() {
+  return (
+    <span className="flex h-14 w-14 items-center justify-center rounded-full border border-[var(--theme-blue)] bg-[var(--poseidon-surface-soft)] text-3xl text-[var(--poseidon-text)] shadow-[var(--shadow-poseidon-icon)] transition-[background-color,box-shadow,color,border-color] duration-300">
+      Ψ
+    </span>
+  );
+}
+
+function BalanceIcon() {
+  return (
+    <span className="flex h-14 w-14 items-center justify-center rounded-full border border-[var(--theme-line)] bg-[var(--theme-surface)] text-3xl text-[var(--theme-gold)] shadow-[var(--shadow-card)] transition-[background-color,box-shadow,color,border-color] duration-300">
+      ◇
+    </span>
+  );
+}
+
+function getStatusLabel(status: string | null) {
   if (status === "open") return "참가 가능";
-  if (status === "active") return "토론 진행 중";
-  if (status === "closed") return "종료됨";
-  if (status === "archived") return "보관됨";
-  return status;
+  if (status === "active") return "진행 중";
+  if (status === "closed") return "종료";
+  return "비공개";
 }
 
-function topicStatusDescription(status: string) {
-  if (status === "draft") {
-    return "아직 공개되지 않은 주제입니다.";
-  }
-
+function getStatusClass(status: string | null) {
   if (status === "open") {
-    return "현재 참가할 수 있는 주제입니다. 참가하면 찬성 또는 반대 역할이 자동으로 배정됩니다.";
+    return "border-[var(--theme-gold)] bg-[var(--athena-surface-soft)] text-[var(--athena-text)]";
   }
 
   if (status === "active") {
-    return "현재 토론이 진행 중입니다. 이미 참가한 유저만 토론방에 입장할 수 있습니다.";
+    return "border-[var(--theme-blue)] bg-[var(--poseidon-surface-soft)] text-[var(--poseidon-text)]";
   }
 
-  if (status === "closed") {
-    return "종료된 토론입니다. 더 이상 참가하거나 글을 작성할 수 없습니다.";
+  return "border-[var(--theme-line)] bg-[var(--theme-surface)] text-[var(--theme-muted)]";
+}
+
+function formatDate(value: string | null) {
+  if (!value) return null;
+
+  return new Intl.DateTimeFormat("ko-KR", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(new Date(value));
+}
+
+function getSideLabel(side: string | null | undefined) {
+  if (side === "pro") return "아테나 진영";
+  if (side === "con") return "포세이돈 진영";
+  return "아직 진영을 선택하지 않았습니다";
+}
+
+function getPositionText(value: string | null, fallback: string) {
+  const trimmed = value?.trim();
+
+  if (!trimmed) {
+    return fallback;
   }
 
-  if (status === "archived") {
-    return "보관 처리된 주제입니다.";
-  }
+  return trimmed;
+}
 
-  return "";
+function TopicPositionText({
+  athenaPosition,
+  poseidonPosition,
+}: {
+  athenaPosition: string | null;
+  poseidonPosition: string | null;
+}) {
+  return (
+    <div className="mt-8 border-t border-[var(--theme-line)] pt-6">
+      <p className="text-xs font-black uppercase tracking-[0.26em] text-[var(--theme-gold)]">
+        Two Perspectives
+      </p>
+
+      <h2 className="mt-3 font-serif text-2xl font-black text-[var(--theme-text)]">
+        양측의 기본 입장
+      </h2>
+
+      <p className="mt-3 text-sm leading-7 text-[var(--theme-muted)]">
+        아래 내용은 각 진영이 토론을 시작할 때 참고할 수 있는 관점입니다.
+        반드시 그대로 따라야 하는 답안은 아니며, 자신의 논리와 근거로 자유롭게
+        확장할 수 있습니다.
+      </p>
+
+      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        <div className="border-l-2 border-[var(--theme-gold)] pl-5">
+          <p className="text-xs font-black uppercase tracking-[0.22em] text-[var(--theme-gold)]">
+            Athena View
+          </p>
+
+          <h3 className="mt-2 font-serif text-xl font-black text-[var(--athena-text)]">
+            아테나 측 입장
+          </h3>
+
+          <p className="mt-3 whitespace-pre-wrap text-sm leading-8 text-[var(--athena-muted)]">
+            {getPositionText(
+              athenaPosition,
+              "아직 아테나 측 기본 입장이 입력되지 않았습니다.",
+            )}
+          </p>
+        </div>
+
+        <div className="border-l-2 border-[var(--theme-blue)] pl-5">
+          <p className="text-xs font-black uppercase tracking-[0.22em] text-[var(--theme-blue)]">
+            Poseidon View
+          </p>
+
+          <h3 className="mt-2 text-xl font-black text-[var(--poseidon-text)]">
+            포세이돈 측 입장
+          </h3>
+
+          <p className="mt-3 whitespace-pre-wrap text-sm leading-8 text-[var(--poseidon-muted)]">
+            {getPositionText(
+              poseidonPosition,
+              "아직 포세이돈 측 기본 입장이 입력되지 않았습니다.",
+            )}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone: "gold" | "blue" | "stone";
+}) {
+  const valueClass =
+    tone === "gold"
+      ? "text-[var(--athena-text)]"
+      : tone === "blue"
+        ? "text-[var(--poseidon-text)]"
+        : "text-[var(--theme-text)]";
+
+  return (
+    <div className="rounded-2xl border border-[var(--theme-line)] bg-[var(--theme-surface)] p-5 transition-colors duration-300">
+      <p className="text-xs font-black uppercase tracking-[0.22em] text-[var(--theme-soft)]">
+        {label}
+      </p>
+      <p className={`mt-3 text-3xl font-black ${valueClass}`}>{value}</p>
+    </div>
+  );
+}
+
+function JoinOptionCard({
+  side,
+  title,
+  subtitle,
+  description,
+  disabled,
+  topicId,
+  userExists,
+  alreadyJoined,
+}: {
+  side: "auto" | "pro" | "con";
+  title: string;
+  subtitle: string;
+  description: string;
+  disabled: boolean;
+  topicId: string;
+  userExists: boolean;
+  alreadyJoined: boolean;
+}) {
+  const isAthena = side === "pro";
+  const isPoseidon = side === "con";
+  const isAuto = side === "auto";
+
+  const icon = isAthena ? (
+    <AthenaIcon />
+  ) : isPoseidon ? (
+    <PoseidonIcon />
+  ) : (
+    <BalanceIcon />
+  );
+
+  const titleClass = isAthena
+    ? "font-serif text-[var(--athena-text)]"
+    : isPoseidon
+      ? "text-[var(--poseidon-text)]"
+      : "font-serif text-[var(--theme-text)]";
+
+  const eyebrowClass = isAthena
+    ? "text-[var(--theme-gold)]"
+    : isPoseidon
+      ? "text-[var(--theme-blue)]"
+      : "text-[var(--theme-gold)]";
+
+  const bodyClass = isAthena
+    ? "text-[var(--athena-muted)]"
+    : isPoseidon
+      ? "text-[var(--poseidon-muted)]"
+      : "text-[var(--theme-muted)]";
+
+  const bgClass = isAthena
+    ? "bg-[var(--athena-surface-soft)]"
+    : isPoseidon
+      ? "bg-[var(--poseidon-surface-soft)]"
+      : "bg-[var(--theme-panel)]";
+
+  const buttonClass = isAthena
+    ? "border-[var(--theme-gold)] bg-[var(--theme-gold)] text-[var(--theme-accent-contrast)]"
+    : isPoseidon
+      ? "border-[var(--theme-blue)] bg-[var(--theme-blue)] text-[var(--theme-accent-contrast)]"
+      : "border-[var(--theme-line)] bg-[var(--theme-text)] text-[var(--theme-bg)]";
+
+  return (
+    <article
+      className={`relative overflow-hidden rounded-[2rem] border border-[var(--theme-line)] ${bgClass} p-6 shadow-[var(--shadow-card-strong)] transition duration-300 hover:-translate-y-1`}
+      style={{
+        backgroundImage: isAthena
+          ? "radial-gradient(circle at 18% 0%, var(--page-glow-gold), transparent 34%)"
+          : isPoseidon
+            ? "radial-gradient(circle at 82% 0%, var(--page-glow-blue), transparent 34%)"
+            : "radial-gradient(circle at 50% 0%, var(--page-glow-gold), transparent 34%)",
+      }}
+    >
+      <div className="relative z-10">
+        <div className="flex items-center gap-4">
+          {icon}
+
+          <div>
+            <p
+              className={`text-xs font-black uppercase tracking-[0.28em] ${eyebrowClass}`}
+            >
+              {subtitle}
+            </p>
+
+            <h2 className={`mt-2 text-3xl font-black ${titleClass}`}>
+              {title}
+            </h2>
+          </div>
+        </div>
+
+        <p className={`mt-6 min-h-[5.5rem] text-sm leading-7 ${bodyClass}`}>
+          {description}
+        </p>
+
+        <div className="mt-8">
+          {!userExists ? (
+            <Link
+              href={`/login?message=${encodeURIComponent(
+                "로그인 후 진영에 참여할 수 있습니다.",
+              )}&redirectTo=${encodeURIComponent(`/topics/${topicId}`)}`}
+              className={`inline-flex w-full items-center justify-center border px-6 py-3 text-sm font-black shadow-[var(--shadow-button)] transition duration-300 hover:opacity-85 ${buttonClass}`}
+            >
+              로그인 후 참여
+            </Link>
+          ) : alreadyJoined ? (
+            <Link
+              href={`/topics/${topicId}/debate`}
+              className={`inline-flex w-full items-center justify-center border px-6 py-3 text-sm font-black shadow-[var(--shadow-button)] transition duration-300 hover:opacity-85 ${buttonClass}`}
+            >
+              토론장으로 이동
+              <span className="ml-3">›</span>
+            </Link>
+          ) : (
+            <form action={joinTopic}>
+              <input type="hidden" name="topic_id" value={topicId} />
+              <input type="hidden" name="side" value={side} />
+
+              <button
+                type="submit"
+                disabled={disabled}
+                className={`inline-flex w-full items-center justify-center border px-6 py-3 text-sm font-black shadow-[var(--shadow-button)] transition duration-300 hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-45 ${buttonClass}`}
+              >
+                {isAuto
+                  ? "자동 배정으로 참여"
+                  : isAthena
+                    ? "아테나 진영 선택"
+                    : "포세이돈 진영 선택"}
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
+    </article>
+  );
 }
 
 export default async function TopicDetailPage({
@@ -59,139 +332,248 @@ export default async function TopicDetailPage({
 
   const supabase = await createClient();
 
+  const { data: topicData, error } = await supabase
+    .from("topics")
+    .select(
+      "id, title, description, status, starts_at, ends_at, created_at, athena_position, poseidon_position",
+    )
+    .eq("id", topicId)
+    .is("deleted_at", null)
+    .in("status", ["open", "active", "closed"])
+    .maybeSingle();
+
+  if (error || !topicData) {
+    notFound();
+  }
+
+  const topic = topicData as Topic;
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: topic, error } = await supabase
-    .from("topics")
-    .select("id, title, description, status, starts_at, ends_at, created_at")
-    .eq("id", topicId)
-    .single();
-
-  if (error || !topic) {
-    notFound();
-  }
-
-  let participation: {
-    assigned_side: string;
-    side_index: number;
-    joined_at: string;
-  } | null = null;
+  let participation: Participation | null = null;
 
   if (user) {
     const { data } = await supabase
       .from("topic_participants")
-      .select("assigned_side, side_index, joined_at")
-      .eq("topic_id", topic.id)
+      .select("assigned_side, side_index")
+      .eq("topic_id", topicId)
       .eq("user_id", user.id)
       .maybeSingle();
 
     participation = data;
   }
 
-  const canJoin = topic.status === "open" && !participation;
+  const { count: athenaCount } = await supabase
+    .from("topic_participants")
+    .select("*", { count: "exact", head: true })
+    .eq("topic_id", topicId)
+    .eq("assigned_side", "pro");
+
+  const { count: poseidonCount } = await supabase
+    .from("topic_participants")
+    .select("*", { count: "exact", head: true })
+    .eq("topic_id", topicId)
+    .eq("assigned_side", "con");
+
+  const startDate = formatDate(topic.starts_at);
+  const endDate = formatDate(topic.ends_at);
+  const canJoin = topic.status === "open" || topic.status === "active";
+  const alreadyJoined = Boolean(participation?.assigned_side);
 
   return (
-    <main className="min-h-screen bg-gray-950 px-4 py-10 text-white sm:px-6 sm:py-16">
-      <section className="mx-auto max-w-3xl">
-        <a href="/topics" className="text-sm text-blue-400 hover:underline">
-          ← 주제 목록으로 돌아가기
-        </a>
+    <main
+      className="min-h-screen bg-[var(--theme-bg)] text-[var(--theme-text)] transition-colors duration-300"
+      style={{
+        backgroundImage:
+          "radial-gradient(circle at 12% 0%, var(--page-glow-gold), transparent 28%), radial-gradient(circle at 88% 8%, var(--page-glow-blue), transparent 30%), linear-gradient(90deg, var(--page-grid-line) 1px, transparent 1px)",
+        backgroundSize: "auto, auto, 54px 54px",
+      }}
+    >
+      <section className="relative overflow-hidden border-b border-[var(--theme-line)] px-6 py-16 transition-colors duration-300">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[var(--theme-bg)]" />
 
-        {query.message ? (
-          <div className="mt-6 rounded-lg border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-200">
-            {query.message}
+        <div className="relative z-10 mx-auto max-w-7xl">
+          <Link
+            href="/topics"
+            className="inline-flex items-center text-sm font-bold text-[var(--theme-gold)] transition hover:opacity-80"
+          >
+            ‹ 의제 목록으로
+          </Link>
+
+          <div className="mt-8 grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  className={`rounded-full border px-3 py-1 text-xs font-black transition-colors duration-300 ${getStatusClass(
+                    topic.status,
+                  )}`}
+                >
+                  {getStatusLabel(topic.status)}
+                </span>
+
+                {startDate ? (
+                  <span className="rounded-full border border-[var(--theme-line)] bg-[var(--theme-surface)] px-3 py-1 text-xs font-bold text-[var(--theme-muted)] transition-colors duration-300">
+                    시작 {startDate}
+                  </span>
+                ) : null}
+
+                {endDate ? (
+                  <span className="rounded-full border border-[var(--theme-line)] bg-[var(--theme-surface)] px-3 py-1 text-xs font-bold text-[var(--theme-muted)] transition-colors duration-300">
+                    종료 {endDate}
+                  </span>
+                ) : null}
+              </div>
+
+              <p className="mt-8 text-xs font-black uppercase tracking-[0.32em] text-[var(--theme-gold)]">
+                Central Motion
+              </p>
+
+              <h1 className="mt-4 max-w-4xl font-serif text-5xl font-black leading-tight tracking-[0.06em] text-[var(--theme-text)] md:text-7xl">
+                {topic.title}
+              </h1>
+
+              <p className="mt-6 max-w-3xl text-sm leading-8 text-[var(--theme-muted)]">
+                {topic.description || "아직 설명이 등록되지 않은 의제입니다."}
+              </p>
+
+              <TopicPositionText
+                athenaPosition={topic.athena_position}
+                poseidonPosition={topic.poseidon_position}
+              />
+            </div>
+
+            <div className="rounded-[2rem] border border-[var(--theme-line)] bg-[var(--theme-surface)] p-6 shadow-[var(--shadow-card)] backdrop-blur transition duration-300">
+              <p className="text-xs font-black uppercase tracking-[0.28em] text-[var(--theme-gold)]">
+                Your Position
+              </p>
+
+              <h2 className="mt-3 font-serif text-3xl font-black text-[var(--theme-text)]">
+                {getSideLabel(participation?.assigned_side)}
+              </h2>
+
+              <p className="mt-4 text-sm leading-7 text-[var(--theme-muted)]">
+                진영을 선택하면 토론장에 발언을 남길 수 있습니다. 참여하지
+                않아도 토론방 관전은 가능합니다.
+              </p>
+
+              <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                <StatCard
+                  label="아테나"
+                  value={`${athenaCount ?? 0}`}
+                  tone="gold"
+                />
+                <StatCard
+                  label="포세이돈"
+                  value={`${poseidonCount ?? 0}`}
+                  tone="blue"
+                />
+                <StatCard
+                  label="총 시민"
+                  value={`${(athenaCount ?? 0) + (poseidonCount ?? 0)}`}
+                  tone="stone"
+                />
+              </div>
+
+              <Link
+                href={`/topics/${topic.id}/debate`}
+                className="mt-5 inline-flex w-full items-center justify-center border border-[var(--theme-line)] bg-[var(--theme-surface)] px-5 py-3 text-sm font-black text-[var(--theme-text)] transition hover:bg-[var(--theme-surface-hover)]"
+              >
+                토론방 관전하기
+                <span className="ml-2">›</span>
+              </Link>
+            </div>
           </div>
-        ) : null}
 
-        <div className="mt-8 rounded-lg border border-gray-700 bg-gray-900 p-5 sm:p-8">
-          <p className="text-sm text-blue-400">
-            {topicStatusLabel(topic.status)}
-          </p>
+          {query.message ? (
+            <div
+              className={
+                query.type === "success"
+                  ? "mt-8 rounded-2xl border bg-[var(--message-success-bg)] p-4 text-sm font-bold text-[var(--message-success-text)]"
+                  : "mt-8 rounded-2xl border bg-[var(--message-error-bg)] p-4 text-sm font-bold text-[var(--message-error-text)]"
+              }
+              style={{
+                borderColor:
+                  query.type === "success"
+                    ? "var(--message-success-line)"
+                    : "var(--message-error-line)",
+              }}
+            >
+              {query.message}
+            </div>
+          ) : null}
+        </div>
+      </section>
 
-          <h1 className="mt-3 text-3xl font-bold">{topic.title}</h1>
-
-          <p className="mt-6 whitespace-pre-wrap text-gray-300">
-            {topic.description}
-          </p>
-
-          <div className="mt-6 rounded-lg border border-gray-700 bg-gray-950 p-4 text-sm text-gray-300">
-            {topicStatusDescription(topic.status)}
-          </div>
-
-          <div className="mt-8 rounded-lg bg-gray-950 p-4 text-sm text-gray-300">
-            <p>
-              생성일:{" "}
-              {new Date(topic.created_at).toLocaleString("ko-KR", {
-                timeZone: "Asia/Seoul",
-              })}
+      <section className="px-6 py-14">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-8 text-center">
+            <p className="text-xs font-black uppercase tracking-[0.32em] text-[var(--theme-gold)]">
+              Choose Your Divine Bench
             </p>
 
-            {topic.starts_at ? (
-              <p className="mt-2">
-                시작:{" "}
-                {new Date(topic.starts_at).toLocaleString("ko-KR", {
-                  timeZone: "Asia/Seoul",
-                })}
-              </p>
-            ) : null}
+            <h2 className="mt-3 font-serif text-4xl font-black tracking-[0.08em] text-[var(--theme-text)]">
+              어떻게 참여하시겠습니까?
+            </h2>
 
-            {topic.ends_at ? (
-              <p className="mt-2">
-                종료:{" "}
-                {new Date(topic.ends_at).toLocaleString("ko-KR", {
-                  timeZone: "Asia/Seoul",
-                })}
-              </p>
-            ) : null}
+            <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-[var(--theme-muted)]">
+              자동 배정은 인원이 적은 진영으로 입장합니다. 직접 선택하면
+              원하는 진영으로 참여할 수 있습니다.
+            </p>
           </div>
 
-          {participation ? (
-            <div className="mt-8 rounded-lg border border-green-500/40 bg-green-500/10 p-5">
-              <p className="text-sm text-green-300">이미 참가한 주제입니다.</p>
-              <p className="mt-2 text-xl font-bold">
-                내 역할: {sideLabel(participation.assigned_side)} 익명 {participation.side_index}
-              </p>
+          <div className="grid gap-6 lg:grid-cols-3">
+            <JoinOptionCard
+              side="pro"
+              title="ATHENA"
+              subtitle="Wisdom · Order · Reason"
+              description="아테나 진영으로 참여합니다. 위 입장을 참고해 질서 있는 토론, 논리적 근거, 책임 있는 발언을 전개할 수 있습니다."
+              topicId={topic.id}
+              userExists={Boolean(user)}
+              alreadyJoined={alreadyJoined}
+              disabled={!canJoin || alreadyJoined}
+            />
 
-              {topic.status === "open" || topic.status === "active" ? (
-                <a
-                  href={`/topics/${topic.id}/debate`}
-                  className="mt-5 inline-block rounded-lg bg-blue-500 px-5 py-3 font-medium text-white hover:bg-blue-400"
-                >
-                  토론방 입장
-                </a>
-              ) : (
-                <div className="mt-5 rounded-lg border border-gray-700 bg-gray-950 p-4 text-sm text-gray-300">
-                  이 토론은 종료되어 더 이상 글이나 댓글을 작성할 수 없습니다.
-                </div>
-              )}
-            </div>
-          ) : topic.status === "open" ? (
-            <form action={joinTopic} className="mt-8">
-              <input type="hidden" name="topic_id" value={topic.id} />
+            <JoinOptionCard
+              side="auto"
+              title="AUTO"
+              subtitle="Balance · Fair Match"
+              description="현재 인원이 더 적은 진영으로 자동 배정됩니다. 기존의 균형 배정 방식입니다."
+              topicId={topic.id}
+              userExists={Boolean(user)}
+              alreadyJoined={alreadyJoined}
+              disabled={!canJoin || alreadyJoined}
+            />
 
-              <button className="w-full rounded-lg bg-blue-500 px-5 py-3 font-medium text-white hover:bg-blue-400">
-                참가하기
-              </button>
+            <JoinOptionCard
+              side="con"
+              title="POSEIDON"
+              subtitle="Storm · Force · Freedom"
+              description="포세이돈 진영으로 참여합니다. 위 입장을 참고해 변화의 힘, 현실적 반론, 자유로운 충돌을 전개할 수 있습니다."
+              topicId={topic.id}
+              userExists={Boolean(user)}
+              alreadyJoined={alreadyJoined}
+              disabled={!canJoin || alreadyJoined}
+            />
+          </div>
 
-              <p className="mt-3 text-center text-sm text-gray-400">
-                참가하면 찬성 또는 반대 역할이 자동으로 배정됩니다.
-              </p>
-            </form>
-          ) : topic.status === "active" ? (
-            <div className="mt-8 rounded-lg border border-yellow-500/40 bg-yellow-500/10 p-5 text-yellow-100">
-              현재 토론이 이미 진행 중입니다. 신규 참가자는 받을 수 없습니다.
-            </div>
-          ) : topic.status === "closed" ? (
-            <div className="mt-8 rounded-lg border border-gray-700 bg-gray-950 p-5 text-gray-300">
-              종료된 토론입니다. 더 이상 참가할 수 없습니다.
-            </div>
-          ) : (
-            <div className="mt-8 rounded-lg border border-gray-700 bg-gray-950 p-5 text-gray-300">
-              현재 참가할 수 없는 주제입니다.
-            </div>
-          )}
+          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+            <Link
+              href={`/topics/${topic.id}/debate`}
+              className="inline-flex items-center justify-center border border-[var(--theme-gold)] bg-[var(--theme-gold)] px-8 py-3 text-sm font-black text-[var(--theme-accent-contrast)] shadow-[var(--shadow-button)] transition duration-300 hover:opacity-85"
+            >
+              토론방 관전하기
+              <span className="ml-3">›</span>
+            </Link>
+
+            <Link
+              href="/topics"
+              className="inline-flex items-center justify-center border border-[var(--theme-line)] bg-[var(--theme-surface)] px-8 py-3 text-sm font-black text-[var(--theme-text)] shadow-[var(--shadow-button)] transition duration-300 hover:bg-[var(--theme-surface-hover)]"
+            >
+              다른 의제 보기
+            </Link>
+          </div>
         </div>
       </section>
     </main>

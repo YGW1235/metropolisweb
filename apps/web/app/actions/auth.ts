@@ -57,6 +57,10 @@ export async function signOut() {
 
   await supabase.auth.signOut();
 
-  revalidatePath("/", "layout");
-  redirect("/login");
+  const params = new URLSearchParams({
+    message: "로그아웃되었습니다.",
+    type: "success",
+  });
+
+  redirect(`/login?${params.toString()}`);
 }

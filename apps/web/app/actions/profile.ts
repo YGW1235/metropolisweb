@@ -2,20 +2,42 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+
 import { createClient } from "@/lib/supabase/server";
 
-function getRequiredString(formData: FormData, key: string) {
+function getString(formData: FormData, key: string) {
   const value = formData.get(key);
 
-  if (typeof value !== "string" || value.trim() === "") {
-    throw new Error(`${key} 값이 필요합니다.`);
+  if (typeof value !== "string") {
+    return "";
   }
 
   return value.trim();
 }
 
-export async function updateMyProfile(formData: FormData) {
-  const displayName = getRequiredString(formData, "display_name");
+function redirectWithMessage(
+  path: string,
+  message: string,
+  type: "success" | "error" = "success",
+) {
+  const params = new URLSearchParams({
+    message,
+    type,
+  });
+
+  redirect(`${path}?${params.toString()}`);
+}
+
+export async function updateProfile(formData: FormData) {
+  const displayName = getString(formData, "display_name");
+
+  if (displayName.length > 32) {
+    redirectWithMessage(
+      "/settings/profile",
+      "표시 이름은 32자 이하로 입력해주세요.",
+      "error",
+    );
+  }
 
   const supabase = await createClient();
 
@@ -27,22 +49,23 @@ export async function updateMyProfile(formData: FormData) {
     redirect(`/login?message=${encodeURIComponent("로그인 후 이용할 수 있습니다.")}`);
   }
 
-  const { error } = await supabase.rpc("update_my_profile", {
-    p_display_name: displayName,
-  });
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      display_name: displayName || null,
+    })
+    .eq("id", user.id);
 
   if (error) {
-    redirect(
-      `/settings/profile?message=${encodeURIComponent(error.message)}`,
-    );
+    redirectWithMessage("/settings/profile", error.message, "error");
   }
 
   revalidatePath("/me");
   revalidatePath("/settings/profile");
 
-  redirect(
-    `/settings/profile?message=${encodeURIComponent(
-      "프로필이 수정되었습니다.",
-    )}`,
+  redirectWithMessage(
+    "/settings/profile",
+    "프로필이 저장되었습니다.",
+    "success",
   );
 }

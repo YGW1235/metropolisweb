@@ -53,6 +53,42 @@ export default async function NewTopicPage({ searchParams }: NewTopicPageProps) 
             />
           </div>
 
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div>
+              <label className="block text-sm font-bold text-[var(--theme-muted)]">
+                아테나 측 기본 주장
+              </label>
+
+              <textarea
+                name="athena_position"
+                rows={7}
+                className="mt-2 w-full rounded-xl border border-[var(--theme-line)] bg-[var(--theme-surface)] px-4 py-3 text-[var(--theme-text)] outline-none transition placeholder:text-[var(--theme-soft)] focus:border-[var(--theme-gold)]"
+                placeholder="아테나 측이 이 주제에서 출발점으로 삼을 주장을 입력하세요."
+              />
+
+              <p className="mt-2 text-xs font-bold text-[var(--theme-soft)]">
+                질서, 지혜, 제도, 안정성의 관점에서 작성하면 좋습니다.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-[var(--theme-muted)]">
+                포세이돈 측 기본 주장
+              </label>
+
+              <textarea
+                name="poseidon_position"
+                rows={7}
+                className="mt-2 w-full rounded-xl border border-[var(--theme-line)] bg-[var(--theme-surface)] px-4 py-3 text-[var(--theme-text)] outline-none transition placeholder:text-[var(--theme-soft)] focus:border-[var(--theme-blue)]"
+                placeholder="포세이돈 측이 이 주제에서 출발점으로 삼을 주장을 입력하세요."
+              />
+
+              <p className="mt-2 text-xs font-bold text-[var(--theme-soft)]">
+                변화, 자유, 현실성, 역동성의 관점에서 작성하면 좋습니다.
+              </p>
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-200">
               상태

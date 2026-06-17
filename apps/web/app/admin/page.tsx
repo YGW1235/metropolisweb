@@ -10,12 +10,9 @@ export default function AdminPage() {
         <div className="mt-8 grid gap-4 sm:grid-cols-2">
           <a
             href="/admin/topics"
-            className="rounded-lg border border-gray-700 bg-gray-900 p-6 hover:bg-gray-800"
+            className="inline-flex items-center justify-center border border-[var(--message-error-line)] bg-[var(--message-error-bg)] px-5 py-3 text-sm font-black text-[var(--message-error-text)] transition hover:opacity-80"
           >
-            <h2 className="text-xl font-bold">주제 관리</h2>
-            <p className="mt-2 text-gray-300">
-              토론 주제를 생성하고 상태를 확인합니다.
-            </p>
+            주제 관리하기
           </a>
 
           <a
@@ -35,6 +32,20 @@ export default function AdminPage() {
             <p className="mt-2 text-gray-300">
                 유저가 신고한 게시글과 댓글을 확인합니다.
             </p>
+          </a>
+
+          <a
+            href="/admin/notices/new"
+            className="inline-flex items-center justify-center border border-[var(--theme-gold)] bg-[var(--theme-gold)] px-5 py-3 text-sm font-black text-[var(--theme-accent-contrast)] shadow-[var(--shadow-button)] transition hover:opacity-85"
+          >
+            공지 작성하기
+          </a>
+
+          <a
+            href="/admin/notices"
+            className="inline-flex items-center justify-center border border-[var(--theme-blue)] bg-[var(--theme-blue)] px-5 py-3 text-sm font-black text-[var(--theme-accent-contrast)] shadow-[var(--shadow-button)] transition hover:opacity-85"
+          >
+            공지 관리하기
           </a>
 
 

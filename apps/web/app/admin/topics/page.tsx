@@ -1,8 +1,31 @@
-import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 import { redirect } from "next/navigation";
-import { archiveTopic, updateTopicStatus } from "@/app/actions/topics";
 
-async function requireAdmin() {
+import { deleteTopic } from "@/app/actions/admin-topics";
+import { updateTopicStatus } from "@/app/actions/topics";
+import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
+import { createClient } from "@/lib/supabase/server";
+
+type AdminTopicsPageProps = {
+  searchParams: Promise<{
+    message?: string;
+    type?: string;
+  }>;
+};
+
+type TopicStatus = "draft" | "open" | "active" | "closed" | "archived";
+
+type Topic = {
+  id: string;
+  title: string;
+  description: string | null;
+  status: TopicStatus;
+  starts_at: string | null;
+  ends_at: string | null;
+  created_at: string;
+};
+
+async function getAdminClient() {
   const supabase = await createClient();
 
   const {
@@ -10,158 +33,375 @@ async function requireAdmin() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    redirect(
+      `/login?message=${encodeURIComponent(
+        "관리자 기능은 로그인 후 이용할 수 있습니다.",
+      )}&redirectTo=${encodeURIComponent("/admin/topics")}`,
+    );
   }
 
   const { data: profile } = await supabase
     .from("profiles")
     .select("role, status")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
 
   if (profile?.role !== "admin" || profile?.status !== "active") {
-    redirect("/admin?message=관리자 권한이 필요합니다.");
+    redirect(
+      `/?message=${encodeURIComponent(
+        "관리자만 이용할 수 있는 기능입니다.",
+      )}&type=error`,
+    );
   }
 
   return supabase;
 }
 
-type AdminTopicsPageProps = {
-  searchParams: Promise<{
-    message?: string;
-  }>;
-};
+function formatDateTime(value: string | null) {
+  if (!value) return "기록 없음";
+
+  return new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
+function getStatusLabel(status: TopicStatus) {
+  if (status === "draft") return "임시저장";
+  if (status === "open") return "참가 가능";
+  if (status === "active") return "토론 진행 중";
+  if (status === "closed") return "종료";
+  if (status === "archived") return "보관";
+  return status;
+}
+
+function getStatusDescription(status: TopicStatus) {
+  if (status === "draft") return "관리자에게만 보임";
+  if (status === "open") return "사용자 참여 가능";
+  if (status === "active") return "토론 진행 중";
+  if (status === "closed") return "읽기 가능, 작성 제한";
+  if (status === "archived") return "일반 사용자에게 숨김";
+  return "상태 정보 없음";
+}
+
+function isPublicTopicStatus(status: TopicStatus) {
+  return status === "open" || status === "active" || status === "closed";
+}
+
+function TopicStatusBadge({ status }: { status: TopicStatus }) {
+  if (status === "open") {
+    return (
+      <span className="rounded-full border border-[var(--theme-gold)] bg-[var(--athena-surface-soft)] px-3 py-1 text-[11px] font-black text-[var(--theme-gold)]">
+        {getStatusLabel(status)}
+      </span>
+    );
+  }
+
+  if (status === "active") {
+    return (
+      <span className="rounded-full border border-[var(--theme-blue)] bg-[var(--poseidon-surface-soft)] px-3 py-1 text-[11px] font-black text-[var(--poseidon-text)]">
+        {getStatusLabel(status)}
+      </span>
+    );
+  }
+
+  if (status === "draft" || status === "archived") {
+    return (
+      <span className="rounded-full border border-[var(--theme-blue)] bg-[var(--poseidon-surface-soft)] px-3 py-1 text-[11px] font-black text-[var(--poseidon-text)]">
+        {getStatusLabel(status)}
+      </span>
+    );
+  }
+
+  return (
+    <span className="rounded-full border border-[var(--theme-line)] bg-[var(--theme-surface)] px-3 py-1 text-[11px] font-black text-[var(--theme-muted)]">
+      {getStatusLabel(status)}
+    </span>
+  );
+}
+
+function AdminStatCard({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone: "gold" | "blue" | "stone";
+}) {
+  const valueClass =
+    tone === "gold"
+      ? "text-[var(--theme-gold)]"
+      : tone === "blue"
+        ? "text-[var(--theme-blue)]"
+        : "text-[var(--theme-text)]";
+
+  return (
+    <div className="rounded-2xl border border-[var(--theme-line)] bg-[var(--theme-surface)] p-4 text-center">
+      <p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--theme-soft)]">
+        {label}
+      </p>
+      <p className={`mt-2 text-3xl font-black ${valueClass}`}>{value}</p>
+    </div>
+  );
+}
 
 export default async function AdminTopicsPage({
   searchParams,
 }: AdminTopicsPageProps) {
-  const params = await searchParams;
-  const supabase = await requireAdmin();
+  const query = await searchParams;
+  const supabase = await getAdminClient();
 
-  const { data: topics, error } = await supabase
+  const { data } = await supabase
     .from("topics")
     .select("id, title, description, status, starts_at, ends_at, created_at")
+    .is("deleted_at", null)
     .order("created_at", { ascending: false });
 
-  return (
-    <main className="min-h-screen bg-gray-950 px-6 py-16 text-white">
-      <section className="mx-auto max-w-5xl">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold">주제 관리</h1>
-            <p className="mt-3 text-gray-300">
-              운영자가 생성한 토론 주제를 관리합니다.
-            </p>
-            {params.message ? (
-              <div className="mt-6 rounded-lg border border-green-500/40 bg-green-500/10 p-4 text-sm text-green-200">
-                {params.message}
-              </div>
-            ) : null}
-          </div>
+  const topics = (data ?? []) as Topic[];
 
-          <a
-            href="/admin/topics/new"
-            className="rounded-lg bg-blue-500 px-4 py-3 font-medium text-white hover:bg-blue-400"
+  const draftCount = topics.filter((topic) => topic.status === "draft").length;
+  const openCount = topics.filter((topic) => topic.status === "open").length;
+  const activeCount = topics.filter((topic) => topic.status === "active").length;
+  const closedCount = topics.filter((topic) => topic.status === "closed").length;
+  const archivedCount = topics.filter(
+    (topic) => topic.status === "archived",
+  ).length;
+
+  return (
+    <main
+      className="min-h-screen bg-[var(--theme-bg)] px-4 py-10 text-[var(--theme-text)] transition-colors duration-300 sm:px-6 sm:py-14"
+      style={{
+        backgroundImage:
+          "radial-gradient(circle at 12% 0%, var(--page-glow-gold), transparent 28%), radial-gradient(circle at 88% 8%, var(--page-glow-blue), transparent 30%), linear-gradient(90deg, var(--page-grid-line) 1px, transparent 1px)",
+        backgroundSize: "auto, auto, 54px 54px",
+      }}
+    >
+      <section className="mx-auto max-w-7xl">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Link
+            href="/admin"
+            className="inline-flex items-center text-sm font-bold text-[var(--theme-gold)] transition hover:opacity-80"
           >
-            새 주제 생성
-          </a>
+            ‹ 관리자 페이지로 돌아가기
+          </Link>
+
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/admin/topics/new"
+              className="inline-flex items-center justify-center border border-[var(--theme-gold)] bg-[var(--theme-gold)] px-4 py-2 text-xs font-black text-[var(--theme-accent-contrast)] shadow-[var(--shadow-button)] transition hover:opacity-85"
+            >
+              새 주제 만들기
+            </Link>
+
+            <Link
+              href="/topics"
+              className="inline-flex items-center justify-center border border-[var(--theme-line)] bg-[var(--theme-surface)] px-4 py-2 text-xs font-black text-[var(--theme-text)] transition hover:bg-[var(--theme-surface-hover)]"
+            >
+              사용자 주제 목록 보기
+            </Link>
+          </div>
         </div>
 
-        {error ? (
-          <div className="mt-6 rounded-lg border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-200">
-            주제 목록을 불러오지 못했습니다: {error.message}
+        {query.message ? (
+          <div
+            className={
+              query.type === "error"
+                ? "mt-6 rounded-2xl border bg-[var(--message-error-bg)] p-4 text-sm font-bold text-[var(--message-error-text)]"
+                : "mt-6 rounded-2xl border bg-[var(--message-success-bg)] p-4 text-sm font-bold text-[var(--message-success-text)]"
+            }
+            style={{
+              borderColor:
+                query.type === "error"
+                  ? "var(--message-error-line)"
+                  : "var(--message-success-line)",
+            }}
+          >
+            {query.message}
           </div>
         ) : null}
 
-        <div className="mt-8 space-y-4">
-          {topics?.length ? (
-            topics.map((topic) => (
-              <article
-                key={topic.id}
-                className="rounded-lg border border-gray-700 bg-gray-900 p-6"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-sm text-blue-400">{topic.status}</p>
-                    <h2 className="mt-2 text-xl font-bold">{topic.title}</h2>
-                    <p className="mt-3 line-clamp-2 text-gray-300">
-                      {topic.description}
-                    </p>
-                  </div>
+        <div className="mt-8 overflow-hidden rounded-[2rem] border border-[var(--theme-line)] bg-[var(--theme-panel-strong)] shadow-[var(--shadow-card-strong)]">
+          <div className="grid lg:grid-cols-[0.85fr_1.15fr]">
+            <div className="bg-[var(--athena-surface)] p-6 sm:p-8">
+              <p className="text-xs font-black uppercase tracking-[0.28em] text-[var(--theme-gold)]">
+                Topic Admin
+              </p>
 
-                  <span className="rounded-full bg-gray-800 px-3 py-1 text-sm text-gray-300">
-                    {new Date(topic.created_at).toLocaleDateString("ko-KR")}
-                  </span>
-                </div>
-                <div className="mt-6 border-t border-gray-800 pt-5">
-                  <form action={updateTopicStatus} className="flex flex-wrap items-end gap-3">
-                    <input type="hidden" name="topic_id" value={topic.id} />
+              <h1 className="mt-4 font-serif text-4xl font-black tracking-[0.06em] text-[var(--theme-text)] sm:text-5xl">
+                주제 관리
+              </h1>
 
+              <p className="mt-5 text-sm leading-7 text-[var(--theme-muted)]">
+                토론 주제의 상태를 변경하고, 필요 없는 주제를 삭제 처리합니다.
+                삭제된 주제는 일반 사용자에게 보이지 않습니다.
+              </p>
+            </div>
+
+            <div className="grid gap-3 border-t border-[var(--theme-line)] bg-[var(--theme-panel)] p-6 sm:grid-cols-3 sm:p-8 xl:grid-cols-6 lg:border-l lg:border-t-0">
+              <AdminStatCard label="Total" value={topics.length} tone="stone" />
+              <AdminStatCard label="Draft" value={draftCount} tone="blue" />
+              <AdminStatCard label="Open" value={openCount} tone="gold" />
+              <AdminStatCard label="Active" value={activeCount} tone="blue" />
+              <AdminStatCard label="Closed" value={closedCount} tone="stone" />
+              <AdminStatCard
+                label="Archived"
+                value={archivedCount}
+                tone="stone"
+              />
+            </div>
+          </div>
+        </div>
+
+        <section className="mt-8 overflow-hidden rounded-[2rem] border border-[var(--theme-line)] bg-[var(--theme-panel)] shadow-[var(--shadow-card)]">
+          <div className="border-b border-[var(--theme-line)] bg-[var(--theme-panel-strong)] p-5">
+            <p className="text-xs font-black uppercase tracking-[0.28em] text-[var(--theme-blue)]">
+              Topic List
+            </p>
+          </div>
+
+          {topics.length ? (
+            <div className="divide-y divide-[var(--theme-line)]">
+              {topics.map((topic) => {
+                const canOpenUserPages = isPublicTopicStatus(topic.status);
+
+                return (
+                  <div
+                    key={topic.id}
+                    className="grid gap-4 bg-[var(--theme-surface)] p-5 transition hover:bg-[var(--theme-surface-hover)] lg:grid-cols-[1fr_14rem_22rem]"
+                  >
                     <div>
-                      <label className="block text-sm font-medium text-gray-300">
-                        상태 변경
-                      </label>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <TopicStatusBadge status={topic.status} />
 
-                      <select
-                        name="status"
-                        defaultValue={topic.status}
-                        className="mt-2 rounded-lg border border-gray-700 bg-gray-950 px-3 py-2 text-sm text-white outline-none focus:border-blue-500"
-                      >
-                        <option value="draft">draft - 임시저장</option>
-                        <option value="open">open - 참가 가능</option>
-                        <option value="active">active - 토론 진행 중</option>
-                        <option value="closed">closed - 종료</option>
-                        <option value="archived">archived - 보관</option>
-                      </select>
+                        <span className="rounded-full border border-[var(--theme-line)] bg-[var(--theme-panel)] px-3 py-1 text-[11px] font-black text-[var(--theme-soft)]">
+                          생성일 {formatDateTime(topic.created_at)}
+                        </span>
+                      </div>
+
+                      <h2 className="mt-3 font-serif text-2xl font-black text-[var(--theme-text)]">
+                        {topic.title}
+                      </h2>
+
+                      <p className="mt-2 text-sm leading-7 text-[var(--theme-muted)]">
+                        {topic.description || "설명이 없습니다."}
+                      </p>
                     </div>
 
-                    <button className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-400">
-                      변경
-                    </button>
+                    <div className="space-y-1 text-sm font-bold text-[var(--theme-muted)]">
+                      <p>시작: {formatDateTime(topic.starts_at)}</p>
+                      <p>종료: {formatDateTime(topic.ends_at)}</p>
+                      <p className="pt-2 text-xs text-[var(--theme-soft)]">
+                        {getStatusDescription(topic.status)}
+                      </p>
+                    </div>
 
-                    <a
-                      href={`/topics/${topic.id}`}
-                      className="rounded-lg border border-gray-600 px-4 py-2 text-sm font-medium text-gray-200 hover:bg-gray-800"
-                    >
-                      유저 화면 보기
-                    </a>
+                    <div className="space-y-3 lg:flex lg:flex-col lg:items-stretch lg:justify-center">
+                      <form action={updateTopicStatus} className="flex gap-2">
+                        <input type="hidden" name="topic_id" value={topic.id} />
+                        <input
+                          type="hidden"
+                          name="redirect_to"
+                          value="/admin/topics"
+                        />
 
-                    <a
-                      href={`/admin/topics/${topic.id}/edit`}
-                      className="rounded-lg border border-gray-600 px-4 py-2 text-sm font-medium text-gray-200 hover:bg-gray-800"
-                    >
-                      수정
-                    </a>
+                        <select
+                          name="status"
+                          defaultValue={topic.status}
+                          className="min-w-0 flex-1 rounded-xl border border-[var(--theme-line)] bg-[var(--theme-panel)] px-3 py-2 text-xs font-bold text-[var(--theme-text)] outline-none transition focus:border-[var(--theme-gold)]"
+                        >
+                          <option value="draft">draft - 임시저장</option>
+                          <option value="open">open - 참가 가능</option>
+                          <option value="active">
+                            active - 토론 진행 중
+                          </option>
+                          <option value="closed">closed - 종료</option>
+                          <option value="archived">archived - 보관</option>
+                        </select>
 
-                    <a
-                      href={`/topics/${topic.id}/debate`}
-                      className="rounded-lg border border-gray-600 px-4 py-2 text-sm font-medium text-gray-200 hover:bg-gray-800"
-                    >
-                      토론방 보기
-                    </a>
-                  </form>
-                  {topic.status !== "archived" ? (
-                    <form action={archiveTopic}>
-                      <input type="hidden" name="topic_id" value={topic.id} />
+                        <button className="inline-flex items-center justify-center border border-[var(--theme-gold)] bg-[var(--theme-gold)] px-3 py-2 text-xs font-black text-[var(--theme-accent-contrast)] shadow-[var(--shadow-button)] transition hover:opacity-85">
+                          변경
+                        </button>
+                      </form>
 
-                      <button className="rounded-lg border border-red-500/50 px-4 py-2 text-sm font-medium text-red-200 hover:bg-red-500/10">
-                        보관 처리
-                      </button>
-                    </form>
-                  ) : (
-                    <span className="rounded-lg border border-gray-700 px-4 py-2 text-sm text-gray-500">
-                      보관됨
-                    </span>
-                  )}
-                </div>
-              </article>
-            ))
+                      <div className="flex flex-col gap-2 sm:flex-row lg:justify-end">
+                        {canOpenUserPages ? (
+                          <>
+                            <Link
+                              href={`/topics/${topic.id}`}
+                              className="inline-flex items-center justify-center border border-[var(--theme-line)] bg-[var(--theme-panel)] px-4 py-2 text-xs font-black text-[var(--theme-text)] transition hover:bg-[var(--theme-surface-hover)]"
+                            >
+                              보기
+                            </Link>
+
+                            <Link
+                              href={`/topics/${topic.id}/debate`}
+                              className="inline-flex items-center justify-center border border-[var(--theme-blue)] bg-[var(--theme-blue)] px-4 py-2 text-xs font-black text-[var(--theme-accent-contrast)] shadow-[var(--shadow-button)] transition hover:opacity-85"
+                            >
+                              토론방
+                            </Link>
+                          </>
+                        ) : (
+                          <span className="inline-flex items-center justify-center border border-[var(--theme-line)] bg-[var(--theme-panel)] px-4 py-2 text-xs font-black text-[var(--theme-soft)]">
+                            사용자 비공개
+                          </span>
+                        )}
+
+                        <Link
+                          href={`/admin/topics/${topic.id}/edit`}
+                          className="inline-flex items-center justify-center border border-[var(--theme-line)] bg-[var(--theme-panel)] px-4 py-2 text-xs font-black text-[var(--theme-text)] transition hover:bg-[var(--theme-surface-hover)]"
+                        >
+                          수정
+                        </Link>
+
+                        <form action={deleteTopic}>
+                          <input
+                            type="hidden"
+                            name="topic_id"
+                            value={topic.id}
+                          />
+                          <input
+                            type="hidden"
+                            name="redirect_to"
+                            value="/admin/topics"
+                          />
+
+                          <ConfirmSubmitButton
+                            message="정말 이 주제를 삭제하시겠습니까? 삭제된 주제는 일반 사용자에게 보이지 않습니다."
+                            className="inline-flex w-full items-center justify-center border border-[var(--message-error-line)] bg-[var(--message-error-bg)] px-4 py-2 text-xs font-black text-[var(--message-error-text)] transition hover:opacity-80"
+                          >
+                            삭제
+                          </ConfirmSubmitButton>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           ) : (
-            <div className="rounded-lg border border-gray-700 bg-gray-900 p-8 text-center text-gray-300">
-              아직 생성된 주제가 없습니다.
+            <div className="p-10 text-center">
+              <p className="font-serif text-2xl font-black text-[var(--theme-text)]">
+                관리할 주제가 없습니다.
+              </p>
+
+              <p className="mt-3 text-sm text-[var(--theme-muted)]">
+                삭제되지 않은 주제가 이곳에 표시됩니다.
+              </p>
+
+              <Link
+                href="/admin/topics/new"
+                className="mt-6 inline-flex items-center justify-center border border-[var(--theme-gold)] bg-[var(--theme-gold)] px-5 py-3 text-sm font-black text-[var(--theme-accent-contrast)] shadow-[var(--shadow-button)] transition hover:opacity-85"
+              >
+                새 주제 만들기
+              </Link>
             </div>
           )}
-        </div>
+        </section>
       </section>
     </main>
   );
