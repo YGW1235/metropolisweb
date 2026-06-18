@@ -6,6 +6,19 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
 
+import { sendContactInquiryNotification } from "@/lib/email";
+
+
+type ContactInquiry = {
+  id: string;
+  email: string;
+  category: string;
+  title: string;
+  content: string;
+};
+
+
+
 function getString(formData: FormData, key: string) {
   const value = formData.get(key);
 
@@ -37,16 +50,34 @@ export async function createContactInquiry(formData: FormData) {
 
   const supabase = await createClient();
 
-  const { error } = await supabase.rpc("create_contact_inquiry", {
+  const { data: inquiry, error } = await supabase.rpc("create_contact_inquiry", {
     p_email: email,
     p_category: category,
     p_title: title,
     p_content: content,
   });
 
+  const inquiryData = inquiry as ContactInquiry | null;
+
+  await sendContactInquiryNotification({
+    inquiryId: inquiryData?.id ?? null,
+    email: inquiryData?.email ?? email,
+    category: inquiryData?.category ?? category,
+    title: inquiryData?.title ?? title,
+    content: inquiryData?.content ?? content,
+  });
+
   if (error) {
     redirectWithMessage("/contact", error.message, "error");
   }
+
+  await sendContactInquiryNotification({
+    inquiryId: inquiry?.id ?? null,
+    email: inquiry?.email ?? email,
+    category: inquiry?.category ?? category,
+    title: inquiry?.title ?? title,
+    content: inquiry?.content ?? content,
+  });
 
   redirectWithMessage(
     "/contact",
