@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
 
+import { logAdminActivity } from "@/lib/admin-log";
+
 type JoinSide = "auto" | "pro" | "con";
 type TopicStatus = "draft" | "open" | "active" | "closed" | "archived";
 
@@ -181,24 +183,48 @@ export async function createTopic(formData: FormData) {
   const athenaPosition = getNullableString(formData, "athena_position");
   const poseidonPosition = getNullableString(formData, "poseidon_position");
 
-  const { error } = await supabase.from("topics").insert({
-    title,
-    description,
-    status,
-    starts_at: startsAt,
-    ends_at: endsAt,
-    created_by: user.id,
-    athena_position: athenaPosition,
-    poseidon_position: poseidonPosition,
-  });
+  const { data: topic, error } = await supabase
+    .from("topics")
+    .insert({
+      title,
+      description,
+      status,
+      starts_at: startsAt,
+      ends_at: endsAt,
+      created_by: user.id,
+      athena_position: athenaPosition,
+      poseidon_position: poseidonPosition,
+    })
+    .select("id, title, status")
+    .single();
 
   if (error) {
     redirectWithMessage("/admin/topics/new", error.message, "error");
   }
 
+  if (!topic) {
+    redirectWithMessage(
+      "/admin/topics/new",
+      "생성된 주제 정보를 확인할 수 없습니다.",
+      "error",
+    );
+  }
+
+  await logAdminActivity(supabase, {
+    action: "topic.created",
+    targetType: "topic",
+    targetId: topic.id,
+    summary: "토론 주제를 생성했습니다.",
+    metadata: {
+      title: topic.title,
+      status: topic.status,
+    },
+  });
+
   revalidatePath("/");
   revalidatePath("/topics");
   revalidatePath("/admin/topics");
+  revalidatePath("/admin/activity");
 
   redirectWithMessage("/admin/topics", "주제가 생성되었습니다.", "success");
 }
@@ -218,21 +244,43 @@ export async function updateTopicStatus(formData: FormData) {
     );
   }
 
-  const { error } = await supabase
+  const { data: topic, error } = await supabase
     .from("topics")
     .update({
       status,
     })
-    .eq("id", topicId);
+    .eq("id", topicId)
+    .select("id, title, status")
+    .single();
 
   if (error) {
     redirectWithMessage("/admin/topics", error.message, "error");
   }
 
+  if (!topic) {
+    redirectWithMessage(
+      "/admin/topics",
+      "상태를 변경한 주제 정보를 확인할 수 없습니다.",
+      "error",
+    );
+  }
+
+  await logAdminActivity(supabase, {
+    action: "topic.status_changed",
+    targetType: "topic",
+    targetId: topic.id,
+    summary: "토론 주제 상태를 변경했습니다.",
+    metadata: {
+      title: topic.title,
+      status: topic.status,
+    },
+  });
+
   revalidatePath("/topics");
   revalidatePath("/admin/topics");
   revalidatePath(`/topics/${topicId}`);
   revalidatePath(`/topics/${topicId}/debate`);
+  revalidatePath("/admin/activity");
 
   redirectWithMessage(
     "/admin/topics",
@@ -265,7 +313,7 @@ export async function updateTopic(formData: FormData) {
   const startsAt = getOptionalKstDateTime(formData, "starts_at");
   const endsAt = getOptionalKstDateTime(formData, "ends_at");
 
-  const { error } = await supabase
+  const { data: topic, error } = await supabase
     .from("topics")
     .update({
       title,
@@ -276,7 +324,9 @@ export async function updateTopic(formData: FormData) {
       athena_position: athenaPosition,
       poseidon_position: poseidonPosition,
     })
-    .eq("id", topicId);
+    .eq("id", topicId)
+    .select("id, title, status")
+    .single();
 
   if (error) {
     redirectWithMessage(
@@ -286,12 +336,36 @@ export async function updateTopic(formData: FormData) {
     );
   }
 
+  if (!topic) {
+    redirectWithMessage(
+      `/admin/topics/${topicId}/edit`,
+      "수정된 주제 정보를 확인할 수 없습니다.",
+      "error",
+    );
+  }
+
+  await logAdminActivity(supabase, {
+    action: "topic.updated",
+    targetType: "topic",
+    targetId: topic.id,
+    summary: "토론 주제를 수정했습니다.",
+    metadata: {
+      title: topic.title,
+      status: topic.status,
+      starts_at: startsAt,
+      ends_at: endsAt,
+      athena_position: athenaPosition,
+      poseidon_position: poseidonPosition,
+    },
+  });
+
   revalidatePath("/");
   revalidatePath("/topics");
   revalidatePath("/admin/topics");
   revalidatePath(`/topics/${topicId}`);
   revalidatePath(`/topics/${topicId}/debate`);
   revalidatePath(`/admin/topics/${topicId}/edit`);
+  revalidatePath("/admin/activity");
 
   redirectWithMessage("/admin/topics", "주제가 수정되었습니다.", "success");
 }
@@ -301,21 +375,43 @@ export async function archiveTopic(formData: FormData) {
 
   const topicId = getRequiredString(formData, "topic_id");
 
-  const { error } = await supabase
+  const { data: topic, error } = await supabase
     .from("topics")
     .update({
       status: "archived",
     })
-    .eq("id", topicId);
+    .eq("id", topicId)
+    .select("id, title, status")
+    .single();
 
   if (error) {
     redirectWithMessage("/admin/topics", error.message, "error");
   }
 
+  if (!topic) {
+    redirectWithMessage(
+      "/admin/topics",
+      "보관 처리한 주제 정보를 확인할 수 없습니다.",
+      "error",
+    );
+  }
+
+  await logAdminActivity(supabase, {
+    action: "topic.archived",
+    targetType: "topic",
+    targetId: topic.id,
+    summary: "토론 주제를 보관 처리했습니다.",
+    metadata: {
+      title: topic.title,
+      status: topic.status,
+    },
+  });
+
   revalidatePath("/topics");
   revalidatePath("/admin/topics");
   revalidatePath(`/topics/${topicId}`);
   revalidatePath(`/topics/${topicId}/debate`);
+  revalidatePath("/admin/activity");
 
   redirectWithMessage(
     "/admin/topics",
