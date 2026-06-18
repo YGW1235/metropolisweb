@@ -88,6 +88,16 @@ export default function AdminPage() {
             </p>
           </a>
 
+          <a
+            href="/admin/security"
+            className="rounded-xl border border-gray-800 bg-gray-950 p-5 hover:border-blue-500/60"
+          >
+            <p className="text-lg font-semibold text-gray-100">관리자 보안 점검</p>
+            <p className="mt-2 text-sm text-gray-400">
+              관리자 계정 상태, 이메일 인증, 예비 관리자 여부를 확인합니다.
+            </p>
+          </a>
+
 
         </div>
       </section>
