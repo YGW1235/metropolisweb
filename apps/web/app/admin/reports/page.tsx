@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { moderateReport } from "@/app/actions/moderation";
 
+import { setReportTargetAuthorStatus } from "@/app/actions/user-moderation";
+
 async function requireAdmin() {
   const supabase = await createClient();
 
@@ -210,6 +212,58 @@ export default async function AdminReportsPage({
                           신고 기각
                         </button>
                       </form>
+                      <div className="mt-5 rounded-xl border border-red-500/20 bg-red-500/10 p-4">
+                        <p className="text-sm font-semibold text-red-100">작성자 제재</p>
+                        <p className="mt-1 text-xs text-red-100/70">
+                          신고 대상 게시글/댓글의 작성자를 정지하거나 복구합니다. 관리자 계정은 정지할 수 없습니다.
+                        </p>
+
+                        <div className="mt-4 grid gap-3 md:grid-cols-2">
+                          <form
+                            action={setReportTargetAuthorStatus}
+                            className="rounded-lg border border-red-500/20 bg-gray-950 p-3"
+                          >
+                            <input type="hidden" name="report_id" value={report.id} />
+                            <input type="hidden" name="status" value="suspended" />
+
+                            <textarea
+                              name="reason"
+                              rows={2}
+                              placeholder="정지 사유를 입력하세요. 예: 반복적인 욕설/도배"
+                              className="mb-2 w-full rounded-lg border border-gray-700 bg-gray-950 px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500"
+                            />
+
+                            <button
+                              type="submit"
+                              className="w-full rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-500"
+                            >
+                              대상 작성자 정지
+                            </button>
+                          </form>
+
+                          <form
+                            action={setReportTargetAuthorStatus}
+                            className="rounded-lg border border-emerald-500/20 bg-gray-950 p-3"
+                          >
+                            <input type="hidden" name="report_id" value={report.id} />
+                            <input type="hidden" name="status" value="active" />
+
+                            <textarea
+                              name="reason"
+                              rows={2}
+                              placeholder="복구 사유를 입력하세요. 예: 오처리로 인한 복구"
+                              className="mb-2 w-full rounded-lg border border-gray-700 bg-gray-950 px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500"
+                            />
+
+                            <button
+                              type="submit"
+                              className="w-full rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500"
+                            >
+                              대상 작성자 복구
+                            </button>
+                          </form>
+                        </div>
+                      </div>
                     </>
                   ) : null}
                 </div>
