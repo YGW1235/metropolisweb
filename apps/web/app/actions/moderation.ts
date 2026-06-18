@@ -29,10 +29,13 @@ export async function moderateReport(formData: FormData) {
     redirect("/login");
   }
 
+  const noteValue = formData.get("note");
+  const note = typeof noteValue === "string" ? noteValue.trim() : "";
+
   const { error } = await supabase.rpc("moderate_report", {
     p_report_id: reportId,
     p_action: action,
-    p_note: null,
+    p_note: note || null,
   });
 
   if (error) {

@@ -64,7 +64,7 @@ export default async function AdminReportsPage({
   const { data: reports, error } = await supabase
     .from("reports")
     .select(
-      "id, reporter_id, topic_id, post_id, target_type, target_id, reason, detail, status, created_at",
+      "id, reporter_id, topic_id, post_id, target_type, target_id, reason, detail, status, created_at, moderation_note, moderated_by, moderated_at",
     )
     .order("created_at", { ascending: false });
 
@@ -133,6 +133,32 @@ export default async function AdminReportsPage({
                   <p className="break-all">Topic ID: {report.topic_id}</p>
                   <p className="break-all">Post ID: {report.post_id}</p>
                 </div>
+                {report.moderated_at || report.moderation_note || report.moderated_by ? (
+                  <div className="mt-4 rounded-lg border border-blue-500/20 bg-blue-500/10 p-4 text-sm text-blue-100">
+                    <p className="font-semibold">처리 이력</p>
+
+                    {report.moderation_note ? (
+                      <p className="mt-2 whitespace-pre-wrap">
+                        메모: {report.moderation_note}
+                      </p>
+                    ) : null}
+
+                    {report.moderated_by ? (
+                      <p className="mt-2 break-all text-blue-200/80">
+                        처리자 ID: {report.moderated_by}
+                      </p>
+                    ) : null}
+
+                    {report.moderated_at ? (
+                      <p className="mt-1 text-blue-200/80">
+                        처리 시간:{" "}
+                        {new Date(report.moderated_at).toLocaleString("ko-KR", {
+                          timeZone: "Asia/Seoul",
+                        })}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
 
                 {report.post_id ? (
                   <a
@@ -143,12 +169,19 @@ export default async function AdminReportsPage({
                   </a>
                 ) : null}
 
-                <div className="mt-5 flex flex-wrap gap-3">
+                <div className="mt-5 grid gap-3 md:grid-cols-3">
                   {report.status === "pending" ? (
-                    <form action={moderateReport}>
+                    <form action={moderateReport} className="rounded-lg border border-gray-800 bg-gray-950 p-3">
                       <input type="hidden" name="report_id" value={report.id} />
                       <input type="hidden" name="topic_id" value={report.topic_id} />
                       <input type="hidden" name="action" value="reviewing" />
+
+                      <textarea
+                        name="note"
+                        rows={2}
+                        placeholder="처리 메모를 입력하세요. 선택 사항입니다."
+                        className="mb-2 w-full rounded-lg border border-gray-700 bg-gray-950 px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500"
+                      />
 
                       <button className="rounded-lg border border-yellow-500/50 px-4 py-2 text-sm font-medium text-yellow-200 hover:bg-yellow-500/10">
                         검토 중으로 변경
@@ -158,7 +191,7 @@ export default async function AdminReportsPage({
 
                   {report.status === "pending" || report.status === "reviewing" ? (
                     <>
-                      <form action={moderateReport}>
+                      <form action={moderateReport} className="rounded-lg border border-gray-800 bg-gray-950 p-3">
                         <input type="hidden" name="report_id" value={report.id} />
                         <input type="hidden" name="topic_id" value={report.topic_id} />
                         <input type="hidden" name="action" value="hide_target" />
@@ -168,7 +201,7 @@ export default async function AdminReportsPage({
                         </button>
                       </form>
 
-                      <form action={moderateReport}>
+                      <form action={moderateReport} className="rounded-lg border border-gray-800 bg-gray-950 p-3">
                         <input type="hidden" name="report_id" value={report.id} />
                         <input type="hidden" name="topic_id" value={report.topic_id} />
                         <input type="hidden" name="action" value="dismiss" />
