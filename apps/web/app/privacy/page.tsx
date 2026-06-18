@@ -56,7 +56,7 @@ const sections = [
     title: "8. 문의",
     body: [
       "개인정보 관련 문의는 문의하기 페이지를 통해 접수해주세요.",
-      "운영자 연락처: 운영자 이메일을 입력하세요.",
+      "운영자 연락처: metropolisathenswar@gmail.com",
     ],
   },
 ];

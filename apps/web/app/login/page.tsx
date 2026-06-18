@@ -98,6 +98,30 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       );
     }
 
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("status")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (profile?.status && profile.status !== "active") {
+        await supabase.auth.signOut();
+
+        redirectWithMessage(
+          "/login",
+          profile.status === "deleted"
+            ? "탈퇴 처리된 계정입니다."
+            : "이용이 제한된 계정입니다.",
+          "error",
+        );
+      }
+    }
+
     redirect(nextPath);
   }
 

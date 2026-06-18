@@ -650,6 +650,12 @@ export default async function MePage({ searchParams }: MePageProps) {
                 >
                   비밀번호 변경
                 </Link>
+                <Link
+                  href="/me/delete"
+                  className="inline-flex rounded-lg border border-red-500/40 px-4 py-2 text-sm font-semibold text-red-200 hover:bg-red-500/10"
+                >
+                  계정 탈퇴
+                </Link>
               </div>
             </div>
 
