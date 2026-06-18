@@ -48,6 +48,16 @@ export default function AdminPage() {
             공지 관리하기
           </a>
 
+          <a
+            href="/admin/users"
+            className="rounded-xl border border-gray-800 bg-gray-950 p-5 hover:border-blue-500/60"
+          >
+            <p className="text-lg font-semibold text-gray-100">유저 관리</p>
+            <p className="mt-2 text-sm text-gray-400">
+              유저 상태를 확인하고 정지/복구를 처리합니다.
+            </p>
+          </a>
+
 
         </div>
       </section>

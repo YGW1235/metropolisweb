@@ -74,3 +74,38 @@ export async function setReportTargetAuthorStatus(formData: FormData) {
 
   redirectWithMessage("/admin/reports", "신고 대상 작성자를 복구했습니다.");
 }
+
+export async function setUserStatus(formData: FormData) {
+  const userId = getRequiredString(formData, "user_id");
+  const status = getRequiredString(formData, "status");
+  const reason = getOptionalString(formData, "reason");
+
+  if (status !== "active" && status !== "suspended") {
+    redirectWithMessage(
+      "/admin/users",
+      "변경할 수 없는 유저 상태입니다.",
+      "error",
+    );
+  }
+
+  const { supabase } = await requireAdmin();
+
+  const { error } = await supabase.rpc("admin_set_user_status", {
+    p_user_id: userId,
+    p_status: status,
+    p_reason: reason || null,
+  });
+
+  if (error) {
+    redirectWithMessage("/admin/users", error.message, "error");
+  }
+
+  revalidatePath("/admin/users");
+  revalidatePath("/admin/reports");
+
+  if (status === "suspended") {
+    redirectWithMessage("/admin/users", "유저를 정지했습니다.");
+  }
+
+  redirectWithMessage("/admin/users", "유저를 복구했습니다.");
+}
