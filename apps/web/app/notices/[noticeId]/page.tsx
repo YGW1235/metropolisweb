@@ -22,6 +22,7 @@ type Notice = {
   published_at: string | null;
   created_at: string;
   updated_at: string;
+  view_count: number | string | null;
 };
 
 function formatDateTime(value: string | null) {
@@ -61,19 +62,34 @@ export default async function NoticeDetailPage({
     isAdmin = profile?.role === "admin" && profile?.status === "active";
   }
 
-  const { data } = await supabase
-    .from("notices")
-    .select(
-      "id, title, content, status, is_pinned, published_at, created_at, updated_at",
-    )
-    .eq("id", noticeId)
-    .maybeSingle();
+  const { data: publicNoticeRows, error: publicNoticeError } =
+    await supabase.rpc("get_public_notice", {
+      p_notice_id: noticeId,
+    });
 
-  if (!data) {
+  let notice = Array.isArray(publicNoticeRows)
+    ? ((publicNoticeRows[0] ?? null) as Notice | null)
+    : null;
+
+  if (!notice && isAdmin) {
+    const { data: adminNotice } = await supabase
+      .from("notices")
+      .select(
+        "id, title, content, status, is_pinned, published_at, created_at, updated_at, view_count",
+      )
+      .eq("id", noticeId)
+      .maybeSingle();
+
+    notice = adminNotice as Notice | null;
+  }
+
+  if (publicNoticeError && !isAdmin) {
     notFound();
   }
 
-  const notice = data as Notice;
+  if (!notice) {
+    notFound();
+  }
 
   if (notice.status !== "published" && !isAdmin) {
     notFound();
@@ -153,6 +169,9 @@ export default async function NoticeDetailPage({
                 {formatDateTime(notice.published_at ?? notice.created_at)}
               </span>
               <span>수정일: {formatDateTime(notice.updated_at)}</span>
+              <span>
+                조회수 {Number(notice.view_count ?? 0).toLocaleString("ko-KR")}
+              </span>
             </div>
           </div>
 

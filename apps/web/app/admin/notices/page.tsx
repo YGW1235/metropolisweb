@@ -20,6 +20,7 @@ type Notice = {
   published_at: string | null;
   created_at: string;
   updated_at: string;
+  view_count: number | string | null;
 };
 
 async function getAdminClient() {
@@ -91,7 +92,7 @@ export default async function AdminNoticesPage({
 
   const { data } = await supabase
     .from("notices")
-    .select("id, title, status, is_pinned, published_at, created_at, updated_at")
+    .select("id, title, content, status, is_pinned, published_at, created_at, updated_at, view_count")
     .order("is_pinned", { ascending: false })
     .order("created_at", { ascending: false });
 
@@ -246,6 +247,9 @@ export default async function AdminNoticesPage({
                         {formatDateTime(notice.published_at ?? notice.created_at)}
                       </span>
                       <span>수정일: {formatDateTime(notice.updated_at)}</span>
+                      <p className="text-xs text-gray-500">
+                        조회수 {Number(notice.view_count ?? 0).toLocaleString("ko-KR")}
+                      </p>
                     </div>
                   </div>
 

@@ -68,6 +68,16 @@ export default function AdminPage() {
             </p>
           </a>
 
+          <a
+            href="/admin/stats"
+            className="rounded-xl border border-gray-800 bg-gray-950 p-5 hover:border-blue-500/60"
+          >
+            <p className="text-lg font-semibold text-gray-100">주제별 통계</p>
+            <p className="mt-2 text-sm text-gray-400">
+              참가자, 게시글, 댓글, 신고 현황을 확인합니다.
+            </p>
+          </a>
+
 
         </div>
       </section>

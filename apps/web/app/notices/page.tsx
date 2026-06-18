@@ -16,6 +16,7 @@ type Notice = {
   is_pinned: boolean;
   published_at: string | null;
   created_at: string;
+  view_count: number | string | null;
 };
 
 function formatDate(value: string | null) {
@@ -45,7 +46,7 @@ export default async function NoticesPage({ searchParams }: NoticesPageProps) {
 
   const { data } = await supabase
     .from("notices")
-    .select("id, title, content, is_pinned, published_at, created_at")
+    .select("id, title, content, status, is_pinned, published_at, created_at, view_count")
     .eq("status", "published")
     .order("is_pinned", { ascending: false })
     .order("published_at", { ascending: false })
@@ -186,6 +187,9 @@ export default async function NoticesPage({ searchParams }: NoticesPageProps) {
                     <span className="text-xs font-bold text-[var(--theme-soft)]">
                       {formatDate(notice.published_at ?? notice.created_at)}
                     </span>
+                    <p className="text-xs text-gray-500">
+                      조회수 {Number(notice.view_count ?? 0).toLocaleString("ko-KR")}
+                    </p>
                   </div>
 
                   <h2 className="mt-3 font-serif text-2xl font-black text-[var(--theme-text)] transition group-hover:text-[var(--theme-gold)]">
@@ -222,6 +226,11 @@ export default async function NoticesPage({ searchParams }: NoticesPageProps) {
                     <span className="text-xs font-bold text-[var(--theme-soft)]">
                       {formatDate(notice.published_at ?? notice.created_at)}
                     </span>
+                    <p className="text-xs text-gray-500">
+                      조회수 {Number(notice.view_count ?? 0).toLocaleString("ko-KR")}
+                    </p>
+                    
+                    
                   </div>
 
                   <p className="mt-3 text-sm leading-7 text-[var(--theme-muted)]">
