@@ -131,6 +131,16 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       process.env.NEXT_PUBLIC_SITE_URL ??
       "http://localhost:3000";
 
+    const termsAgreed = formData.get("terms_agreed") === "on";
+
+    if (!termsAgreed) {
+      redirectWithMessage(
+        "/login",
+        "이용약관과 개인정보처리방침에 동의해주세요.",
+        "error",
+      );
+    }
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -370,6 +380,25 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                   placeholder="최소 6자 이상"
                 />
               </div>
+
+              <label className="flex items-start gap-3 rounded-lg border border-gray-800 bg-gray-950 p-3 text-sm text-gray-300">
+                <input
+                  name="terms_agreed"
+                  type="checkbox"
+                  required
+                  className="mt-1"
+                />
+                <span>
+                  <Link href="/terms" className="text-blue-300 hover:text-blue-200">
+                    이용약관
+                  </Link>
+                  과{" "}
+                  <Link href="/privacy" className="text-blue-300 hover:text-blue-200">
+                    개인정보처리방침
+                  </Link>
+                  에 동의합니다.
+                </span>
+              </label>
 
               <button className="w-full border border-[var(--theme-blue)] bg-[var(--theme-blue)] px-5 py-3 text-sm font-black text-[var(--theme-accent-contrast)] shadow-[var(--shadow-button)] transition duration-300 hover:opacity-85">
                 회원가입

@@ -111,6 +111,22 @@ export default async function ContactPage({
               className="rounded-lg border border-gray-700 bg-gray-950 px-3 py-2 text-gray-100"
             />
           </label>
+        
+          <label className="flex items-start gap-3 rounded-lg border border-gray-800 bg-gray-900 p-3 text-sm text-gray-300">
+            <input
+                name="privacy_agreed"
+                type="checkbox"
+                required
+                className="mt-1"
+            />
+            <span>
+                문의 접수를 위해 이메일과 문의 내용을 수집·처리하는 것에 동의합니다.{" "}
+                <Link href="/privacy" className="text-blue-300 hover:text-blue-200">
+                개인정보처리방침
+                </Link>
+                을 확인했습니다.
+            </span>
+          </label>
 
           <button
             type="submit"

@@ -50,6 +50,16 @@ export async function createContactInquiry(formData: FormData) {
 
   const supabase = await createClient();
 
+  const privacyAgreed = formData.get("privacy_agreed") === "on";
+
+    if (!privacyAgreed) {
+    redirectWithMessage(
+        "/contact",
+        "개인정보 수집 및 처리에 동의해주세요.",
+        "error",
+    );
+    }
+
   const { data: inquiry, error } = await supabase.rpc("create_contact_inquiry", {
     p_email: email,
     p_category: category,
