@@ -644,6 +644,12 @@ export default async function MePage({ searchParams }: MePageProps) {
                 >
                   프로필 설정
                 </Link>
+                <Link
+                  href="/me/password"
+                  className="inline-flex w-full items-center justify-center border border-[var(--theme-line)] bg-[var(--theme-surface)] px-5 py-3 text-sm font-black text-[var(--theme-text)] transition hover:bg-[var(--theme-surface-hover)]"
+                >
+                  비밀번호 변경
+                </Link>
               </div>
             </div>
 

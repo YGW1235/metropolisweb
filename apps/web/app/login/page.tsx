@@ -338,6 +338,14 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                 로그인
               </button>
             </form>
+            <div className="mt-4 text-right">
+              <Link
+                href="/forgot-password"
+                className="text-sm text-blue-300 hover:text-blue-200"
+              >
+                비밀번호를 잊으셨나요?
+              </Link>
+            </div>
           </div>
 
           <div className="rounded-[2rem] border border-[var(--theme-line)] bg-[var(--theme-panel)] p-6 shadow-[var(--shadow-card)] transition duration-300 sm:p-8">
