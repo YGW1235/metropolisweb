@@ -142,87 +142,26 @@ export async function joinTopic(formData: FormData) {
     );
   }
 
-  const { data: topic, error: topicError } = await supabase
-    .from("topics")
-    .select("id, status")
-    .eq("id", topicId)
-    .single();
+  const { data: participation, error } = await supabase.rpc("join_topic", {
+    p_topic_id: topicId,
+    p_join_side: joinSide,
+  });
 
-  if (topicError || !topic) {
-    redirectWithMessage("/topics", "의제를 찾을 수 없습니다.", "error");
-  }
-
-  if (topic.status !== "open" && topic.status !== "active") {
-    redirectWithMessage(
-      `/topics/${topicId}`,
-      "현재 참여할 수 없는 의제입니다.",
-      "error",
-    );
-  }
-
-  const { data: existingParticipation } = await supabase
-    .from("topic_participants")
-    .select("assigned_side")
-    .eq("topic_id", topicId)
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (existingParticipation?.assigned_side) {
-    redirectWithMessage(
-      `/topics/${topicId}/debate`,
-      "이미 이 의제에 참여 중입니다.",
-      "success",
-    );
-  }
-
-  const { count: proCount } = await supabase
-    .from("topic_participants")
-    .select("*", { count: "exact", head: true })
-    .eq("topic_id", topicId)
-    .eq("assigned_side", "pro");
-
-  const { count: conCount } = await supabase
-    .from("topic_participants")
-    .select("*", { count: "exact", head: true })
-    .eq("topic_id", topicId)
-    .eq("assigned_side", "con");
-
-  const selectedSide: "pro" | "con" =
-    joinSide === "auto"
-      ? (proCount ?? 0) <= (conCount ?? 0)
-        ? "pro"
-        : "con"
-      : joinSide;
-
-  const { count: selectedSideCount } = await supabase
-    .from("topic_participants")
-    .select("*", { count: "exact", head: true })
-    .eq("topic_id", topicId)
-    .eq("assigned_side", selectedSide);
-
-  const sideIndex = (selectedSideCount ?? 0) + 1;
-
-  const { error: insertError } = await supabase
-    .from("topic_participants")
-    .insert({
-      topic_id: topicId,
-      user_id: user.id,
-      assigned_side: selectedSide,
-      side_index: sideIndex,
-    });
-
-  if (insertError) {
-    redirectWithMessage(`/topics/${topicId}`, insertError.message, "error");
+  if (error) {
+    redirectWithMessage(`/topics/${topicId}`, error.message, "error");
   }
 
   revalidatePath("/topics");
   revalidatePath(`/topics/${topicId}`);
   revalidatePath(`/topics/${topicId}/debate`);
 
+  const assignedSide =
+    participation?.assigned_side === "con" ? "con" : "pro";
+
   const message =
     joinSide === "auto"
-      ? `자동 배정으로 ${getSideName(selectedSide)} 진영에 참여했습니다.`
-      : `${getSideName(selectedSide)} 진영에 참여했습니다.`;
+      ? `자동 배정으로 ${getSideName(assignedSide)} 진영에 참여했습니다.`
+      : `${getSideName(assignedSide)} 진영에 참여했습니다.`;
 
   redirectWithMessage(`/topics/${topicId}/debate`, message, "success");
 }
