@@ -78,6 +78,16 @@ export default function AdminPage() {
             </p>
           </a>
 
+          <a
+            href="/admin/inquiries"
+            className="rounded-xl border border-gray-800 bg-gray-950 p-5 hover:border-blue-500/60"
+          >
+            <p className="text-lg font-semibold text-gray-100">문의 관리</p>
+            <p className="mt-2 text-sm text-gray-400">
+              유저와 방문자가 남긴 문의를 확인하고 처리합니다.
+            </p>
+          </a>
+
 
         </div>
       </section>

@@ -147,6 +147,7 @@ export async function SiteHeader() {
           <NavLink href="/topics">토론</NavLink>
           <NavLink href="/notices">공지</NavLink>
           <NavLink href="/me">기록</NavLink>
+          <NavLink href="/contact">문의</NavLink>
 
           {user ? <OliveHeaderLink canWater={canWaterOlive} /> : null}
 

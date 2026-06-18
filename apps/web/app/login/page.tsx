@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
 
+import { headers } from "next/headers"; 
+
 type LoginPageProps = {
   searchParams: Promise<{
     message?: string;
@@ -123,9 +125,18 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
     const supabase = await createClient();
 
+    const requestHeaders = await headers();
+    const origin =
+      requestHeaders.get("origin") ??
+      process.env.NEXT_PUBLIC_SITE_URL ??
+      "http://localhost:3000";
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: `${origin}/auth/callback?next=/me`,
+      },
     });
 
     if (error) {
@@ -134,10 +145,50 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
     redirectWithMessage(
       "/login",
-      "회원가입이 완료되었습니다. 이메일 인증이 필요한 경우 메일함을 확인한 뒤 로그인해주세요.",
+      "회원가입 요청이 완료되었습니다. 이메일 인증 링크를 클릭한 뒤 로그인해주세요.",
       "success",
     );
   }
+
+  async function resendVerificationEmail(formData: FormData) {
+  "use server";
+
+  const email = getString(formData, "email");
+
+  if (!email) {
+    redirectWithMessage(
+      "/login",
+      "인증 메일을 다시 받을 이메일을 입력해주세요.",
+      "error",
+    );
+  }
+
+  const requestHeaders = await headers();
+  const origin =
+    requestHeaders.get("origin") ??
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    "http://localhost:3000";
+
+  const supabase = await createClient();
+
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email,
+    options: {
+      emailRedirectTo: `${origin}/auth/callback?next=/me`,
+    },
+  });
+
+  if (error) {
+    redirectWithMessage("/login", error.message, "error");
+  }
+
+  redirectWithMessage(
+    "/login",
+    "인증 메일을 다시 보냈습니다. 메일함과 스팸함을 확인해주세요.",
+    "success",
+  );
+}
 
   return (
     <main
@@ -324,6 +375,34 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                 회원가입
               </button>
             </form>
+
+            <div className="mt-6 rounded-2xl border border-gray-800 bg-gray-950/70 p-5">
+              <p className="text-sm font-semibold text-gray-100">
+                인증 메일을 받지 못했나요?
+              </p>
+              <p className="mt-1 text-xs text-gray-500">
+                회원가입한 이메일을 입력하면 인증 메일을 다시 보냅니다.
+              </p>
+
+              <form action={resendVerificationEmail} className="mt-4 grid gap-3">
+                <label className="grid gap-1 text-sm">
+                  <span className="text-gray-400">이메일</span>
+                  <input
+                    name="email"
+                    type="email"
+                    required
+                    className="rounded-lg border border-gray-700 bg-gray-950 px-3 py-2 text-gray-100"
+                  />
+                </label>
+
+                <button
+                  type="submit"
+                  className="rounded-lg border border-blue-500/40 px-4 py-2 text-sm font-semibold text-blue-200 hover:bg-blue-500/10"
+                >
+                  인증 메일 다시 보내기
+                </button>
+              </form>
+            </div>
           </div>
         </section>
       </section>
