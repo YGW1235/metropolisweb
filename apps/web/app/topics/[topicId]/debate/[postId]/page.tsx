@@ -22,13 +22,27 @@ type PostDetailPageProps = {
   }>;
 };
 
+type DebatePost = {
+  id: string;
+  topic_id: string;
+  side: string | null;
+  title: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+  image_url: string | null;
+  author_label: string | null;
+};
+
 type DebateComment = {
   id: string;
   post_id: string;
+  topic_id: string;
   content: string;
   side: string | null;
   created_at: string;
-  author_id: string;
+  updated_at: string;
+  author_label: string | null;
 };
 
 type Participation = {
@@ -347,18 +361,15 @@ function CommentCard({
   comment,
   topicId,
   postId,
-  currentUserId,
+  isMine,
   canReport,
-  authorLabel,
 }: {
   comment: DebateComment;
   topicId: string;
   postId: string;
-  currentUserId: string | null;
+  isMine: boolean;
   canReport: boolean;
-  authorLabel: (userId: string) => string;
 }) {
-  const isMine = currentUserId === comment.author_id;
 
   return (
     <article className="rounded-2xl border border-[var(--theme-line)] bg-[var(--theme-surface)] p-4 transition duration-300">
@@ -373,7 +384,7 @@ function CommentCard({
           </span>
 
           <span className="text-xs font-bold text-[var(--theme-soft)]">
-            {authorLabel(comment.author_id)}
+            {comment.author_label ?? "익명 참가자"}
           </span>
         </div>
 
@@ -386,25 +397,24 @@ function CommentCard({
         {comment.content}
       </p>
 
-      {currentUserId ? (
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          {isMine ? (
-            <form action={deleteDebateComment}>
-              <input type="hidden" name="topic_id" value={topicId} />
-              <input type="hidden" name="post_id" value={postId} />
-              <input type="hidden" name="comment_id" value={comment.id} />
+        {isMine || canReport ? (
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            {isMine ? (
+              <form action={deleteDebateComment}>
+                <input type="hidden" name="topic_id" value={topicId} />
+                <input type="hidden" name="post_id" value={postId} />
+                <input type="hidden" name="comment_id" value={comment.id} />
+                <button className="border border-[var(--message-error-line)] bg-[var(--message-error-bg)] px-3 py-2 text-xs font-black text-[var(--message-error-text)] transition hover:opacity-80">
+                  내 댓글 삭제
+                </button>
+              </form>
+            ) : null}
 
-              <button className="border border-[var(--message-error-line)] bg-[var(--message-error-bg)] px-3 py-2 text-xs font-black text-[var(--message-error-text)] transition hover:opacity-80">
-                내 댓글 삭제
-              </button>
-            </form>
-          ) : null}
-
-          {canReport ? (
-            <ReportCommentForm topicId={topicId} commentId={comment.id} />
-          ) : null}
-        </div>
-      ) : null}
+            {canReport ? (
+              <ReportCommentForm topicId={topicId} commentId={comment.id} />
+            ) : null}
+          </div>
+        ) : null}
     </article>
   );
 }
@@ -446,56 +456,57 @@ export default async function PostDetailPage({
     participation = data;
   }
 
-  const { data: post, error: postError } = await supabase
-    .from("debate_posts")
-    .select("id, title, content, side, created_at, author_id, image_url")
-    .eq("id", postId)
-    .eq("topic_id", topic.id)
-    .eq("status", "visible")
-    .single();
+  const { data: postRows, error: postError } = await supabase.rpc(
+    "get_public_debate_post",
+    {
+      p_post_id: postId,
+    },
+  );
 
-  if (postError || !post) {
+  const post = Array.isArray(postRows)
+    ? ((postRows[0] ?? null) as DebatePost | null)
+    : null;
+
+  if (postError || !post || post.topic_id !== topic.id) {
     notFound();
   }
 
-  const { data: comments, error: commentsError } = await supabase
-    .from("debate_comments")
-    .select("id, post_id, content, side, created_at, author_id")
-    .eq("topic_id", topic.id)
-    .eq("post_id", post.id)
-    .eq("status", "visible")
-    .order("created_at", { ascending: true });
+  const { data: comments, error: commentsError } = await supabase.rpc(
+    "get_public_debate_comments_by_post",
+    {
+      p_post_id: post.id,
+    },
+  );
 
-  const { data: participants } = await supabase
-    .from("topic_participants")
-    .select("user_id, assigned_side, side_index")
-    .eq("topic_id", topic.id);
+  let isPostAuthor = false;
+  const myCommentIds = new Set<string>();
 
-  const authorLabels = new Map<string, string>();
+  if (user) {
+    const { data: myPost } = await supabase
+      .from("debate_posts")
+      .select("id")
+      .eq("id", post.id)
+      .eq("author_id", user.id)
+      .maybeSingle();
 
-  for (const participant of participants ?? []) {
-    const sideName =
-      participant.assigned_side === "pro"
-        ? "아테나 진영"
-        : participant.assigned_side === "con"
-          ? "포세이돈 진영"
-          : "미배정";
+    isPostAuthor = Boolean(myPost);
 
-    authorLabels.set(
-      participant.user_id,
-      `${sideName} 익명 ${participant.side_index}`,
-    );
-  }
+    const { data: myComments } = await supabase
+      .from("debate_comments")
+      .select("id")
+      .eq("post_id", post.id)
+      .eq("author_id", user.id)
+      .eq("status", "visible");
 
-  function authorLabel(userId: string) {
-    return authorLabels.get(userId) ?? "익명 참가자";
+    for (const comment of myComments ?? []) {
+      myCommentIds.add(comment.id);
+    }
   }
 
   const canJoin = topic.status === "open" || topic.status === "active";
   const isParticipant = Boolean(participation?.assigned_side);
   const canWrite = Boolean(user) && isParticipant && canJoin;
   const canReport = Boolean(user);
-  const isPostAuthor = user?.id === post.author_id;
   const isAthena = post.side === "pro";
   const commentList = (comments ?? []) as DebateComment[];
 
@@ -599,7 +610,7 @@ export default async function PostDetailPage({
                   </h1>
 
                   <p className="mt-3 text-sm font-bold text-[var(--theme-soft)]">
-                    {authorLabel(post.author_id)}
+                    {post.author_label ?? "익명 참가자"}
                   </p>
                 </div>
               </div>
@@ -682,9 +693,8 @@ export default async function PostDetailPage({
                   comment={comment}
                   topicId={topic.id}
                   postId={post.id}
-                  currentUserId={user?.id ?? null}
+                  isMine={myCommentIds.has(comment.id)}
                   canReport={canReport}
-                  authorLabel={authorLabel}
                 />
               ))
             ) : (

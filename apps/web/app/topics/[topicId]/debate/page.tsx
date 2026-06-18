@@ -32,11 +32,20 @@ type DebatePageProps = {
 
 type DebatePost = {
   id: string;
+  topic_id: string;
   title: string;
+  content: string;
   side: string | null;
   created_at: string;
-  author_id: string;
+  updated_at: string;
   image_url: string | null;
+  author_label: string | null;
+};
+
+type ParticipantCounts = {
+  pro_count: number | string | null;
+  con_count: number | string | null;
+  total_count: number | string | null;
 };
 
 type Participation = {
@@ -384,73 +393,38 @@ export default async function DebatePage({
     participation = data;
   }
 
-  const { count: proCount } = await supabase
-    .from("topic_participants")
-    .select("*", { count: "exact", head: true })
-    .eq("topic_id", topic.id)
-    .eq("assigned_side", "pro");
+  const { data: participantCountRows } = await supabase.rpc(
+    "get_public_topic_participant_counts",
+    {
+      p_topic_id: topic.id,
+    },
+  );
 
-  const { count: conCount } = await supabase
-    .from("topic_participants")
-    .select("*", { count: "exact", head: true })
-    .eq("topic_id", topic.id)
-    .eq("assigned_side", "con");
+  const participantCounts = Array.isArray(participantCountRows)
+    ? (participantCountRows[0] as ParticipantCounts | undefined)
+    : undefined;
 
-  let postsQuery = supabase
-    .from("debate_posts")
-    .select("id, title, side, created_at, author_id, image_url", {
-      count: "exact",
-    })
-    .eq("topic_id", topic.id)
-    .eq("status", "visible");
+  const proCount = Number(participantCounts?.pro_count ?? 0);
+  const conCount = Number(participantCounts?.con_count ?? 0);
 
-  if (activeSide !== "all") {
-    postsQuery = postsQuery.eq("side", activeSide);
-  }
+  const { data: postRows, error: postsError } = await supabase.rpc(
+    "get_public_debate_posts",
+    {
+      p_topic_id: topic.id,
+      p_side: activeSide === "all" ? null : activeSide,
+    },
+  );
 
-  postsQuery = postsQuery
-    .order("created_at", { ascending: false })
-    .range(from, to);
-
-  const {
-    data: posts,
-    error: postsError,
-    count: postsCount,
-  } = await postsQuery;
-
-  const totalPosts = postsCount ?? 0;
+  const allPosts = (postRows ?? []) as DebatePost[];
+  const totalPosts = allPosts.length;
   const totalPages = Math.max(1, Math.ceil(totalPosts / PAGE_SIZE));
+  const visiblePosts = allPosts.slice(from, to + 1);
 
   if (currentPage > totalPages && totalPosts > 0) {
     redirect(buildDebateHref(topic.id, activeSide, totalPages));
   }
 
-  const { data: participants } = await supabase
-    .from("topic_participants")
-    .select("user_id, assigned_side, side_index")
-    .eq("topic_id", topic.id);
 
-  const authorLabels = new Map<string, string>();
-
-  for (const participant of participants ?? []) {
-    const sideName =
-      participant.assigned_side === "pro"
-        ? "아테나 진영"
-        : participant.assigned_side === "con"
-          ? "포세이돈 진영"
-          : "미배정";
-
-    authorLabels.set(
-      participant.user_id,
-      `${sideName} 익명 ${participant.side_index}`,
-    );
-  }
-
-  function authorLabel(userId: string) {
-    return authorLabels.get(userId) ?? "익명 참가자";
-  }
-
-  const visiblePosts = (posts ?? []) as DebatePost[];
   const paginationItems = getPaginationItems(currentPage, totalPages);
   const canJoin = topic.status === "open" || topic.status === "active";
   const isParticipant = Boolean(participation?.assigned_side);
@@ -729,7 +703,7 @@ export default async function DebatePage({
                     </div>
 
                     <p className="mt-0.5 truncate text-[11px] font-bold text-[var(--theme-soft)] sm:hidden">
-                      {authorLabel(post.author_id)} ·{" "}
+                      {post.author_label ?? "익명 참가자"} ·{" "}
                       {formatDateTime(post.created_at)}
                     </p>
                   </div>
@@ -751,7 +725,7 @@ export default async function DebatePage({
                   </div>
 
                   <p className="hidden truncate text-right text-[11px] font-bold text-[var(--theme-soft)] sm:block">
-                    {authorLabel(post.author_id)}
+                    {post.author_label ?? "익명 참가자"}
                   </p>
 
                   <time className="hidden text-right text-[11px] font-bold text-[var(--theme-soft)] sm:block">
