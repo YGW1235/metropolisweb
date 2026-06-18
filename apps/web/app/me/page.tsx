@@ -5,10 +5,14 @@ import { createClient } from "@/lib/supabase/server";
 
 import { waterOlive } from "@/app/actions/olive";
 
+import { AccountStatusNotice } from "@/components/account-status-notice";
+
 type Profile = {
   display_name: string | null;
   role: string | null;
   status: string | null;
+  status_reason: string | null;
+  status_changed_at: string | null;
 };
 
 type MePageProps = {
@@ -400,7 +404,7 @@ export default async function MePage({ searchParams }: MePageProps) {
 
   const { data: profileData } = await supabase
     .from("profiles")
-    .select("display_name, role, status")
+    .select("display_name, role, status, status_reason, status_changed_at")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -526,6 +530,12 @@ export default async function MePage({ searchParams }: MePageProps) {
             {query.message}
           </div>
         ) : null}
+
+        <AccountStatusNotice
+          status={profile?.status}
+          reason={profile?.status_reason ?? null}
+          changedAt={profile?.status_changed_at ?? null}
+        />
 
         <div className="overflow-hidden rounded-[2rem] border border-[var(--theme-line)] bg-[var(--theme-panel-strong)] shadow-[var(--shadow-card-strong)] transition duration-300">
           <div className="grid lg:grid-cols-[1fr_1.35fr_1fr]">

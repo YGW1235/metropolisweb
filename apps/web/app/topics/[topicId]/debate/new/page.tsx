@@ -6,6 +6,8 @@ import { joinTopic } from "@/app/actions/topics";
 import { createClient } from "@/lib/supabase/server";
 import { ImageUploadPreview } from "@/components/image-upload-preview";
 
+import { AccountStatusNotice } from "@/components/account-status-notice";
+
 type NewDebatePostPageProps = {
   params: Promise<{
     topicId: string;
@@ -15,6 +17,12 @@ type NewDebatePostPageProps = {
 type Participation = {
   assigned_side: string | null;
   side_index: number | null;
+};
+
+type MyProfileStatus = {
+  status: string | null;
+  status_reason: string | null;
+  status_changed_at: string | null;
 };
 
 function AthenaIcon() {
@@ -126,11 +134,15 @@ function JoinButton({
   side,
   children,
   className,
+  disabled = false,
+  disabledLabel,
 }: {
   topicId: string;
   side: "auto" | "pro" | "con";
   children: string;
   className: string;
+  disabled?: boolean;
+  disabledLabel?: string;
 }) {
   return (
     <form action={joinTopic}>
@@ -139,9 +151,10 @@ function JoinButton({
 
       <button
         type="submit"
-        className={`inline-flex w-full items-center justify-center border px-4 py-3 text-sm font-black shadow-[var(--shadow-button)] transition duration-300 hover:opacity-85 ${className}`}
+        disabled={disabled}
+        className={`inline-flex w-full items-center justify-center border px-4 py-3 text-sm font-black shadow-[var(--shadow-button)] transition duration-300 hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
       >
-        {children}
+        {disabledLabel ?? children}
       </button>
     </form>
   );
@@ -189,10 +202,16 @@ function NeedJoinPanel({
   topicId,
   canJoin,
   status,
+  isParticipant,
+  isSuspended,
+  myProfile,
 }: {
   topicId: string;
   canJoin: boolean;
   status: string | null;
+  isParticipant: boolean;
+  isSuspended: boolean;
+  myProfile: MyProfileStatus | null;
 }) {
   if (!canJoin) {
     return (
@@ -208,6 +227,14 @@ function NeedJoinPanel({
         <p className="mt-3 text-sm leading-7 text-[var(--theme-muted)]">
           {writeDisabledMessage(status)}
         </p>
+
+        <div className="mt-5">
+          <AccountStatusNotice
+            status={myProfile?.status}
+            reason={myProfile?.status_reason ?? null}
+            changedAt={myProfile?.status_changed_at ?? null}
+          />  
+        </div>
 
         <Link
           href={`/topics/${topicId}/debate`}
@@ -226,13 +253,26 @@ function NeedJoinPanel({
       </p>
 
       <h2 className="mt-3 font-serif text-3xl font-black text-[var(--theme-text)]">
-        진영 참여 후 발언할 수 있습니다
+        {isSuspended
+          ? "계정 이용 제한으로 발언할 수 없습니다"
+          : isParticipant
+            ? "현재 발언할 수 없습니다"
+            : "진영 참여 후 발언할 수 있습니다"}
       </h2>
 
       <p className="mt-3 text-sm leading-7 text-[var(--theme-muted)]">
-        지금은 관전 상태입니다. 새 발언을 작성하려면 자동 배정, 아테나,
-        포세이돈 중 하나를 선택해 토론에 참여하세요.
+        {isSuspended
+          ? "현재 계정은 정지 상태입니다. 정지 상태에서는 새 발언 작성과 진영 참여가 제한됩니다."
+          : "지금은 관전 상태입니다. 새 발언을 작성하려면 자동 배정, 아테나, 포세이돈 중 하나를 선택해 토론에 참여하세요."}
       </p>
+
+      <div className="mt-5">
+        <AccountStatusNotice
+          status={myProfile?.status}
+          reason={myProfile?.status_reason ?? null}
+          changedAt={myProfile?.status_changed_at ?? null}
+        />
+      </div>
 
       <div className="mt-6 grid gap-3 lg:grid-cols-3">
         <div className="rounded-2xl border border-[var(--theme-line)] bg-[var(--athena-surface-soft)] p-5">
@@ -249,6 +289,8 @@ function NeedJoinPanel({
               topicId={topicId}
               side="pro"
               className="border-[var(--theme-gold)] bg-[var(--theme-gold)] text-[var(--theme-accent-contrast)]"
+              disabled={isSuspended}
+              disabledLabel={isSuspended ? "정지 계정은 참여할 수 없습니다" : undefined}
             >
               아테나 선택
             </JoinButton>
@@ -269,6 +311,8 @@ function NeedJoinPanel({
               topicId={topicId}
               side="auto"
               className="border-[var(--theme-line)] bg-[var(--theme-text)] text-[var(--theme-bg)]"
+              disabled={isSuspended}
+              disabledLabel={isSuspended ? "정지 계정은 참여할 수 없습니다" : undefined}
             >
               자동 배정
             </JoinButton>
@@ -289,6 +333,8 @@ function NeedJoinPanel({
               topicId={topicId}
               side="con"
               className="border-[var(--theme-blue)] bg-[var(--theme-blue)] text-[var(--theme-accent-contrast)]"
+              disabled={isSuspended}
+              disabledLabel={isSuspended ? "정지 계정은 참여할 수 없습니다" : undefined}
             >
               포세이돈 선택
             </JoinButton>
@@ -316,6 +362,20 @@ export default async function NewDebatePostPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  let myProfile: MyProfileStatus | null = null;
+
+  if (user) {
+    const { data } = await supabase
+      .from("profiles")
+      .select("status, status_reason, status_changed_at")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    myProfile = data as MyProfileStatus | null;
+  }
+
+  const isSuspended = myProfile?.status === "suspended";
 
   const { data: topic, error: topicError } = await supabase
     .from("topics")
@@ -345,7 +405,7 @@ export default async function NewDebatePostPage({
 
   const canJoin = topic.status === "open" || topic.status === "active";
   const isParticipant = Boolean(participation?.assigned_side);
-  const canWrite = Boolean(user) && isParticipant && canJoin;
+  const canWrite = Boolean(user) && isParticipant && canJoin && !isSuspended;
   const isAthena = participation?.assigned_side === "pro";
   const sidePositionInfo = getSidePositionInfo({
     side: participation?.assigned_side,
@@ -518,6 +578,9 @@ export default async function NewDebatePostPage({
                 topicId={topic.id}
                 canJoin={canJoin}
                 status={topic.status}
+                isParticipant={isParticipant}
+                isSuspended={isSuspended}
+                myProfile={myProfile}
               />
             )}
           </div>

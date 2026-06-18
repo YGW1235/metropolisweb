@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { joinTopic } from "@/app/actions/topics";
 import { createClient } from "@/lib/supabase/server";
 
+import { AccountStatusNotice } from "@/components/account-status-notice";
+
 type TopicDetailPageProps = {
   params: Promise<{
     topicId: string;
@@ -29,6 +31,12 @@ type Topic = {
 type Participation = {
   assigned_side: string | null;
   side_index: number | null;
+};
+
+type MyProfileStatus = {
+  status: string | null;
+  status_reason: string | null;
+  status_changed_at: string | null;
 };
 
 function AthenaIcon() {
@@ -194,6 +202,7 @@ function JoinOptionCard({
   subtitle,
   description,
   disabled,
+  disabledLabel,
   topicId,
   userExists,
   alreadyJoined,
@@ -203,6 +212,7 @@ function JoinOptionCard({
   subtitle: string;
   description: string;
   disabled: boolean;
+  disabledLabel?: string;
   topicId: string;
   userExists: boolean;
   alreadyJoined: boolean;
@@ -309,11 +319,12 @@ function JoinOptionCard({
                 disabled={disabled}
                 className={`inline-flex w-full items-center justify-center border px-6 py-3 text-sm font-black shadow-[var(--shadow-button)] transition duration-300 hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-45 ${buttonClass}`}
               >
-                {isAuto
-                  ? "자동 배정으로 참여"
-                  : isAthena
-                    ? "아테나 진영 선택"
-                    : "포세이돈 진영 선택"}
+                {disabledLabel ??
+                  (isAuto
+                    ? "자동 배정으로 참여"
+                    : isAthena
+                      ? "아테나 진영 선택"
+                      : "포세이돈 진영 선택")}
               </button>
             </form>
           )}
@@ -352,6 +363,20 @@ export default async function TopicDetailPage({
     data: { user },
   } = await supabase.auth.getUser();
 
+  let myProfile: MyProfileStatus | null = null;
+
+  if (user) {
+    const { data } = await supabase
+      .from("profiles")
+      .select("status, status_reason, status_changed_at")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    myProfile = data as MyProfileStatus | null;
+  }
+
+  const isSuspended = myProfile?.status === "suspended";
+
   let participation: Participation | null = null;
 
   if (user) {
@@ -381,6 +406,12 @@ export default async function TopicDetailPage({
   const endDate = formatDate(topic.ends_at);
   const canJoin = topic.status === "open" || topic.status === "active";
   const alreadyJoined = Boolean(participation?.assigned_side);
+
+  const joinDisabledLabel = isSuspended
+    ? "정지 계정은 참가할 수 없습니다"
+    : !canJoin
+      ? "현재 참가할 수 없습니다"
+      : undefined;
 
   return (
     <main
@@ -523,6 +554,14 @@ export default async function TopicDetailPage({
             </p>
           </div>
 
+          <div className="mb-8">
+            <AccountStatusNotice
+              status={myProfile?.status}
+              reason={myProfile?.status_reason ?? null}
+              changedAt={myProfile?.status_changed_at ?? null}
+            />
+          </div>
+
           <div className="grid gap-6 lg:grid-cols-3">
             <JoinOptionCard
               side="pro"
@@ -532,7 +571,8 @@ export default async function TopicDetailPage({
               topicId={topic.id}
               userExists={Boolean(user)}
               alreadyJoined={alreadyJoined}
-              disabled={!canJoin || alreadyJoined}
+              disabled={!canJoin || alreadyJoined || isSuspended}
+              disabledLabel={joinDisabledLabel}
             />
 
             <JoinOptionCard
@@ -543,7 +583,8 @@ export default async function TopicDetailPage({
               topicId={topic.id}
               userExists={Boolean(user)}
               alreadyJoined={alreadyJoined}
-              disabled={!canJoin || alreadyJoined}
+              disabled={!canJoin || alreadyJoined || isSuspended}
+              disabledLabel={joinDisabledLabel}
             />
 
             <JoinOptionCard
@@ -554,7 +595,8 @@ export default async function TopicDetailPage({
               topicId={topic.id}
               userExists={Boolean(user)}
               alreadyJoined={alreadyJoined}
-              disabled={!canJoin || alreadyJoined}
+              disabled={!canJoin || alreadyJoined || isSuspended}
+              disabledLabel={joinDisabledLabel}
             />
           </div>
 
