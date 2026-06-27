@@ -506,7 +506,7 @@ export default async function DebatePage({
               </h1>
 
               {topic.description ? (
-                <p className="mt-5 max-w-2xl text-sm leading-7 text-[var(--theme-muted)]">
+                <p className="mt-5 whitespace-pre-line break-words max-w-2xl text-sm leading-7 text-[var(--theme-muted)]">
                   {topic.description}
                 </p>
               ) : null}

@@ -465,7 +465,7 @@ export default async function TopicDetailPage({
                 {topic.title}
               </h1>
 
-              <p className="mt-6 max-w-3xl text-sm leading-8 text-[var(--theme-muted)]">
+              <p className="mt-6 whitespace-pre-line break-words max-w-3xl text-sm leading-8 text-[var(--theme-muted)]">
                 {topic.description || "아직 설명이 등록되지 않은 의제입니다."}
               </p>
 
