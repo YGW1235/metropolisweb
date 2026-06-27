@@ -145,7 +145,7 @@ function TopicDuelCard({ topic }: { topic: Topic }) {
               {topic.title}
             </h2>
 
-            <p className="mx-auto mt-4 whitespace-pre-line break-words max-w-2xl text-sm leading-7 text-[var(--theme-muted)]">
+            <p className="mx-auto mt-4 line-clamp-4 whitespace-pre-line break-words max-w-2xl text-sm leading-7 text-[var(--theme-muted)]">
               {topic.description || "아직 설명이 등록되지 않은 의제입니다."}
             </p>
           </div>
