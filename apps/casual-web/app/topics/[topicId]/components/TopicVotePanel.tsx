@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { voteTopic } from "@/app/topics/actions";
+import { toggleTopicBookmark, voteTopic } from "@/app/topics/actions";
 import type { TopicTag } from "@/lib/casual-tags";
 
 import type { CurrentVote, TopicDetail } from "./types";
@@ -57,11 +57,13 @@ function VoteButton({
 
 export function TopicVotePanel({
   currentVote,
+  isBookmarked,
   isLoggedIn,
   tags,
   topic,
 }: {
   currentVote: CurrentVote;
+  isBookmarked: boolean;
   isLoggedIn: boolean;
   tags: TopicTag[];
   topic: TopicDetail;
@@ -87,7 +89,22 @@ export function TopicVotePanel({
         </span>
       </div>
 
-      <h1 className="mt-5 text-4xl font-black leading-tight">{topic.title}</h1>
+      <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <h1 className="text-4xl font-black leading-tight">{topic.title}</h1>
+
+        <form action={toggleTopicBookmark} className="shrink-0">
+          <input type="hidden" name="topicId" value={topic.id} />
+          <button
+            className={`rounded-full px-5 py-3 text-sm font-black transition hover:-translate-y-0.5 ${
+              isBookmarked
+                ? "bg-orange-500 text-white shadow-lg shadow-orange-100"
+                : "border border-orange-200 bg-orange-50 text-orange-800 hover:bg-orange-100"
+            }`}
+          >
+            {isBookmarked ? "저장됨" : "주제 저장"}
+          </button>
+        </form>
+      </div>
 
       <p className="mt-4 text-lg leading-8 text-stone-700">
         {topic.description}

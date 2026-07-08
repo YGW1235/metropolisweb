@@ -76,6 +76,7 @@ export default async function TopicDetailPage({
 
   const topicTags = (topicTagsData ?? []) as TopicTag[];
   let currentVote: CurrentVote = null;
+  let isBookmarked = false;
 
   if (user) {
     await supabase.rpc("ensure_casual_profile");
@@ -90,6 +91,15 @@ export default async function TopicDetailPage({
     if (voteData?.choice === "a" || voteData?.choice === "b") {
       currentVote = { choice: voteData.choice };
     }
+
+    const { data: bookmarkData } = await supabase
+      .from("casual_topic_bookmarks")
+      .select("topic_id")
+      .eq("topic_id", topic.id)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    isBookmarked = Boolean(bookmarkData);
   }
 
   const { data: opinionsData } = await supabase
@@ -196,6 +206,7 @@ export default async function TopicDetailPage({
 
         <TopicVotePanel
           currentVote={currentVote}
+          isBookmarked={isBookmarked}
           isLoggedIn={isLoggedIn}
           tags={topicTags}
           topic={topicDetail}

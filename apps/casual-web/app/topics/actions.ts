@@ -237,6 +237,72 @@ export async function clearOpinionReaction(formData: FormData) {
   redirect(`/topics/${topicId}`);
 }
 
+export async function toggleTopicBookmark(formData: FormData) {
+  const topicId = getString(formData, "topicId");
+
+  if (!topicId) {
+    redirectWithMessage("/topics", "주제 정보가 올바르지 않습니다.", "error");
+  }
+
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    redirectWithMessage(
+      "/login",
+      "주제를 저장하려면 로그인이 필요합니다.",
+      "error",
+    );
+  }
+
+  const { data: existingBookmark, error: readError } = await supabase
+    .from("casual_topic_bookmarks")
+    .select("topic_id")
+    .eq("topic_id", topicId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (readError) {
+    redirectWithMessage(`/topics/${topicId}`, readError.message, "error");
+  }
+
+  if (existingBookmark) {
+    const { error } = await supabase
+      .from("casual_topic_bookmarks")
+      .delete()
+      .eq("topic_id", topicId)
+      .eq("user_id", user.id);
+
+    if (error) {
+      redirectWithMessage(`/topics/${topicId}`, error.message, "error");
+    }
+  } else {
+    const { error } = await supabase.from("casual_topic_bookmarks").insert({
+      topic_id: topicId,
+      user_id: user.id,
+    });
+
+    if (error) {
+      redirectWithMessage(`/topics/${topicId}`, error.message, "error");
+    }
+  }
+
+  revalidatePath("/");
+  revalidatePath("/topics");
+  revalidatePath(`/topics/${topicId}`);
+  revalidatePath("/me");
+
+  redirectWithMessage(
+    `/topics/${topicId}`,
+    existingBookmark ? "저장을 해제했습니다." : "주제를 저장했습니다.",
+    "success",
+  );
+}
+
 export async function createComment(formData: FormData) {
   const topicId = getString(formData, "topicId");
   const opinionId = getString(formData, "opinionId");

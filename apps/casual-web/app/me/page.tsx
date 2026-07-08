@@ -2,6 +2,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { SiteHeader } from "@/components/SiteHeader";
+import { TopicTagBadges } from "@/components/TopicTagBadges";
+import {
+  buildTagsByTopicId,
+  type TopicTag,
+  type TopicTagLink,
+} from "@/lib/casual-tags";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -76,9 +82,17 @@ export default async function MyPage() {
     .order("created_at", { ascending: false })
     .limit(20);
 
+  const { data: bookmarksData } = await supabase
+    .from("casual_topic_bookmarks")
+    .select("topic_id, created_at")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(20);
+
   const votes = votesData ?? [];
   const opinions = opinionsData ?? [];
   const comments = commentsData ?? [];
+  const bookmarks = bookmarksData ?? [];
 
   const commentOpinionIds = Array.from(
     new Set(comments.map((comment) => comment.opinion_id)),
@@ -98,6 +112,7 @@ export default async function MyPage() {
 
   const topicIds = Array.from(
     new Set([
+      ...bookmarks.map((bookmark) => bookmark.topic_id),
       ...votes.map((vote) => vote.topic_id),
       ...opinions.map((opinion) => opinion.topic_id),
       ...(commentOpinionsData ?? []).map((opinion) => opinion.topic_id),
@@ -109,13 +124,33 @@ export default async function MyPage() {
       ? await supabase
           .from("casual_topics")
           .select(
-            "id, title, option_a, option_b, status, vote_a_count, vote_b_count, opinion_count, comment_count, view_count",
+            "id, title, description, option_a, option_b, status, vote_a_count, vote_b_count, opinion_count, comment_count, view_count",
           )
           .in("id", topicIds)
       : { data: [] };
 
   const topicById = new Map(
     (topicsData ?? []).map((topic) => [topic.id, topic]),
+  );
+
+  const bookmarkedTopicIds = bookmarks.map((bookmark) => bookmark.topic_id);
+  const { data: allTagsData } = await supabase
+    .from("casual_topic_tags")
+    .select("id, name, slug")
+    .order("name", { ascending: true });
+
+  const { data: bookmarkTagLinksData } =
+    bookmarkedTopicIds.length > 0
+      ? await supabase
+          .from("casual_topic_tag_links")
+          .select("topic_id, tag_id")
+          .in("topic_id", bookmarkedTopicIds)
+      : { data: [] };
+
+  const tagsByTopicId = buildTagsByTopicId(
+    bookmarkedTopicIds,
+    (allTagsData ?? []) as TopicTag[],
+    (bookmarkTagLinksData ?? []) as TopicTagLink[],
   );
 
   const totalOpinionLikes = opinions.reduce(
@@ -173,7 +208,7 @@ export default async function MyPage() {
             </div>
           </div>
 
-          <div className="mt-6 grid gap-3 md:grid-cols-5">
+          <div className="mt-6 grid gap-3 md:grid-cols-3 lg:grid-cols-6">
             <div className="rounded-2xl bg-orange-50 p-4">
               <p className="text-xs font-black text-orange-700">투표</p>
               <p className="mt-2 text-2xl font-black">
@@ -203,12 +238,99 @@ export default async function MyPage() {
             </div>
 
             <div className="rounded-2xl bg-stone-50 p-4">
+              <p className="text-xs font-black text-stone-600">저장 주제</p>
+              <p className="mt-2 text-2xl font-black">
+                {formatCount(bookmarks.length)}
+              </p>
+            </div>
+
+            <div className="rounded-2xl bg-stone-50 p-4">
               <p className="text-xs font-black text-stone-600">표시 댓글</p>
               <p className="mt-2 text-2xl font-black">
                 {formatCount(comments.length)}
               </p>
             </div>
           </div>
+        </section>
+
+        <section className="mt-8 rounded-3xl border border-orange-100 bg-white p-6 shadow-sm">
+          <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="text-sm font-bold text-orange-700">SAVED TOPICS</p>
+              <h2 className="mt-1 text-2xl font-black">내가 저장한 주제</h2>
+            </div>
+
+            <Link href="/topics" className="text-sm font-bold text-stone-600">
+              주제 더 보기
+            </Link>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {bookmarks.map((bookmark) => {
+              const topic = topicById.get(bookmark.topic_id);
+
+              if (!topic) {
+                return null;
+              }
+
+              const totalVotes = topic.vote_a_count + topic.vote_b_count;
+
+              return (
+                <Link
+                  key={bookmark.topic_id}
+                  href={`/topics/${bookmark.topic_id}`}
+                  className="rounded-2xl border border-orange-100 p-4 transition hover:-translate-y-0.5 hover:shadow-sm"
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    {topic.status && (
+                      <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-black text-stone-600">
+                        {topic.status}
+                      </span>
+                    )}
+
+                    <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-black text-orange-700">
+                      저장됨
+                    </span>
+                  </div>
+
+                  <h3 className="mt-3 line-clamp-1 text-lg font-black">
+                    {topic.title}
+                  </h3>
+
+                  {topic.description && (
+                    <p className="mt-2 line-clamp-2 text-sm leading-6 text-stone-600">
+                      {topic.description}
+                    </p>
+                  )}
+
+                  <TopicTagBadges
+                    className="mt-3"
+                    tags={tagsByTopicId.get(bookmark.topic_id) ?? []}
+                  />
+
+                  <div className="mt-4 flex flex-wrap gap-2 text-xs font-bold text-stone-500">
+                    <span>투표 {formatCount(totalVotes)}</span>
+                    <span>·</span>
+                    <span>의견 {formatCount(topic.opinion_count)}</span>
+                    <span>·</span>
+                    <span>댓글 {formatCount(topic.comment_count)}</span>
+                    <span>·</span>
+                    <span>조회 {formatCount(topic.view_count)}</span>
+                  </div>
+
+                  <p className="mt-2 text-xs font-bold text-stone-400">
+                    저장 {formatDate(bookmark.created_at)}
+                  </p>
+                </Link>
+              );
+            })}
+          </div>
+
+          {bookmarks.length === 0 && (
+            <div className="rounded-2xl bg-stone-50 p-6 text-center text-sm font-bold text-stone-500">
+              아직 저장한 주제가 없습니다.
+            </div>
+          )}
         </section>
 
         <section className="mt-8 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
