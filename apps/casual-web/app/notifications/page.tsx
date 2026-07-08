@@ -32,11 +32,11 @@ function getNotificationLabel(type: string) {
   }
 
   if (type === "opinion_like") {
-    return "내 의견에 공감이 눌렸습니다.";
+    return "이전 반응 알림입니다.";
   }
 
   if (type === "opinion_dislike") {
-    return "내 의견에 비공감이 눌렸습니다.";
+    return "이전 반응 알림입니다.";
   }
 
   return "새 알림이 있습니다.";
@@ -139,7 +139,7 @@ export default async function NotificationsPage({
             </p>
             <h1 className="mt-2 text-4xl font-black">알림</h1>
             <p className="mt-3 text-sm leading-6 text-stone-600">
-              내 의견에 달린 댓글과 반응을 확인합니다.
+              내 의견에 달린 댓글 알림을 확인합니다.
             </p>
           </div>
 
@@ -256,7 +256,7 @@ export default async function NotificationsPage({
             <div className="mt-5 rounded-3xl bg-stone-50 p-8 text-center">
               <h2 className="text-xl font-black">아직 알림이 없습니다.</h2>
               <p className="mt-2 text-sm text-stone-600">
-                내 의견에 댓글이나 반응이 생기면 이곳에 표시됩니다.
+                내 의견에 댓글이 달리면 이곳에 표시됩니다.
               </p>
             </div>
           )}
