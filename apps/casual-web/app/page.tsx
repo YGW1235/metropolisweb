@@ -1,6 +1,14 @@
 import Link from "next/link";
 
 import { createClient } from "@/lib/supabase/server";
+import {
+  buildTagsByTopicId,
+  type TopicTag,
+  type TopicTagLink,
+} from "@/lib/casual-tags";
+
+import { SiteHeader } from "@/components/SiteHeader";
+import { TopicTagBadges } from "@/components/TopicTagBadges";
 
 export const dynamic = "force-dynamic";
 
@@ -16,24 +24,6 @@ function formatCount(value: number) {
 export default async function Home() {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  let myProfile: { nickname: string } | null = null;
-
-  if (user) {
-    await supabase.rpc("ensure_casual_profile");
-
-    const { data } = await supabase
-      .from("casual_profiles")
-      .select("nickname")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    myProfile = data;
-  }
-
   const { data: todayTopic } = await supabase
     .from("casual_topics")
     .select(
@@ -46,14 +36,40 @@ export default async function Home() {
     .maybeSingle();
 
   const { data: hotTopics } = await supabase
-    .from("casual_topics")
+    .from("active_casual_topics_with_scores")
     .select(
-      "id, title, description, option_a, option_b, vote_a_count, vote_b_count, opinion_count, comment_count, view_count, hot_score, is_today, created_at",
+      "id, title, description, option_a, option_b, vote_a_count, vote_b_count, opinion_count, comment_count, view_count, hot_score, trending_score, is_today, created_at, last_activity_at",
     )
-    .eq("status", "active")
-    .order("hot_score", { ascending: false })
+    .order("is_today", { ascending: false })
+    .order("trending_score", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(6);
+
+  const visibleTopicIds = Array.from(
+    new Set([
+      ...(todayTopic ? [todayTopic.id] : []),
+      ...(hotTopics ?? []).map((topic) => topic.id),
+    ]),
+  );
+
+  const { data: allTagsData } = await supabase
+    .from("casual_topic_tags")
+    .select("id, name, slug")
+    .order("name", { ascending: true });
+
+  const { data: topicTagLinksData } =
+    visibleTopicIds.length > 0
+      ? await supabase
+          .from("casual_topic_tag_links")
+          .select("topic_id, tag_id")
+          .in("topic_id", visibleTopicIds)
+      : { data: [] };
+
+  const tagsByTopicId = buildTagsByTopicId(
+    visibleTopicIds,
+    (allTagsData ?? []) as TopicTag[],
+    (topicTagLinksData ?? []) as TopicTagLink[],
+  );
 
   const { data: popularOpinionsData } = await supabase
     .from("casual_opinions")
@@ -114,55 +130,8 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-[#fff7ed] text-[#2f2118]">
+      <SiteHeader />
       <section className="mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-10">
-        <header className="flex items-center justify-between gap-4">
-          <Link href="/" className="group">
-            <p className="text-sm font-semibold tracking-[0.3em] text-orange-700">
-              SYMPOSION
-            </p>
-            <h1 className="mt-2 text-2xl font-black group-hover:text-orange-700">
-              심포지온
-            </h1>
-          </Link>
-
-          <nav className="hidden gap-4 text-sm font-semibold text-stone-600 sm:flex">
-            <a href="#today" className="hover:text-stone-950">
-              오늘의 논쟁
-            </a>
-            <Link href="/topics" className="hover:text-stone-950">
-              인기 주제
-            </Link>
-            <a href="#opinions" className="hover:text-stone-950">
-              인기 의견
-            </a>
-          </nav>
-
-          <div>
-            {user ? (
-              <Link
-                href="/settings/profile"
-                className="rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-bold text-stone-700 transition hover:bg-stone-50"
-              >
-                {myProfile?.nickname ?? "내 프로필"}
-              </Link>
-            ) : (
-              <div className="flex gap-2">
-                <Link
-                  href="/login"
-                  className="rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-bold text-stone-700 transition hover:bg-stone-50"
-                >
-                  로그인
-                </Link>
-                <Link
-                  href="/signup"
-                  className="rounded-full bg-stone-950 px-4 py-2 text-sm font-bold text-white transition hover:-translate-y-0.5"
-                >
-                  가입
-                </Link>
-              </div>
-            )}
-          </div>
-        </header>
 
         <section className="grid flex-1 items-center gap-10 py-16 lg:grid-cols-[1.05fr_0.95fr]">
           <div>
@@ -213,7 +182,8 @@ export default async function Home() {
             id="today"
             className="rounded-[2rem] border border-orange-200 bg-white p-6 shadow-2xl shadow-orange-200/60"
           >
-            <p className="text-sm font-bold text-orange-700">오늘의 논쟁</p>
+            <p className="text-sm font-bold text-orange-700">TRENDING TOPICS</p>
+            <h3 className="mt-1 text-2xl font-black">급상승 주제</h3>
 
             {todayTopic ? (
               <>
@@ -224,6 +194,12 @@ export default async function Home() {
                 <p className="mt-3 leading-7 text-stone-600">
                   {todayTopic.description}
                 </p>
+
+                <TopicTagBadges
+                  className="mt-4"
+                  linked
+                  tags={tagsByTopicId.get(todayTopic.id) ?? []}
+                />
 
                 <div className="mt-6 grid gap-3 sm:grid-cols-2">
                   <Link
@@ -343,6 +319,11 @@ export default async function Home() {
                   <p className="mt-3 line-clamp-2 text-sm leading-6 text-stone-600">
                     {topic.description}
                   </p>
+
+                  <TopicTagBadges
+                    className="mt-4"
+                    tags={tagsByTopicId.get(topic.id) ?? []}
+                  />
 
                   <div className="mt-5 space-y-2">
                     <div>

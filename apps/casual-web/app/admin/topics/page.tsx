@@ -7,6 +7,15 @@ import {
   setTodayTopic,
 } from "@/app/admin/topics/actions";
 import { createClient } from "@/lib/supabase/server";
+import {
+  buildTagsByTopicId,
+  type TopicTag,
+  type TopicTagLink,
+} from "@/lib/casual-tags";
+
+import { SiteHeader } from "@/components/SiteHeader";
+import { TopicTagBadges } from "@/components/TopicTagBadges";
+import { TopicTagCheckboxes } from "@/components/TopicTagCheckboxes";
 
 export const dynamic = "force-dynamic";
 
@@ -91,27 +100,42 @@ export default async function AdminTopicsPage({
     );
   }
 
-  return (
-    <main className="min-h-screen bg-[#fff7ed] px-6 py-10 text-[#2f2118]">
-      <section className="mx-auto max-w-6xl">
-        <header className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <Link href="/" className="text-sm font-black text-orange-700">
-              ← 심포지온
-            </Link>
-            <h1 className="mt-3 text-4xl font-black">주제 관리</h1>
-            <p className="mt-3 text-stone-600">
-              캐주얼 사이트의 주제를 생성하고 오늘의 논쟁을 지정합니다.
-            </p>
-          </div>
+  const { data: allTagsData, error: tagsError } = await supabase
+    .from("casual_topic_tags")
+    .select("id, name, slug")
+    .order("name", { ascending: true });
 
-          <Link
-            href="/topics"
-            className="rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-bold text-stone-700 transition hover:bg-stone-50"
-          >
-            주제 목록 보기
-          </Link>
-        </header>
+  if (tagsError) {
+    return (
+      <main className="min-h-screen bg-red-50 p-8 text-red-900">
+        <h1 className="text-2xl font-black">태그 목록을 불러오지 못했습니다.</h1>
+        <pre className="mt-4 whitespace-pre-wrap rounded-xl bg-white p-4 text-sm">
+          {tagsError.message}
+        </pre>
+      </main>
+    );
+  }
+
+  const allTags = (allTagsData ?? []) as TopicTag[];
+  const topicIds = (topics ?? []).map((topic) => topic.id);
+  const { data: topicTagLinksData } =
+    topicIds.length > 0
+      ? await supabase
+          .from("casual_topic_tag_links")
+          .select("topic_id, tag_id")
+          .in("topic_id", topicIds)
+      : { data: [] };
+
+  const tagsByTopicId = buildTagsByTopicId(
+    topicIds,
+    allTags,
+    (topicTagLinksData ?? []) as TopicTagLink[],
+  );
+
+  return (
+    <main className="min-h-screen bg-[#fff7ed] text-[#2f2118]">
+      <SiteHeader />
+      <section className="mx-auto max-w-6xl">
 
         {params.message && (
           <div
@@ -202,6 +226,13 @@ export default async function AdminTopicsPage({
               </label>
             </div>
 
+            <div>
+              <label className="text-sm font-bold text-stone-700">태그</label>
+              <div className="mt-2">
+                <TopicTagCheckboxes tags={allTags} />
+              </div>
+            </div>
+
             <div className="flex justify-end">
               <button className="rounded-full bg-stone-950 px-6 py-3 text-sm font-black text-white transition hover:-translate-y-0.5">
                 주제 생성
@@ -259,6 +290,11 @@ export default async function AdminTopicsPage({
                         {topic.description || "설명 없음"}
                       </p>
 
+                      <TopicTagBadges
+                        className="mt-3"
+                        tags={tagsByTopicId.get(topic.id) ?? []}
+                      />
+
                       <div className="mt-4 flex flex-wrap gap-2 text-xs font-bold text-stone-500">
                         <span>
                           A: {topic.option_a} {formatCount(topic.vote_a_count)}
@@ -286,6 +322,13 @@ export default async function AdminTopicsPage({
                         className="rounded-full border border-stone-200 px-4 py-2 text-sm font-bold text-stone-700 transition hover:bg-stone-50"
                       >
                         보기
+                      </Link>
+
+                      <Link
+                        href={`/admin/topics/${topic.id}/edit`}
+                        className="rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-sm font-bold text-orange-800 transition hover:bg-orange-100"
+                      >
+                        수정
                       </Link>
 
                       {!topic.is_today && topic.status === "active" && (

@@ -100,6 +100,16 @@ export async function updateProfile(formData: FormData) {
   const nickname = getString(formData, "nickname");
   const bio = getString(formData, "bio");
 
+  const nicknamePattern = /^[가-힣A-Za-z0-9_]+$/;
+
+  if (!nicknamePattern.test(nickname)) {
+    redirectWithMessage(
+      "/settings/profile",
+      "닉네임은 한글, 영어, 숫자, 언더바(_)만 사용할 수 있습니다.",
+      "error",
+    );
+  }
+
   if (nickname.length < 2 || nickname.length > 16) {
     redirectWithMessage(
       "/settings/profile",

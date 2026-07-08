@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 type TopicStatus = "draft" | "active" | "closed" | "archived";
+type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
 function getString(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -15,6 +16,18 @@ function getString(formData: FormData, key: string) {
   }
 
   return value.trim();
+}
+
+function getSelectedTagIds(formData: FormData) {
+  return Array.from(
+    new Set(
+      formData
+        .getAll("tagIds")
+        .filter((value): value is string => typeof value === "string")
+        .map((value) => value.trim())
+        .filter(Boolean),
+    ),
+  );
 }
 
 function getStatus(value: string): TopicStatus {
@@ -68,6 +81,39 @@ async function requireAdmin() {
   };
 }
 
+async function replaceTopicTags(
+  supabase: SupabaseClient,
+  topicId: string,
+  tagIds: string[],
+  returnPath: string,
+) {
+  const { error: deleteError } = await supabase
+    .from("casual_topic_tag_links")
+    .delete()
+    .eq("topic_id", topicId);
+
+  if (deleteError) {
+    redirectWithMessage(returnPath, deleteError.message, "error");
+  }
+
+  if (tagIds.length === 0) {
+    return;
+  }
+
+  const { error: insertError } = await supabase
+    .from("casual_topic_tag_links")
+    .insert(
+      tagIds.map((tagId) => ({
+        topic_id: topicId,
+        tag_id: tagId,
+      })),
+    );
+
+  if (insertError) {
+    redirectWithMessage(returnPath, insertError.message, "error");
+  }
+}
+
 export async function createTopic(formData: FormData) {
   const title = getString(formData, "title");
   const description = getString(formData, "description");
@@ -75,6 +121,7 @@ export async function createTopic(formData: FormData) {
   const optionB = getString(formData, "optionB");
   const status = getStatus(getString(formData, "status"));
   const isToday = formData.get("isToday") === "on";
+  const tagIds = getSelectedTagIds(formData);
 
   if (title.length < 2 || title.length > 80) {
     redirectWithMessage(
@@ -117,25 +164,125 @@ export async function createTopic(formData: FormData) {
       .eq("is_today", true);
   }
 
-  const { error } = await supabase.from("casual_topics").insert({
-    title,
-    description,
-    option_a: optionA,
-    option_b: optionB,
-    status,
-    is_today: isToday,
-    created_by: user.id,
-  });
+  const { data: topic, error } = await supabase
+    .from("casual_topics")
+    .insert({
+      title,
+      description,
+      option_a: optionA,
+      option_b: optionB,
+      status,
+      is_today: isToday,
+      created_by: user.id,
+    })
+    .select("id")
+    .single();
 
-  if (error) {
-    redirectWithMessage("/admin/topics", error.message, "error");
+  if (error || !topic) {
+    redirectWithMessage(
+      "/admin/topics",
+      error?.message ?? "주제를 생성하지 못했습니다.",
+      "error",
+    );
   }
+
+  await replaceTopicTags(supabase, topic.id, tagIds, "/admin/topics");
 
   revalidatePath("/");
   revalidatePath("/topics");
+  revalidatePath(`/topics/${topic.id}`);
   revalidatePath("/admin/topics");
 
   redirectWithMessage("/admin/topics", "주제를 생성했습니다.", "success");
+}
+
+export async function updateTopic(formData: FormData) {
+  const topicId = getString(formData, "topicId");
+  const returnPath = topicId
+    ? `/admin/topics/${topicId}/edit`
+    : "/admin/topics";
+  const title = getString(formData, "title");
+  const description = getString(formData, "description");
+  const optionA = getString(formData, "optionA");
+  const optionB = getString(formData, "optionB");
+  const status = getStatus(getString(formData, "status"));
+  const isToday = formData.get("isToday") === "on";
+  const tagIds = getSelectedTagIds(formData);
+
+  if (!topicId) {
+    redirectWithMessage(
+      "/admin/topics",
+      "주제 정보가 올바르지 않습니다.",
+      "error",
+    );
+  }
+
+  if (title.length < 2 || title.length > 80) {
+    redirectWithMessage(
+      returnPath,
+      "제목은 2자 이상 80자 이하로 입력해주세요.",
+      "error",
+    );
+  }
+
+  if (description.length > 500) {
+    redirectWithMessage(
+      returnPath,
+      "설명은 500자 이하로 입력해주세요.",
+      "error",
+    );
+  }
+
+  if (!optionA || !optionB) {
+    redirectWithMessage(
+      returnPath,
+      "A/B 선택지를 모두 입력해주세요.",
+      "error",
+    );
+  }
+
+  if (isToday && status !== "active") {
+    redirectWithMessage(
+      returnPath,
+      "오늘의 논쟁은 active 상태인 주제만 지정할 수 있습니다.",
+      "error",
+    );
+  }
+
+  const { supabase } = await requireAdmin();
+
+  if (isToday) {
+    await supabase
+      .from("casual_topics")
+      .update({ is_today: false })
+      .eq("is_today", true);
+  }
+
+  const { error } = await supabase
+    .from("casual_topics")
+    .update({
+      title,
+      description,
+      option_a: optionA,
+      option_b: optionB,
+      status,
+      is_today: isToday,
+    })
+    .eq("id", topicId);
+
+  if (error) {
+    redirectWithMessage(returnPath, error.message, "error");
+  }
+
+  await replaceTopicTags(supabase, topicId, tagIds, returnPath);
+
+  revalidatePath("/");
+  revalidatePath("/topics");
+  revalidatePath(`/topics/${topicId}`);
+  revalidatePath("/admin/topics");
+  revalidatePath(returnPath);
+
+  redirectWithMessage(returnPath, "주제를 수정했습니다.", "success");
 }
 
 export async function setTodayTopic(formData: FormData) {

@@ -236,3 +236,204 @@ export async function clearOpinionReaction(formData: FormData) {
 
   redirect(`/topics/${topicId}`);
 }
+
+export async function createComment(formData: FormData) {
+  const topicId = getString(formData, "topicId");
+  const opinionId = getString(formData, "opinionId");
+  const body = getString(formData, "body");
+
+  if (!topicId || !opinionId) {
+    redirectWithMessage("/topics", "댓글 대상 정보가 올바르지 않습니다.", "error");
+  }
+
+  if (body.length < 1 || body.length > 300) {
+    redirectWithMessage(
+      `/topics/${topicId}`,
+      "댓글은 1자 이상 300자 이하로 입력해주세요.",
+      "error",
+    );
+  }
+
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    redirectWithMessage("/login", "댓글을 작성하려면 로그인이 필요합니다.", "error");
+  }
+
+  await supabase.rpc("ensure_casual_profile");
+
+  const { data: opinion, error: opinionError } = await supabase
+    .from("casual_opinions")
+    .select("id, topic_id, is_hidden")
+    .eq("id", opinionId)
+    .eq("topic_id", topicId)
+    .maybeSingle();
+
+  if (opinionError || !opinion) {
+    redirectWithMessage(
+      `/topics/${topicId}`,
+      opinionError?.message ?? "의견을 찾을 수 없습니다.",
+      "error",
+    );
+  }
+
+  if (opinion.is_hidden) {
+    redirectWithMessage(
+      `/topics/${topicId}`,
+      "숨김 처리된 의견에는 댓글을 작성할 수 없습니다.",
+      "error",
+    );
+  }
+
+  const { error } = await supabase.from("casual_comments").insert({
+    opinion_id: opinionId,
+    user_id: user.id,
+    body,
+  });
+
+  if (error) {
+    redirectWithMessage(`/topics/${topicId}`, error.message, "error");
+  }
+
+  revalidatePath("/");
+  revalidatePath("/topics");
+  revalidatePath(`/topics/${topicId}`);
+
+  redirectWithMessage(`/topics/${topicId}`, "댓글을 남겼습니다.", "success");
+}
+
+export async function updateOpinion(formData: FormData) {
+  const topicId = getString(formData, "topicId");
+  const opinionId = getString(formData, "opinionId");
+  const body = getString(formData, "body");
+  const confirmReset = formData.get("confirmReset") === "on";
+
+  if (!topicId || !opinionId) {
+    redirectWithMessage("/topics", "의견 정보가 올바르지 않습니다.", "error");
+  }
+
+  if (body.length < 1 || body.length > 500) {
+    redirectWithMessage(
+      `/topics/${topicId}`,
+      "의견은 1자 이상 500자 이하로 입력해주세요.",
+      "error",
+    );
+  }
+
+  if (!confirmReset) {
+    redirectWithMessage(
+      `/topics/${topicId}`,
+      "의견을 수정하려면 공감/비공감 초기화에 동의해야 합니다.",
+      "error",
+    );
+  }
+
+  const supabase = await createClient();
+
+  const { error } = await supabase.rpc("update_own_casual_opinion", {
+    p_opinion_id: opinionId,
+    p_body: body,
+  });
+
+  if (error) {
+    redirectWithMessage(`/topics/${topicId}`, error.message, "error");
+  }
+
+  revalidatePath("/");
+  revalidatePath("/topics");
+  revalidatePath(`/topics/${topicId}`);
+
+  redirectWithMessage(
+    `/topics/${topicId}`,
+    "의견을 수정했습니다. 기존 공감/비공감은 초기화되었습니다.",
+    "success",
+  );
+}
+
+export async function deleteOpinion(formData: FormData) {
+  const topicId = getString(formData, "topicId");
+  const opinionId = getString(formData, "opinionId");
+
+  if (!topicId || !opinionId) {
+    redirectWithMessage("/topics", "의견 정보가 올바르지 않습니다.", "error");
+  }
+
+  const supabase = await createClient();
+
+  const { error } = await supabase.rpc("hide_own_casual_opinion", {
+    p_opinion_id: opinionId,
+  });
+
+  if (error) {
+    redirectWithMessage(`/topics/${topicId}`, error.message, "error");
+  }
+
+  revalidatePath("/");
+  revalidatePath("/topics");
+  revalidatePath(`/topics/${topicId}`);
+
+  redirectWithMessage(`/topics/${topicId}`, "의견을 삭제했습니다.", "success");
+}
+
+export async function updateComment(formData: FormData) {
+  const topicId = getString(formData, "topicId");
+  const commentId = getString(formData, "commentId");
+  const body = getString(formData, "body");
+
+  if (!topicId || !commentId) {
+    redirectWithMessage("/topics", "댓글 정보가 올바르지 않습니다.", "error");
+  }
+
+  if (body.length < 1 || body.length > 300) {
+    redirectWithMessage(
+      `/topics/${topicId}`,
+      "댓글은 1자 이상 300자 이하로 입력해주세요.",
+      "error",
+    );
+  }
+
+  const supabase = await createClient();
+
+  const { error } = await supabase.rpc("update_own_casual_comment", {
+    p_comment_id: commentId,
+    p_body: body,
+  });
+
+  if (error) {
+    redirectWithMessage(`/topics/${topicId}`, error.message, "error");
+  }
+
+  revalidatePath(`/topics/${topicId}`);
+
+  redirectWithMessage(`/topics/${topicId}`, "댓글을 수정했습니다.", "success");
+}
+
+export async function deleteComment(formData: FormData) {
+  const topicId = getString(formData, "topicId");
+  const commentId = getString(formData, "commentId");
+
+  if (!topicId || !commentId) {
+    redirectWithMessage("/topics", "댓글 정보가 올바르지 않습니다.", "error");
+  }
+
+  const supabase = await createClient();
+
+  const { error } = await supabase.rpc("hide_own_casual_comment", {
+    p_comment_id: commentId,
+  });
+
+  if (error) {
+    redirectWithMessage(`/topics/${topicId}`, error.message, "error");
+  }
+
+  revalidatePath("/");
+  revalidatePath("/topics");
+  revalidatePath(`/topics/${topicId}`);
+
+  redirectWithMessage(`/topics/${topicId}`, "댓글을 삭제했습니다.", "success");
+}
