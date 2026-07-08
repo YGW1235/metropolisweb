@@ -96,6 +96,10 @@ function getTargetLink({
     return { href: "/admin/reports", label: "신고 관리" };
   }
 
+  if (targetType === "announcement") {
+    return { href: "/admin/announcements", label: "공지 관리" };
+  }
+
   if (targetType === "opinion" || targetType === "comment") {
     const topicId = getMetadataString(metadata, "topicId");
 
@@ -214,6 +218,12 @@ export default async function AdminLogsPage() {
                 className="rounded-full border border-stone-200 px-4 py-2 text-sm font-bold text-stone-700 transition hover:bg-stone-50"
               >
                 유저 관리
+              </Link>
+              <Link
+                href="/admin/announcements"
+                className="rounded-full border border-stone-200 px-4 py-2 text-sm font-bold text-stone-700 transition hover:bg-stone-50"
+              >
+                공지 관리
               </Link>
               <Link
                 href="/admin/qa"

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 
 import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { SiteAnnouncement } from "@/components/SiteAnnouncement";
 
 export async function SiteHeader() {
   const supabase = await createClient();
@@ -105,6 +106,8 @@ export async function SiteHeader() {
             )}
         </div>
         </header>
+
+        <SiteAnnouncement />
 
         <MobileBottomNav
         isLoggedIn={Boolean(user)}
