@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { createAdminAuditLog } from "@/lib/casual-admin-audit-log";
 import { createClient } from "@/lib/supabase/server";
 
 function getString(formData: FormData, key: string) {
@@ -54,8 +55,16 @@ async function markReport(
   reportId: string,
   status: "resolved" | "dismissed",
   note: string,
+  auditAction: "report_resolved" | "report_dismissed",
+  auditMessage: string,
 ) {
   const { supabase, user } = await requireAdmin();
+
+  const { data: report } = await supabase
+    .from("casual_reports")
+    .select("id, reason, target_type, target_id")
+    .eq("id", reportId)
+    .maybeSingle();
 
   const { error } = await supabase
     .from("casual_reports")
@@ -70,6 +79,23 @@ async function markReport(
   if (error) {
     redirectWithMessage("/admin/reports", error.message, "error");
   }
+
+  await createAdminAuditLog(supabase, {
+    action: auditAction,
+    targetType: "report",
+    targetId: reportId,
+    message: auditMessage,
+    metadata: {
+      reportId,
+      reason: report?.reason ?? null,
+      note,
+      status,
+      targetType: report?.target_type ?? null,
+      targetId: report?.target_id ?? null,
+    },
+  });
+
+  revalidatePath("/admin/logs");
 }
 
 export async function dismissReport(formData: FormData) {
@@ -84,7 +110,13 @@ export async function dismissReport(formData: FormData) {
     );
   }
 
-  await markReport(reportId, "dismissed", note || "기각");
+  await markReport(
+    reportId,
+    "dismissed",
+    note || "기각",
+    "report_dismissed",
+    "신고를 기각했습니다.",
+  );
 
   revalidatePath("/admin/reports");
   redirectWithMessage("/admin/reports", "신고를 기각했습니다.", "success");
@@ -102,7 +134,13 @@ export async function resolveReport(formData: FormData) {
     );
   }
 
-  await markReport(reportId, "resolved", note || "처리 완료");
+  await markReport(
+    reportId,
+    "resolved",
+    note || "처리 완료",
+    "report_resolved",
+    "신고를 처리 완료했습니다.",
+  );
 
   revalidatePath("/admin/reports");
   redirectWithMessage("/admin/reports", "신고를 처리 완료했습니다.", "success");
@@ -125,7 +163,7 @@ export async function hideOpinionAndResolve(formData: FormData) {
 
   const { data: opinion, error: readError } = await supabase
     .from("casual_opinions")
-    .select("id, topic_id")
+    .select("id, topic_id, user_id")
     .eq("id", opinionId)
     .single();
 
@@ -136,6 +174,12 @@ export async function hideOpinionAndResolve(formData: FormData) {
       "error",
     );
   }
+
+  const { data: report } = await supabase
+    .from("casual_reports")
+    .select("reason")
+    .eq("id", reportId)
+    .maybeSingle();
 
   const { error: hideError } = await supabase
     .from("casual_opinions")
@@ -160,10 +204,25 @@ export async function hideOpinionAndResolve(formData: FormData) {
     redirectWithMessage("/admin/reports", reportError.message, "error");
   }
 
+  await createAdminAuditLog(supabase, {
+    action: "opinion_hidden",
+    targetType: "opinion",
+    targetId: opinionId,
+    targetUserId: opinion.user_id,
+    message: "신고된 의견을 숨김 처리했습니다.",
+    metadata: {
+      reportId,
+      reason: report?.reason ?? null,
+      note: note || "의견 숨김 처리",
+      topicId: opinion.topic_id,
+    },
+  });
+
   revalidatePath("/");
   revalidatePath("/topics");
   revalidatePath(`/topics/${opinion.topic_id}`);
   revalidatePath("/admin/reports");
+  revalidatePath("/admin/logs");
 
   redirectWithMessage("/admin/reports", "의견을 숨김 처리했습니다.", "success");
 }
@@ -179,7 +238,7 @@ export async function unhideOpinion(formData: FormData) {
 
   const { data: opinion, error: readError } = await supabase
     .from("casual_opinions")
-    .select("id, topic_id")
+    .select("id, topic_id, user_id")
     .eq("id", opinionId)
     .single();
 
@@ -200,8 +259,20 @@ export async function unhideOpinion(formData: FormData) {
     redirectWithMessage("/admin/reports", error.message, "error");
   }
 
+  await createAdminAuditLog(supabase, {
+    action: "opinion_unhidden",
+    targetType: "opinion",
+    targetId: opinionId,
+    targetUserId: opinion.user_id,
+    message: "의견 숨김을 해제했습니다.",
+    metadata: {
+      topicId: opinion.topic_id,
+    },
+  });
+
   revalidatePath(`/topics/${opinion.topic_id}`);
   revalidatePath("/admin/reports");
+  revalidatePath("/admin/logs");
 
   redirectWithMessage("/admin/reports", "의견 숨김을 해제했습니다.", "success");
 }
@@ -220,6 +291,18 @@ export async function closeTopicAndResolve(formData: FormData) {
   }
 
   const { supabase, user } = await requireAdmin();
+
+  const { data: topic } = await supabase
+    .from("casual_topics")
+    .select("id, title, created_by")
+    .eq("id", topicId)
+    .maybeSingle();
+
+  const { data: report } = await supabase
+    .from("casual_reports")
+    .select("reason")
+    .eq("id", reportId)
+    .maybeSingle();
 
   const { error: topicError } = await supabase
     .from("casual_topics")
@@ -247,10 +330,26 @@ export async function closeTopicAndResolve(formData: FormData) {
     redirectWithMessage("/admin/reports", reportError.message, "error");
   }
 
+  await createAdminAuditLog(supabase, {
+    action: "topic_closed",
+    targetType: "topic",
+    targetId: topicId,
+    targetUserId: topic?.created_by ?? null,
+    message: "신고된 주제를 종료 처리했습니다.",
+    metadata: {
+      reportId,
+      reason: report?.reason ?? null,
+      note: note || "주제 종료 처리",
+      title: topic?.title ?? null,
+      status: "closed",
+    },
+  });
+
   revalidatePath("/");
   revalidatePath("/topics");
   revalidatePath(`/topics/${topicId}`);
   revalidatePath("/admin/reports");
+  revalidatePath("/admin/logs");
 
   redirectWithMessage("/admin/reports", "주제를 종료 처리했습니다.", "success");
 }
@@ -272,7 +371,7 @@ export async function hideCommentAndResolve(formData: FormData) {
 
   const { data: comment, error: readError } = await supabase
     .from("casual_comments")
-    .select("id, opinion_id")
+    .select("id, opinion_id, user_id")
     .eq("id", commentId)
     .single();
 
@@ -288,6 +387,12 @@ export async function hideCommentAndResolve(formData: FormData) {
     .from("casual_opinions")
     .select("topic_id")
     .eq("id", comment.opinion_id)
+    .maybeSingle();
+
+  const { data: report } = await supabase
+    .from("casual_reports")
+    .select("reason")
+    .eq("id", reportId)
     .maybeSingle();
 
   const { error: hideError } = await supabase
@@ -313,6 +418,21 @@ export async function hideCommentAndResolve(formData: FormData) {
     redirectWithMessage("/admin/reports", reportError.message, "error");
   }
 
+  await createAdminAuditLog(supabase, {
+    action: "comment_hidden",
+    targetType: "comment",
+    targetId: commentId,
+    targetUserId: comment.user_id,
+    message: "신고된 댓글을 숨김 처리했습니다.",
+    metadata: {
+      reportId,
+      reason: report?.reason ?? null,
+      note: note || "댓글 숨김 처리",
+      opinionId: comment.opinion_id,
+      topicId: opinion?.topic_id ?? null,
+    },
+  });
+
   revalidatePath("/");
   revalidatePath("/topics");
 
@@ -321,6 +441,7 @@ export async function hideCommentAndResolve(formData: FormData) {
   }
 
   revalidatePath("/admin/reports");
+  revalidatePath("/admin/logs");
 
   redirectWithMessage("/admin/reports", "댓글을 숨김 처리했습니다.", "success");
 }
@@ -336,7 +457,7 @@ export async function unhideComment(formData: FormData) {
 
   const { data: comment, error: readError } = await supabase
     .from("casual_comments")
-    .select("id, opinion_id")
+    .select("id, opinion_id, user_id")
     .eq("id", commentId)
     .single();
 
@@ -363,11 +484,24 @@ export async function unhideComment(formData: FormData) {
     redirectWithMessage("/admin/reports", error.message, "error");
   }
 
+  await createAdminAuditLog(supabase, {
+    action: "comment_unhidden",
+    targetType: "comment",
+    targetId: commentId,
+    targetUserId: comment.user_id,
+    message: "댓글 숨김을 해제했습니다.",
+    metadata: {
+      opinionId: comment.opinion_id,
+      topicId: opinion?.topic_id ?? null,
+    },
+  });
+
   if (opinion?.topic_id) {
     revalidatePath(`/topics/${opinion.topic_id}`);
   }
 
   revalidatePath("/admin/reports");
+  revalidatePath("/admin/logs");
 
   redirectWithMessage("/admin/reports", "댓글 숨김을 해제했습니다.", "success");
 }

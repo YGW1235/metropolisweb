@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { createAdminAuditLog } from "@/lib/casual-admin-audit-log";
 import { createClient } from "@/lib/supabase/server";
 
 type TopicStatus = "draft" | "active" | "closed" | "archived";
@@ -188,10 +189,24 @@ export async function createTopic(formData: FormData) {
 
   await replaceTopicTags(supabase, topic.id, tagIds, "/admin/topics");
 
+  await createAdminAuditLog(supabase, {
+    action: "topic_created",
+    targetType: "topic",
+    targetId: topic.id,
+    message: "주제를 생성했습니다.",
+    metadata: {
+      title,
+      status,
+      isToday,
+      tagIds,
+    },
+  });
+
   revalidatePath("/");
   revalidatePath("/topics");
   revalidatePath(`/topics/${topic.id}`);
   revalidatePath("/admin/topics");
+  revalidatePath("/admin/logs");
 
   redirectWithMessage("/admin/topics", "주제를 생성했습니다.", "success");
 }
@@ -276,10 +291,24 @@ export async function updateTopic(formData: FormData) {
 
   await replaceTopicTags(supabase, topicId, tagIds, returnPath);
 
+  await createAdminAuditLog(supabase, {
+    action: "topic_updated",
+    targetType: "topic",
+    targetId: topicId,
+    message: "주제를 수정했습니다.",
+    metadata: {
+      title,
+      status,
+      isToday,
+      tagIds,
+    },
+  });
+
   revalidatePath("/");
   revalidatePath("/topics");
   revalidatePath(`/topics/${topicId}`);
   revalidatePath("/admin/topics");
+  revalidatePath("/admin/logs");
   revalidatePath(returnPath);
 
   redirectWithMessage(returnPath, "주제를 수정했습니다.", "success");
@@ -315,10 +344,22 @@ export async function setTodayTopic(formData: FormData) {
     redirectWithMessage("/admin/topics", error.message, "error");
   }
 
+  await createAdminAuditLog(supabase, {
+    action: "topic_set_today",
+    targetType: "topic",
+    targetId: topicId,
+    message: "오늘의 논쟁으로 지정했습니다.",
+    metadata: {
+      status: "active",
+      isToday: true,
+    },
+  });
+
   revalidatePath("/");
   revalidatePath("/topics");
   revalidatePath(`/topics/${topicId}`);
   revalidatePath("/admin/topics");
+  revalidatePath("/admin/logs");
 
   redirectWithMessage(
     "/admin/topics",
@@ -358,10 +399,22 @@ export async function changeTopicStatus(formData: FormData) {
     redirectWithMessage("/admin/topics", error.message, "error");
   }
 
+  await createAdminAuditLog(supabase, {
+    action: "topic_status_changed",
+    targetType: "topic",
+    targetId: topicId,
+    message: `주제 상태를 ${status}로 변경했습니다.`,
+    metadata: {
+      status,
+      isToday: status === "active" ? null : false,
+    },
+  });
+
   revalidatePath("/");
   revalidatePath("/topics");
   revalidatePath(`/topics/${topicId}`);
   revalidatePath("/admin/topics");
+  revalidatePath("/admin/logs");
 
   redirectWithMessage("/admin/topics", "주제 상태를 변경했습니다.", "success");
 }

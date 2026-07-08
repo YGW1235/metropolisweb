@@ -159,6 +159,12 @@ export default async function AdminTopicsPage({
                 QA 체크리스트
               </Link>
               <Link
+                href="/admin/logs"
+                className="rounded-full border border-stone-200 px-4 py-2 text-sm font-bold text-stone-700 transition hover:bg-stone-50"
+              >
+                관리자 로그
+              </Link>
+              <Link
                 href="/admin/users"
                 className="rounded-full border border-stone-200 px-4 py-2 text-sm font-bold text-stone-700 transition hover:bg-stone-50"
               >

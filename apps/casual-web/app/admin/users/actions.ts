@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { createAdminAuditLog } from "@/lib/casual-admin-audit-log";
 import { createClient } from "@/lib/supabase/server";
 
 type ModerationStatus = "active" | "limited" | "suspended";
@@ -103,7 +104,20 @@ export async function updateUserModeration(formData: FormData) {
     redirectWithMessage("/admin/users", error.message, "error");
   }
 
+  await createAdminAuditLog(supabase, {
+    action: "user_moderation_update",
+    targetType: "user",
+    targetUserId: userId,
+    message: `유저 제재 상태를 ${status}로 변경했습니다.`,
+    metadata: {
+      status,
+      reason: reason || null,
+      expires_at: expiresAt,
+    },
+  });
+
   revalidatePath("/admin/users");
+  revalidatePath("/admin/logs");
   revalidatePath("/me");
 
   redirectWithMessage("/admin/users", "유저 제재 상태를 저장했습니다.", "success");
