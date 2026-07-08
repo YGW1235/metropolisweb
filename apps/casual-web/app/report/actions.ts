@@ -83,6 +83,48 @@ export async function createReport(formData: FormData) {
     redirectWithMessage("/login", "신고하려면 로그인이 필요합니다.", "error");
   }
 
+  const { data: openReports, error: openReportsError } = await supabase
+    .from("casual_reports")
+    .select("id")
+    .eq("reporter_id", user.id)
+    .eq("target_type", targetType)
+    .eq("target_id", targetId)
+    .eq("status", "open")
+    .limit(1);
+
+  if (openReportsError) {
+    redirectWithMessage(returnTo, openReportsError.message, "error");
+  }
+
+  if ((openReports ?? []).length > 0) {
+    redirectWithMessage(
+      returnTo,
+      "이미 접수된 신고입니다. 관리자가 확인 중입니다.",
+      "error",
+    );
+  }
+
+  const reportRateLimitCutoff = new Date(Date.now() - 60_000).toISOString();
+
+  const { data: recentReports, error: recentReportsError } = await supabase
+    .from("casual_reports")
+    .select("id")
+    .eq("reporter_id", user.id)
+    .gt("created_at", reportRateLimitCutoff)
+    .limit(1);
+
+  if (recentReportsError) {
+    redirectWithMessage(returnTo, recentReportsError.message, "error");
+  }
+
+  if ((recentReports ?? []).length > 0) {
+    redirectWithMessage(
+      returnTo,
+      "신고를 너무 빠르게 제출하고 있습니다. 잠시 후 다시 시도해주세요.",
+      "error",
+    );
+  }
+
   const { error } = await supabase.from("casual_reports").insert({
     reporter_id: user.id,
     target_type: targetType,

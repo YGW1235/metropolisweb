@@ -136,6 +136,37 @@ export default async function AdminTopicsPage({
     <main className="min-h-screen bg-[#fff7ed] text-[#2f2118]">
       <SiteHeader />
       <section className="mx-auto max-w-6xl">
+        <section className="mt-8 rounded-3xl border border-orange-100 bg-white p-6 shadow-sm">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-sm font-bold tracking-[0.3em] text-orange-700">
+                ADMIN TOPICS
+              </p>
+              <h1 className="mt-2 text-3xl font-black">주제 관리</h1>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href="/admin"
+                className="rounded-full border border-stone-200 px-4 py-2 text-sm font-bold text-stone-700 transition hover:bg-stone-50"
+              >
+                대시보드
+              </Link>
+              <Link
+                href="/admin/qa"
+                className="rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-sm font-black text-orange-800 transition hover:bg-orange-100"
+              >
+                QA 체크리스트
+              </Link>
+              <Link
+                href="/admin/reports"
+                className="rounded-full bg-stone-950 px-4 py-2 text-sm font-black text-white transition hover:-translate-y-0.5"
+              >
+                신고 관리
+              </Link>
+            </div>
+          </div>
+        </section>
 
         {params.message && (
           <div

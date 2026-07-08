@@ -162,6 +162,32 @@ export async function createOpinion(formData: FormData) {
     );
   }
 
+  const opinionRateLimitCutoff = new Date(Date.now() - 30_000).toISOString();
+
+  const { data: recentOpinions, error: recentOpinionsError } = await supabase
+    .from("casual_opinions")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("is_hidden", false)
+    .gt("created_at", opinionRateLimitCutoff)
+    .limit(1);
+
+  if (recentOpinionsError) {
+    redirectWithMessage(
+      `/topics/${topicId}`,
+      recentOpinionsError.message,
+      "error",
+    );
+  }
+
+  if ((recentOpinions ?? []).length > 0) {
+    redirectWithMessage(
+      `/topics/${topicId}`,
+      "의견을 너무 빠르게 작성하고 있습니다. 잠시 후 다시 시도해주세요.",
+      "error",
+    );
+  }
+
   const { error } = await supabase.from("casual_opinions").insert({
     topic_id: topicId,
     user_id: user.id,
@@ -379,6 +405,32 @@ export async function createComment(formData: FormData) {
     redirectWithMessage(
       `/topics/${topicId}`,
       "숨김 처리된 의견에는 댓글을 작성할 수 없습니다.",
+      "error",
+    );
+  }
+
+  const commentRateLimitCutoff = new Date(Date.now() - 15_000).toISOString();
+
+  const { data: recentComments, error: recentCommentsError } = await supabase
+    .from("casual_comments")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("is_hidden", false)
+    .gt("created_at", commentRateLimitCutoff)
+    .limit(1);
+
+  if (recentCommentsError) {
+    redirectWithMessage(
+      `/topics/${topicId}`,
+      recentCommentsError.message,
+      "error",
+    );
+  }
+
+  if ((recentComments ?? []).length > 0) {
+    redirectWithMessage(
+      `/topics/${topicId}`,
+      "댓글을 너무 빠르게 작성하고 있습니다. 잠시 후 다시 시도해주세요.",
       "error",
     );
   }
