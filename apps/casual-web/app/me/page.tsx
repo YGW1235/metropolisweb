@@ -8,6 +8,10 @@ import {
   type TopicTag,
   type TopicTagLink,
 } from "@/lib/casual-tags";
+import {
+  getCasualUserRestrictionMessage,
+  getCasualUserStatus,
+} from "@/lib/casual-user-status";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -56,6 +60,13 @@ export default async function MyPage() {
       </main>
     );
   }
+
+  const { status: userStatus, errorMessage: userStatusErrorMessage } =
+    await getCasualUserStatus(supabase, user.id);
+
+  const accountWarning = userStatusErrorMessage
+    ? null
+    : getCasualUserRestrictionMessage(userStatus, "participation");
 
   const { data: votesData } = await supabase
     .from("casual_votes")
@@ -206,6 +217,15 @@ export default async function MyPage() {
             </Link>
           </div>
         </header>
+
+        {accountWarning && (
+          <section className="mt-6 rounded-3xl border border-red-100 bg-red-50 p-5 text-red-900">
+            <p className="text-sm font-black">{accountWarning}</p>
+            <p className="mt-2 text-sm leading-6 text-red-700">
+              계정 상태와 관련해 궁금한 점이 있으면 관리자에게 문의해주세요.
+            </p>
+          </section>
+        )}
 
         <section className="mt-8 rounded-[2rem] border border-orange-100 bg-white p-6 shadow-sm">
           <div className="flex flex-wrap items-center gap-5">

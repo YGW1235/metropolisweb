@@ -3,6 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import {
+  getCasualUserRestrictionMessage,
+  getCasualUserStatus,
+} from "@/lib/casual-user-status";
 import { createClient } from "@/lib/supabase/server";
 
 type TargetType = "topic" | "opinion" | "comment";
@@ -81,6 +85,24 @@ export async function createReport(formData: FormData) {
 
   if (userError || !user) {
     redirectWithMessage("/login", "신고하려면 로그인이 필요합니다.", "error");
+  }
+
+  const { status, errorMessage } = await getCasualUserStatus(
+    supabase,
+    user.id,
+  );
+
+  if (errorMessage) {
+    redirectWithMessage(returnTo, errorMessage, "error");
+  }
+
+  const restrictionMessage = getCasualUserRestrictionMessage(
+    status,
+    "participation",
+  );
+
+  if (restrictionMessage) {
+    redirectWithMessage(returnTo, restrictionMessage, "error");
   }
 
   const { data: openReports, error: openReportsError } = await supabase

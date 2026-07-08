@@ -3,6 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import {
+  getCasualUserRestrictionMessage,
+  getCasualUserStatus,
+  type CasualUserPermission,
+} from "@/lib/casual-user-status";
 import { createClient } from "@/lib/supabase/server";
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
@@ -53,6 +58,28 @@ async function createNotification(
     p_opinion_id: opinionId,
     p_comment_id: commentId,
   });
+}
+
+async function redirectIfUserRestricted(
+  supabase: SupabaseClient,
+  userId: string,
+  returnPath: string,
+  permission: CasualUserPermission,
+) {
+  const { status, errorMessage } = await getCasualUserStatus(supabase, userId);
+
+  if (errorMessage) {
+    redirectWithMessage(returnPath, errorMessage, "error");
+  }
+
+  const restrictionMessage = getCasualUserRestrictionMessage(
+    status,
+    permission,
+  );
+
+  if (restrictionMessage) {
+    redirectWithMessage(returnPath, restrictionMessage, "error");
+  }
 }
 
 export async function voteTopic(formData: FormData) {
@@ -140,6 +167,13 @@ export async function createOpinion(formData: FormData) {
   if (userError || !user) {
     redirectWithMessage("/login", "의견을 작성하려면 로그인이 필요합니다.", "error");
   }
+
+  await redirectIfUserRestricted(
+    supabase,
+    user.id,
+    `/topics/${topicId}`,
+    "participation",
+  );
 
   await supabase.rpc("ensure_casual_profile");
 
@@ -238,6 +272,13 @@ export async function reactOpinion(formData: FormData) {
     );
   }
 
+  await redirectIfUserRestricted(
+    supabase,
+    user.id,
+    `/topics/${topicId}`,
+    "interaction",
+  );
+
   const { error } = await supabase.rpc("set_casual_opinion_reaction", {
     p_opinion_id: opinionId,
     p_reaction_type: reactionType,
@@ -312,6 +353,13 @@ export async function toggleTopicBookmark(formData: FormData) {
     );
   }
 
+  await redirectIfUserRestricted(
+    supabase,
+    user.id,
+    `/topics/${topicId}`,
+    "interaction",
+  );
+
   const { data: existingBookmark, error: readError } = await supabase
     .from("casual_topic_bookmarks")
     .select("topic_id")
@@ -383,6 +431,13 @@ export async function createComment(formData: FormData) {
   if (userError || !user) {
     redirectWithMessage("/login", "댓글을 작성하려면 로그인이 필요합니다.", "error");
   }
+
+  await redirectIfUserRestricted(
+    supabase,
+    user.id,
+    `/topics/${topicId}`,
+    "participation",
+  );
 
   await supabase.rpc("ensure_casual_profile");
 

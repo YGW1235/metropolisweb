@@ -191,6 +191,12 @@ export default async function AdminReportsPage({
                 QA 체크리스트
               </Link>
               <Link
+                href="/admin/users"
+                className="rounded-full border border-stone-200 px-4 py-2 text-sm font-bold text-stone-700 transition hover:bg-stone-50"
+              >
+                유저 관리
+              </Link>
+              <Link
                 href="/admin/topics"
                 className="rounded-full bg-stone-950 px-4 py-2 text-sm font-black text-white transition hover:-translate-y-0.5"
               >
