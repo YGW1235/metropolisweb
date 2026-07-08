@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
 
+type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
+
 function getString(formData: FormData, key: string) {
   const value = formData.get(key);
 
@@ -26,6 +28,31 @@ function redirectWithMessage(
   });
 
   redirect(`${path}?${params.toString()}`);
+}
+
+async function createNotification(
+  supabase: SupabaseClient,
+  {
+    commentId,
+    opinionId,
+    topicId,
+    type,
+    userId,
+  }: {
+    commentId: string | null;
+    opinionId: string;
+    topicId: string;
+    type: "opinion_comment" | "opinion_like" | "opinion_dislike";
+    userId: string;
+  },
+) {
+  await supabase.rpc("create_casual_notification", {
+    p_user_id: userId,
+    p_type: type,
+    p_topic_id: topicId,
+    p_opinion_id: opinionId,
+    p_comment_id: commentId,
+  });
 }
 
 export async function voteTopic(formData: FormData) {
@@ -185,6 +212,20 @@ export async function reactOpinion(formData: FormData) {
     );
   }
 
+  const { data: opinion, error: opinionError } = await supabase
+    .from("casual_opinions")
+    .select("id, topic_id, user_id")
+    .eq("id", opinionId)
+    .maybeSingle();
+
+  if (opinionError || !opinion) {
+    redirectWithMessage(
+      `/topics/${topicId}`,
+      opinionError?.message ?? "의견을 찾을 수 없습니다.",
+      "error",
+    );
+  }
+
   const { error } = await supabase.rpc("set_casual_opinion_reaction", {
     p_opinion_id: opinionId,
     p_reaction_type: reactionType,
@@ -194,6 +235,17 @@ export async function reactOpinion(formData: FormData) {
     redirectWithMessage(`/topics/${topicId}`, error.message, "error");
   }
 
+  await createNotification(supabase, {
+    commentId: null,
+    opinionId,
+    topicId: opinion.topic_id ?? topicId,
+    type: reactionType === "like" ? "opinion_like" : "opinion_dislike",
+    userId: opinion.user_id,
+  });
+
+  revalidatePath("/");
+  revalidatePath("/me");
+  revalidatePath("/notifications");
   revalidatePath(`/topics/${topicId}`);
   revalidatePath("/topics");
 
@@ -335,7 +387,7 @@ export async function createComment(formData: FormData) {
 
   const { data: opinion, error: opinionError } = await supabase
     .from("casual_opinions")
-    .select("id, topic_id, is_hidden")
+    .select("id, topic_id, user_id, is_hidden")
     .eq("id", opinionId)
     .eq("topic_id", topicId)
     .maybeSingle();
@@ -356,17 +408,35 @@ export async function createComment(formData: FormData) {
     );
   }
 
-  const { error } = await supabase.from("casual_comments").insert({
-    opinion_id: opinionId,
-    user_id: user.id,
-    body,
-  });
+  const { data: comment, error } = await supabase
+    .from("casual_comments")
+    .insert({
+      opinion_id: opinionId,
+      user_id: user.id,
+      body,
+    })
+    .select("id")
+    .single();
 
-  if (error) {
-    redirectWithMessage(`/topics/${topicId}`, error.message, "error");
+  if (error || !comment) {
+    redirectWithMessage(
+      `/topics/${topicId}`,
+      error?.message ?? "댓글을 남기지 못했습니다.",
+      "error",
+    );
   }
 
+  await createNotification(supabase, {
+    commentId: comment.id,
+    opinionId,
+    topicId,
+    type: "opinion_comment",
+    userId: opinion.user_id,
+  });
+
   revalidatePath("/");
+  revalidatePath("/me");
+  revalidatePath("/notifications");
   revalidatePath("/topics");
   revalidatePath(`/topics/${topicId}`);
 

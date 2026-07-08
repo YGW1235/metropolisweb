@@ -7,6 +7,7 @@ type MobileBottomNavProps = {
   isLoggedIn: boolean;
   isAdmin: boolean;
   nickname: string | null;
+  unreadNotificationCount: number;
 };
 
 function isActive(pathname: string, href: string) {
@@ -52,6 +53,7 @@ export function MobileBottomNav({
   isLoggedIn,
   isAdmin,
   nickname,
+  unreadNotificationCount,
 }: MobileBottomNavProps) {
   return (
     <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-orange-100 bg-white/95 px-3 py-2 shadow-[0_-10px_30px_rgba(0,0,0,0.06)] backdrop-blur md:hidden">
@@ -60,11 +62,18 @@ export function MobileBottomNav({
         <NavItem href="/topics" label="주제" />
 
         {isLoggedIn ? (
-          <NavItem
-            href="/settings/profile"
-            label="프로필"
-            subLabel={nickname ?? undefined}
-          />
+          <>
+            <NavItem
+              href="/notifications"
+              label="알림"
+              subLabel={
+                unreadNotificationCount > 0
+                  ? `${unreadNotificationCount}`
+                  : undefined
+              }
+            />
+            <NavItem href="/me" label="내 활동" subLabel={nickname ?? undefined} />
+          </>
         ) : (
           <NavItem href="/login" label="로그인" />
         )}

@@ -89,6 +89,12 @@ export default async function MyPage() {
     .order("created_at", { ascending: false })
     .limit(20);
 
+  const { count: unreadNotificationCount } = await supabase
+    .from("casual_notifications")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .eq("is_read", false);
+
   const votes = votesData ?? [];
   const opinions = opinionsData ?? [];
   const comments = commentsData ?? [];
@@ -175,6 +181,16 @@ export default async function MyPage() {
           </div>
 
           <div className="flex flex-wrap gap-2">
+            <Link
+              href="/notifications"
+              className="rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-sm font-black text-orange-700 transition hover:bg-orange-100"
+            >
+              알림
+              {(unreadNotificationCount ?? 0) > 0
+                ? ` ${unreadNotificationCount}`
+                : ""}
+            </Link>
+
             <Link
               href={`/users/${encodeURIComponent(profile.nickname)}`}
               className="rounded-full border border-orange-200 bg-white px-4 py-2 text-sm font-black text-orange-700 transition hover:bg-orange-50"

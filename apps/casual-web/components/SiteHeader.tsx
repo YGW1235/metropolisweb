@@ -13,6 +13,7 @@ export async function SiteHeader() {
 
   let profile: { nickname: string } | null = null;
   let isAdmin = false;
+  let unreadNotificationCount = 0;
 
   if (user) {
     await supabase.rpc("ensure_casual_profile");
@@ -28,6 +29,14 @@ export async function SiteHeader() {
     const { data: adminData } = await supabase.rpc("is_casual_admin");
 
     isAdmin = Boolean(adminData);
+
+    const { count } = await supabase
+      .from("casual_notifications")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .eq("is_read", false);
+
+    unreadNotificationCount = count ?? 0;
   }
 
 
@@ -55,6 +64,12 @@ export async function SiteHeader() {
             <Link href="/#opinions" className="hover:text-stone-950">
             인기 의견
             </Link>
+
+            {user && (
+            <Link href="/notifications" className="hover:text-stone-950">
+                알림{unreadNotificationCount > 0 ? ` ${unreadNotificationCount}` : ""}
+            </Link>
+            )}
 
             {isAdmin && (
             <Link href="/admin" className="text-orange-700 hover:text-orange-900">
@@ -95,6 +110,7 @@ export async function SiteHeader() {
         isLoggedIn={Boolean(user)}
         isAdmin={isAdmin}
         nickname={profile?.nickname ?? null}
+        unreadNotificationCount={unreadNotificationCount}
         />
     </>
   );
