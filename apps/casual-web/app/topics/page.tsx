@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { createClient } from "@/lib/supabase/server";
@@ -10,6 +11,15 @@ import {
 
 import { SiteHeader } from "@/components/SiteHeader";
 import { TopicTagBadges } from "@/components/TopicTagBadges";
+
+export const metadata: Metadata = {
+  title: "주제 둘러보기",
+  description:
+    "심포지온의 캐주얼 찬반 주제를 검색하고 태그와 정렬로 골라 참여해보세요.",
+  alternates: {
+    canonical: "/topics",
+  },
+};
 
 export const dynamic = "force-dynamic";
 

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -7,6 +8,15 @@ import {
 } from "@/app/notifications/actions";
 import { SiteHeader } from "@/components/SiteHeader";
 import { createClient } from "@/lib/supabase/server";
+
+export const metadata: Metadata = {
+  title: "알림",
+  description: "심포지온에서 내 의견에 달린 댓글 알림을 확인합니다.",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export const dynamic = "force-dynamic";
 

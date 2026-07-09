@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -9,6 +10,14 @@ import {
   type CasualUserStatus,
 } from "@/lib/casual-user-status";
 import { createClient } from "@/lib/supabase/server";
+
+export const metadata: Metadata = {
+  title: "유저 관리",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export const dynamic = "force-dynamic";
 

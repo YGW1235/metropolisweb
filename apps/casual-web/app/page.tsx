@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { createClient } from "@/lib/supabase/server";
@@ -9,6 +10,17 @@ import {
 
 import { SiteHeader } from "@/components/SiteHeader";
 import { TopicTagBadges } from "@/components/TopicTagBadges";
+
+export const metadata: Metadata = {
+  title: {
+    absolute: "심포지온 - 가볍게 고르고 짧게 편드는 토론 공간",
+  },
+  description:
+    "일상, 취향, 사회 이슈를 가볍게 고르고 짧게 의견을 나누는 캐주얼 찬반 토론 커뮤니티입니다.",
+  alternates: {
+    canonical: "/",
+  },
+};
 
 export const dynamic = "force-dynamic";
 

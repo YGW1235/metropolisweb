@@ -1,7 +1,9 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { SiteHeader } from "@/components/SiteHeader";
+import { DEFAULT_DESCRIPTION, truncateDescription } from "@/lib/site-metadata";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -9,6 +11,41 @@ export const dynamic = "force-dynamic";
 type PageParams = Promise<{
   nickname: string;
 }>;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: PageParams;
+}): Promise<Metadata> {
+  const { nickname } = await params;
+  const decodedNickname = decodeURIComponent(nickname);
+  const supabase = await createClient();
+
+  const { data: profile } = await supabase
+    .from("casual_profiles")
+    .select("nickname, bio")
+    .eq("nickname", decodedNickname)
+    .maybeSingle();
+
+  const profileNickname = profile?.nickname ?? decodedNickname;
+  const title = `${profileNickname}님의 프로필 - 심포지온`;
+  const description = truncateDescription(profile?.bio || DEFAULT_DESCRIPTION);
+
+  return {
+    title: {
+      absolute: title,
+    },
+    description,
+    openGraph: {
+      title,
+      description,
+    },
+    twitter: {
+      title,
+      description,
+    },
+  };
+}
 
 function formatCount(value: number | null | undefined) {
   return new Intl.NumberFormat("ko-KR").format(value ?? 0);

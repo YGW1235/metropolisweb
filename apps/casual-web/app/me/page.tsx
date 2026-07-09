@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -13,6 +14,15 @@ import {
   getCasualUserStatus,
 } from "@/lib/casual-user-status";
 import { createClient } from "@/lib/supabase/server";
+
+export const metadata: Metadata = {
+  title: "내 활동",
+  description: "심포지온에서 내가 참여한 주제, 의견, 댓글, 저장한 주제를 확인합니다.",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export const dynamic = "force-dynamic";
 

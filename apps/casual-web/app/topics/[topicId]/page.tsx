@@ -1,7 +1,9 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
 import type { TopicTag } from "@/lib/casual-tags";
+import { truncateDescription } from "@/lib/site-metadata";
 
 import { ViewTracker } from "./ViewTracker";
 import { OpinionColumn } from "./components/OpinionColumn";
@@ -28,6 +30,53 @@ type SearchParams = Promise<{
   message?: string;
   type?: "success" | "error";
 }>;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: PageParams;
+}): Promise<Metadata> {
+  const { topicId } = await params;
+  const supabase = await createClient();
+
+  const { data: topic } = await supabase
+    .from("casual_topics")
+    .select("title, description")
+    .eq("id", topicId)
+    .eq("status", "active")
+    .maybeSingle();
+
+  if (!topic) {
+    return {
+      title: {
+        absolute: "주제를 찾을 수 없습니다 - 심포지온",
+      },
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
+  }
+
+  const title = `${topic.title} - 심포지온`;
+  const description = truncateDescription(topic.description);
+
+  return {
+    title: {
+      absolute: title,
+    },
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "article",
+    },
+    twitter: {
+      title,
+      description,
+    },
+  };
+}
 
 export default async function TopicDetailPage({
   params,
