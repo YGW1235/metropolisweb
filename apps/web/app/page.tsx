@@ -287,7 +287,7 @@ function PublicMotionCard({
           {topic.title}
         </h3>
 
-        <p className="mt-3 line-clamp-2 text-sm leading-7 text-[var(--theme-muted)]">
+        <p className="mt-3 line-clamp-2 whitespace-pre-line break-words text-sm leading-7 text-[var(--theme-muted)]">
           {topic.description || "아직 설명이 등록되지 않은 의제입니다."}
         </p>
 
@@ -307,7 +307,7 @@ function PublicMotionCard({
               </div>
             </div>
 
-            <p className="mt-3 line-clamp-3 text-sm leading-7 text-[var(--athena-muted)]">
+            <p className="mt-3 line-clamp-3 whitespace-pre-line break-words text-sm leading-7 text-[var(--athena-muted)]">
               {getPreviewText(
                 topic.athena_position,
                 "아직 아테나 측 기본 입장이 입력되지 않았습니다.",
@@ -330,7 +330,7 @@ function PublicMotionCard({
               </div>
             </div>
 
-            <p className="mt-3 line-clamp-3 text-sm leading-7 text-[var(--poseidon-muted)]">
+            <p className="mt-3 line-clamp-3 whitespace-pre-line break-words text-sm leading-7 text-[var(--poseidon-muted)]">
               {getPreviewText(
                 topic.poseidon_position,
                 "아직 포세이돈 측 기본 입장이 입력되지 않았습니다.",

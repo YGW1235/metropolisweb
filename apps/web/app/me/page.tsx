@@ -652,7 +652,7 @@ export default async function MePage({ searchParams }: MePageProps) {
                 </Link>
                 <Link
                   href="/me/delete"
-                  className="inline-flex rounded-lg border border-red-500/40 px-4 py-2 text-sm font-semibold text-red-200 hover:bg-red-500/10"
+                  className="inline-flex rounded-lg border border-[var(--message-error-line)] px-4 py-2 text-sm font-semibold text-[var(--message-error-text)] transition hover:bg-[var(--message-error-bg)]"
                 >
                   계정 탈퇴
                 </Link>
@@ -880,7 +880,7 @@ export default async function MePage({ searchParams }: MePageProps) {
                         </span>
                       </div>
 
-                      <p className="mt-3 line-clamp-2 text-sm leading-6 text-[var(--theme-muted)]">
+                      <p className="mt-3 line-clamp-2 whitespace-pre-line break-words text-sm leading-6 text-[var(--theme-muted)]">
                         {comment.content}
                       </p>
                     </Link>

@@ -1,6 +1,13 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 
 type Theme = "dark" | "light";
 
@@ -11,25 +18,55 @@ type ThemeContextValue = {
 };
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
+const THEME_STORAGE_KEY = "metropolis-theme";
+const DEFAULT_THEME: Theme = "dark";
 
-function applyTheme(theme: Theme) {
-  document.documentElement.dataset.theme = theme;
-  localStorage.setItem("metropolis-theme", theme);
+function isTheme(value: string | null): value is Theme {
+  return value === "dark" || value === "light";
 }
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("dark");
+function applyTheme(theme: Theme, options: { persist?: boolean } = {}) {
+  const { persist = true } = options;
+
+  document.documentElement.dataset.theme = theme;
+
+  if (persist) {
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, theme);
+    } catch {
+      // Ignore storage failures; the current document theme is still applied.
+    }
+  }
+}
+
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  const [theme, setThemeState] = useState<Theme>(DEFAULT_THEME);
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem("metropolis-theme");
+    let savedTheme: string | null = null;
 
-    if (savedTheme === "light" || savedTheme === "dark") {
+    try {
+      savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    } catch {
+      savedTheme = null;
+    }
+
+    if (isTheme(savedTheme)) {
       setThemeState(savedTheme);
-      applyTheme(savedTheme);
+      applyTheme(savedTheme, { persist: false });
       return;
     }
 
-    applyTheme("dark");
+    if (savedTheme !== null) {
+      try {
+        localStorage.removeItem(THEME_STORAGE_KEY);
+      } catch {
+        // Ignore storage failures; invalid values simply will not be reused.
+      }
+    }
+
+    setThemeState(DEFAULT_THEME);
+    applyTheme(DEFAULT_THEME, { persist: false });
   }, []);
 
   const value = useMemo<ThemeContextValue>(

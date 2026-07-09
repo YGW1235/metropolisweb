@@ -20,6 +20,18 @@ export const metadata: Metadata = {
   description: "Role-based debate platform",
 };
 
+const themeInitScript = `
+(() => {
+  try {
+    const theme = window.localStorage.getItem("metropolis-theme");
+    document.documentElement.dataset.theme =
+      theme === "light" || theme === "dark" ? theme : "dark";
+  } catch {
+    document.documentElement.dataset.theme = "dark";
+  }
+})();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -27,6 +39,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" data-theme="dark" suppressHydrationWarning>
+      <head>
+        <script
+          id="metropolis-theme-init"
+          dangerouslySetInnerHTML={{ __html: themeInitScript }}
+        />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ThemeProvider>
           <SiteHeader />

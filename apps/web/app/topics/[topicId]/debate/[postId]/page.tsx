@@ -393,7 +393,7 @@ function CommentCard({
         </time>
       </div>
 
-      <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-[var(--theme-muted)]">
+      <p className="mt-3 whitespace-pre-line break-words text-sm leading-7 text-[var(--theme-muted)]">
         {comment.content}
       </p>
 
@@ -623,7 +623,7 @@ export default async function PostDetailPage({
 
           <div className="p-6 sm:p-8">
             {post.image_url ? <PostImageViewer src={post.image_url} /> : null}
-            <p className="whitespace-pre-wrap text-base leading-9 text-[var(--theme-muted)]">
+            <p className="whitespace-pre-line break-words text-base leading-9 text-[var(--theme-muted)]">
               {post.content}
             </p>
 

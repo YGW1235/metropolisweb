@@ -365,7 +365,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             <div className="mt-4 text-right">
               <Link
                 href="/forgot-password"
-                className="text-sm text-blue-300 hover:text-blue-200"
+                className="text-sm text-[var(--theme-blue)] transition hover:opacity-80"
               >
                 비밀번호를 잊으셨나요?
               </Link>
@@ -413,7 +413,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                 />
               </div>
 
-              <label className="flex items-start gap-3 rounded-lg border border-gray-800 bg-gray-950 p-3 text-sm text-gray-300">
+              <label className="theme-panel flex items-start gap-3 rounded-lg p-3 text-sm text-[var(--theme-muted)]">
                 <input
                   name="terms_agreed"
                   type="checkbox"
@@ -421,11 +421,17 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                   className="mt-1"
                 />
                 <span>
-                  <Link href="/terms" className="text-blue-300 hover:text-blue-200">
+                  <Link
+                    href="/terms"
+                    className="text-[var(--theme-blue)] transition hover:opacity-80"
+                  >
                     이용약관
                   </Link>
                   과{" "}
-                  <Link href="/privacy" className="text-blue-300 hover:text-blue-200">
+                  <Link
+                    href="/privacy"
+                    className="text-[var(--theme-blue)] transition hover:opacity-80"
+                  >
                     개인정보처리방침
                   </Link>
                   에 동의합니다.
@@ -437,28 +443,28 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               </button>
             </form>
 
-            <div className="mt-6 rounded-2xl border border-gray-800 bg-gray-950/70 p-5">
-              <p className="text-sm font-semibold text-gray-100">
+            <div className="theme-panel mt-6 rounded-2xl p-5">
+              <p className="text-sm font-semibold text-[var(--theme-text)]">
                 인증 메일을 받지 못했나요?
               </p>
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-[var(--theme-soft)]">
                 회원가입한 이메일을 입력하면 인증 메일을 다시 보냅니다.
               </p>
 
               <form action={resendVerificationEmail} className="mt-4 grid gap-3">
                 <label className="grid gap-1 text-sm">
-                  <span className="text-gray-400">이메일</span>
+                  <span className="text-[var(--theme-muted)]">이메일</span>
                   <input
                     name="email"
                     type="email"
                     required
-                    className="rounded-lg border border-gray-700 bg-gray-950 px-3 py-2 text-gray-100"
+                    className="theme-input rounded-lg px-3 py-2"
                   />
                 </label>
 
                 <button
                   type="submit"
-                  className="rounded-lg border border-blue-500/40 px-4 py-2 text-sm font-semibold text-blue-200 hover:bg-blue-500/10"
+                  className="rounded-lg border border-[var(--theme-blue)] px-4 py-2 text-sm font-semibold text-[var(--theme-blue)] transition hover:bg-[var(--theme-surface-hover)]"
                 >
                   인증 메일 다시 보내기
                 </button>

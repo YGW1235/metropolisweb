@@ -104,7 +104,7 @@ function TopicDuelCard({ topic }: { topic: Topic }) {
               질서의 해석
             </h3>
 
-            <p className="mt-2 line-clamp-4 text-sm leading-7 text-[var(--athena-muted)]">
+            <p className="mt-2 line-clamp-4 whitespace-pre-line break-words text-sm leading-7 text-[var(--athena-muted)]">
               {getPositionPreview(
                 topic.athena_position,
                 "아직 아테나 측 기본 주장이 입력되지 않았습니다.",
@@ -145,7 +145,7 @@ function TopicDuelCard({ topic }: { topic: Topic }) {
               {topic.title}
             </h2>
 
-            <p className="mx-auto mt-4 line-clamp-4 whitespace-pre-line break-words max-w-2xl text-sm leading-7 text-[var(--theme-muted)]">
+            <p className="mx-auto mt-4 line-clamp-4 max-w-2xl whitespace-pre-line break-words text-sm leading-7 text-[var(--theme-muted)]">
               {topic.description || "아직 설명이 등록되지 않은 의제입니다."}
             </p>
           </div>
@@ -187,7 +187,7 @@ function TopicDuelCard({ topic }: { topic: Topic }) {
               격정의 해석
             </h3>
 
-            <p className="mt-2 line-clamp-4 text-sm leading-7 text-[var(--poseidon-muted)]">
+            <p className="mt-2 line-clamp-4 whitespace-pre-line break-words text-sm leading-7 text-[var(--poseidon-muted)]">
               {getPositionPreview(
                 topic.poseidon_position,
                 "아직 포세이돈 측 기본 주장이 입력되지 않았습니다.",

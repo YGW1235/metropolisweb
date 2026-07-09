@@ -31,7 +31,7 @@ export function AccountStatusNotice({
   const changedAtText = formatDate(changedAt);
 
   return (
-    <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-red-100">
+    <div className="rounded-2xl border border-[var(--message-error-line)] bg-[var(--message-error-bg)] p-5 text-[var(--message-error-text)]">
       <p className="text-sm font-semibold">계정 이용 제한 안내</p>
 
       <p className="mt-2 text-sm">
@@ -40,13 +40,13 @@ export function AccountStatusNotice({
       </p>
 
       {reason ? (
-        <p className="mt-3 whitespace-pre-wrap text-sm text-red-100/90">
+        <p className="mt-3 whitespace-pre-line break-words text-sm">
           사유: {reason}
         </p>
       ) : null}
 
       {changedAtText ? (
-        <p className="mt-2 text-xs text-red-100/70">
+        <p className="mt-2 text-xs opacity-80">
           상태 변경 시간: {changedAtText}
         </p>
       ) : null}

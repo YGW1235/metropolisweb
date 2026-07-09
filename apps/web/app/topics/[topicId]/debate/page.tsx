@@ -483,7 +483,7 @@ export default async function DebatePage({
                   아테나 측 입장
                 </p>
 
-                <p className="mt-3 whitespace-pre-wrap text-sm leading-8 text-[var(--athena-muted)]">
+                <p className="mt-3 whitespace-pre-line break-words text-sm leading-8 text-[var(--athena-muted)]">
                   {getPositionText(
                     topic.athena_position,
                     "아직 아테나 측 기본 입장이 입력되지 않았습니다.",
@@ -506,7 +506,7 @@ export default async function DebatePage({
               </h1>
 
               {topic.description ? (
-                <p className="mt-5 whitespace-pre-line break-words max-w-2xl text-sm leading-7 text-[var(--theme-muted)]">
+                <p className="mt-5 max-w-2xl whitespace-pre-line break-words text-sm leading-7 text-[var(--theme-muted)]">
                   {topic.description}
                 </p>
               ) : null}
@@ -566,7 +566,7 @@ export default async function DebatePage({
                   포세이돈 측 입장
                 </p>
 
-                <p className="mt-3 whitespace-pre-wrap text-sm leading-8 text-[var(--poseidon-muted)]">
+                <p className="mt-3 whitespace-pre-line break-words text-sm leading-8 text-[var(--poseidon-muted)]">
                   {getPositionText(
                     topic.poseidon_position,
                     "아직 포세이돈 측 기본 입장이 입력되지 않았습니다.",
