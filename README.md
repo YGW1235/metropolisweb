@@ -1,125 +1,134 @@
 # Metropolis Web
 
-역할 기반 토론 플랫폼 **Metropolis**의 웹 애플리케이션입니다.
+역할 기반 토론 플랫폼 **Metropolis**의 웹 애플리케이션입니다. 사용자는 공개된 주제에 참여하거나 관전할 수 있고, 참여자는 아테나/포세이돈 진영 중 하나로 배정되어 발언과 댓글을 남깁니다. 운영자는 주제, 공지, 신고, 유저 상태, 문의, 운영 로그를 관리합니다.
 
-운영자가 토론 주제를 만들고, 유저는 주제에 참가하면 찬성 또는 반대 역할을 배정받습니다. 참가자는 자신의 역할에 맞춰 게시글과 댓글을 작성할 수 있으며, 부적절한 게시글이나 댓글은 신고할 수 있습니다. 관리자는 주제, 공지사항, 신고를 관리할 수 있습니다.
+## 운영 주소
 
-## 배포 주소
+```txt
+https://metropolisagora.com
+```
+
+Vercel 기본 도메인은 운영 보조 주소로 유지합니다.
 
 ```txt
 https://metropolisweb.vercel.app
 ```
 
-## 현재 버전
+## 현재 문서 기준
 
 ```txt
-v0.2.0
+v0.3.0 후보
 ```
+
+`apps/web/package.json`의 앱 버전은 현재 `0.2.0`입니다. 이 문서는 2026-07-10 기준 운영 기능과 설정을 정리합니다.
 
 ## 주요 기능
 
 ### 사용자 기능
 
-* 이메일 기반 회원가입 / 로그인 / 로그아웃
-* 내 계정 확인
-* 닉네임 수정
-* 토론 주제 목록 확인
-* 토론 주제 상세 확인
-* 주제 참가
-* 찬성 / 반대 역할 자동 배정
-* 토론방 입장
-* 게시글 작성
-* 게시글 이미지 첨부
-* 게시글 상세 보기
-* 게시글 삭제
-* 댓글 작성
-* 댓글 삭제
-* 게시글 / 댓글 신고
-* 전체 / 찬성 / 반대 글 필터
-* 공지사항 목록 확인
-* 공지사항 상세 확인
-* 올리브 가지 물주기
-* 모바일 화면 대응
+- 이메일 회원가입, 로그인, 로그아웃
+- Supabase Auth 이메일 인증
+- 인증 메일 재발송
+- 비밀번호 재설정
+- 내 비밀번호 변경
+- 내 계정 탈퇴 요청 및 처리
+- 내 기록/프로필 확인
+- 프로필 표시 이름 수정
+- 주제 목록 조회
+- 주제 상세 조회
+- 토론방 입장
+- 아테나/포세이돈 진영 참여
+- 비참여 관전
+- 발언 작성, 상세 조회, 삭제
+- 댓글 작성, 삭제
+- 게시글 이미지 첨부 및 상세 이미지 보기
+- 게시글/댓글 신고
+- 공지사항 목록 및 상세 조회
+- 문의하기
+- 이용약관/개인정보처리방침 페이지
+- 다크모드/일반모드 전환
+- 모바일 화면 대응
+
+현재 일반 사용자용 발언 수정 화면은 문서화하지 않습니다. 확인된 구현은 발언 작성, 상세 조회, 삭제, 이미지 첨부입니다.
 
 ### 관리자 기능
 
-* 관리자 페이지 접근 제한
-* 토론 주제 생성
-* 토론 주제 수정
-* 토론 주제 상태 변경
-* 토론 주제 보관 처리
-* 토론 주제 삭제 처리
-* 공지사항 작성
-* 공지사항 수정
-* 공지사항 삭제
-* 공지사항 고정
-* 신고 목록 확인
-* 신고 상태 변경
-* 게시글 / 댓글 숨김 처리
-* 신고 기각 처리
+- 관리자 대시보드
+- 주제 생성, 수정, 상태 관리, 삭제 처리
+- 공지 생성, 수정, 상태 관리, 삭제
+- 신고 조회 및 처리
+- 신고 대상 게시글/댓글 숨김 처리
+- 신고 대상 작성자 정지/복구
+- 유저 목록 조회 및 정지/복구
+- 문의 조회 및 상태/메모 처리
+- 관리자 활동 로그 확인
+- 주제별 참가자/게시글/댓글/신고 통계
+- 관리자 계정 보안 점검
 
-### UI / UX 기능
+### 운영 기능
 
-* 반응형 레이아웃
-* 토론방 UI 개선
-* 게시글 상세 페이지 분리
-* 이미지 미리보기 / 이미지 뷰어
-* 확인 버튼 컴포넌트
-* 스타일 미리보기 페이지
-* 아테나 / 포세이돈 콘셉트 UI 실험
-* 국가 테마 UI 실험
-* 다크 테마 기반 화면 구성
+- Next.js App Router 기반 웹 앱
+- Tailwind CSS v4 기반 UI
+- Supabase Auth, Postgres, Storage, RLS 사용
+- `debate-images` 버킷 기반 이미지 업로드
+- Vercel 배포
+- Cloudflare 커스텀 도메인 연결
+- Resend SMTP를 통한 Supabase Auth 메일 발송
+- Resend API를 통한 문의 알림 메일 발송
+- GitHub Actions Web CI
+- pnpm monorepo
+- `apps/web`가 메인 웹 앱
 
 ## 기술 스택
 
-* Next.js
-* React
-* TypeScript
-* Tailwind CSS
-* Supabase Auth
-* Supabase Postgres
-* Supabase Storage
-* Supabase Row Level Security
-* Vercel
-* pnpm
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS v4
+- Supabase Auth/Postgres/Storage/RLS
+- Resend
+- Vercel
+- Cloudflare
+- GitHub Actions
+- pnpm
 
 ## 프로젝트 구조
 
 ```txt
 metropolisweb/
+├─ .github/
+│  └─ workflows/
+│     └─ web-ci.yml
 ├─ apps/
 │  └─ web/
 │     ├─ app/
 │     │  ├─ actions/
 │     │  ├─ admin/
+│     │  ├─ contact/
+│     │  ├─ forgot-password/
 │     │  ├─ login/
 │     │  ├─ me/
 │     │  ├─ notices/
-│     │  ├─ olive/
+│     │  ├─ reset-password/
 │     │  ├─ settings/
-│     │  ├─ style-agora-record/
-│     │  ├─ style-athena-poseidon/
-│     │  ├─ style-country-themes/
-│     │  ├─ style-experimental-layouts/
-│     │  ├─ style-gazette-variations/
-│     │  ├─ style-preview/
-│     │  ├─ style-previews/
 │     │  ├─ topics/
+│     │  ├─ globals.css
 │     │  ├─ layout.tsx
 │     │  └─ page.tsx
 │     ├─ components/
 │     ├─ lib/
-│     │  ├─ supabase/
-│     │  ├─ auth.ts
-│     │  └─ datetime.ts
 │     ├─ public/
 │     ├─ package.json
 │     └─ next.config.ts
+├─ docs/
+├─ supabase/
+├─ pnpm-lock.yaml
+├─ pnpm-workspace.yaml
 ├─ README.md
 └─ CHANGELOG.md
 ```
 
-## 로컬 실행 방법
+## 로컬 실행
 
 ### 1. 저장소 클론
 
@@ -130,36 +139,44 @@ cd metropolisweb
 
 ### 2. 의존성 설치
 
+repo 루트에서 설치합니다.
+
 ```bash
-cd apps/web
-pnpm install
+pnpm install --frozen-lockfile
 ```
 
 ### 3. 환경변수 설정
 
-`apps/web/.env.local` 파일을 생성합니다.
+`apps/web/.env.local` 파일에 필요한 값을 설정합니다. secret 값은 문서나 Git에 기록하지 않습니다.
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=본인_SUPABASE_PROJECT_URL
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=본인_SUPABASE_PUBLISHABLE_KEY
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+NEXT_PUBLIC_SITE_URL=
+RESEND_API_KEY=
+CONTACT_EMAIL_FROM=
+CONTACT_NOTIFY_TO=
 ```
 
-주의: 아래 키는 프론트엔드 프로젝트에 넣지 않습니다.
+| 변수 | 설명 |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase 프로젝트 URL |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase publishable key |
+| `NEXT_PUBLIC_SITE_URL` | 운영 도메인. 운영 환경은 `https://metropolisagora.com` |
+| `RESEND_API_KEY` | 문의 알림 메일 발송용 Resend API key |
+| `CONTACT_EMAIL_FROM` | 문의 알림 메일 발신 주소 |
+| `CONTACT_NOTIFY_TO` | 문의 알림을 받을 운영자 주소 |
 
-```env
-SUPABASE_SERVICE_ROLE_KEY=
-SUPABASE_SECRET_KEY=
-```
-
-현재 프로젝트는 Supabase RLS와 DB 함수 기반으로 동작하므로 클라이언트 앱에 service role key가 필요하지 않습니다.
+프론트엔드 앱에는 Supabase service role key를 넣지 않습니다.
 
 ### 4. 개발 서버 실행
 
 ```bash
+cd apps/web
 pnpm dev
 ```
 
-브라우저에서 접속합니다.
+로컬 접속 주소:
 
 ```txt
 http://localhost:3000
@@ -167,102 +184,124 @@ http://localhost:3000
 
 ## 빌드 확인
 
-배포 전 로컬에서 production build를 확인합니다.
-
 ```bash
 cd apps/web
 pnpm build
-pnpm start
 ```
 
-브라우저에서 접속합니다.
+## GitHub Actions
+
+`.github/workflows/web-ci.yml`은 다음 상황에서 실행됩니다.
+
+- `main` 브랜치 push
+- pull request
+
+CI는 Node.js 22와 pnpm을 사용합니다. 의존성 설치는 repo 루트에서 `pnpm install --frozen-lockfile`로 실행하고, 빌드는 `apps/web`에서 `pnpm build`로 실행합니다.
+
+Build step에는 다음 GitHub Secrets가 필요합니다.
 
 ```txt
-http://localhost:3000
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+NEXT_PUBLIC_SITE_URL
 ```
 
-## Supabase 설정
+## Supabase 운영 설정
 
-이 프로젝트는 Supabase를 사용합니다.
+### Auth URL
 
-필요한 주요 테이블은 다음과 같습니다.
+Supabase Dashboard의 `Authentication -> URL Configuration`에서 설정합니다.
+
+Site URL:
 
 ```txt
-profiles
-topics
-topic_participants
-debate_posts
-debate_comments
-reports
-notices
-olive_trees
-olive_watering_logs
+https://metropolisagora.com
 ```
 
-주요 DB 함수는 다음과 같습니다.
+Redirect URLs:
 
 ```txt
-handle_new_user
-is_admin
-is_topic_participant
-join_topic
-create_debate_post
-create_debate_comment
-delete_my_debate_comment
-create_report
-moderate_report
-update_my_profile
-water_olive
+https://metropolisagora.com/**
+https://www.metropolisagora.com/**
+https://metropolisweb.vercel.app/**
+http://localhost:3000/**
 ```
 
-## Supabase Storage 설정
+### Email
 
-게시글 이미지 업로드를 위해 Supabase Storage 버킷이 필요합니다.
+- Email Templates는 Supabase Dashboard에서 수정합니다.
+- Supabase Auth 메일은 Resend SMTP를 사용합니다.
+- 비밀번호 재설정과 이메일 인증 링크는 `NEXT_PUBLIC_SITE_URL`과 Supabase Redirect URL 설정을 함께 확인합니다.
+
+### Storage
+
+게시글 이미지 업로드에는 Supabase Storage 버킷을 사용합니다.
 
 ```txt
-Bucket name:
 debate-images
 ```
 
-이미지 업로드 조건:
+현재 앱의 이미지 제한:
 
 ```txt
 허용 형식: JPG, PNG, WEBP
 최대 크기: 5MB
 ```
 
-게시글 이미지 정보는 `debate_posts` 테이블의 이미지 관련 컬럼에 저장됩니다.
+## 주요 Supabase 리소스
+
+주요 테이블:
+
+- `profiles`
+- `topics`
+- `topic_participants`
+- `debate_posts`
+- `debate_comments`
+- `reports`
+- `notices`
+- `olive_trees`
+- `olive_watering_logs`
+- `user_moderation_logs`
+- `admin_activity_logs`
+- `contact_inquiries`
+- `account_deletion_requests`
+
+주요 RPC:
+
+- `join_topic`
+- `create_debate_post`
+- `create_debate_comment`
+- `delete_my_debate_comment`
+- `create_report`
+- `moderate_report`
+- `admin_set_user_status`
+- `admin_set_report_target_author_status`
+- `get_admin_topic_stats`
+- `get_admin_security_status`
+- `create_contact_inquiry`
+- `admin_update_contact_inquiry`
+- `request_account_deletion`
+- `water_olive`
+
+## Vercel 배포
+
+Vercel 프로젝트 설정:
 
 ```txt
-image_url
-image_path
+Framework Preset: Next.js
+Root Directory: apps/web
+Install Command: pnpm install
+Build Command: pnpm build
+Output Directory: 비워두기
 ```
 
-## Supabase Auth URL 설정
+Vercel 환경변수에는 README의 환경변수 목록을 Production 기준으로 설정합니다. Preview 배포를 사용할 경우 Preview 환경에도 동일한 공개 키와 사이트 URL 정책을 맞춥니다.
 
-Supabase Dashboard에서 아래 경로로 이동합니다.
-
-```txt
-Authentication
-→ URL Configuration
-```
-
-Site URL:
-
-```txt
-https://metropolisweb.vercel.app
-```
-
-Redirect URLs:
-
-```txt
-https://metropolisweb.vercel.app/**
-http://localhost:3000/**
-```
+Cloudflare에서는 `metropolisagora.com`과 필요한 경우 `www.metropolisagora.com`이 Vercel 도메인으로 연결되도록 DNS를 관리합니다.
 
 ## 관리자 계정 설정
 
-회원가입 후 Supabase SQL Editor에서 특정 계정을 admin으로 변경합니다.
+회원가입과 이메일 인증 후 Supabase SQL Editor에서 특정 계정을 관리자 role로 변경합니다.
 
 ```sql
 update public.profiles
@@ -270,214 +309,31 @@ set role = 'admin'
 where email = '관리자이메일@example.com';
 ```
 
-관리자 계정 확인:
+관리자 계정은 `profiles.status = 'active'` 상태여야 합니다.
 
-```sql
-select id, email, display_name, role, status
-from public.profiles
-order by created_at desc;
-```
+## 운영 체크리스트
 
-## 주제 상태
+- GitHub Actions Web CI 성공 확인
+- Vercel 배포 상태 `Ready` 확인
+- `https://metropolisagora.com` 접속 확인
+- Supabase Auth Site URL과 Redirect URLs 확인
+- Resend SMTP 설정 확인
+- Vercel 환경변수 확인
+- 회원가입/이메일 인증/로그인 확인
+- 비밀번호 재설정 확인
+- 주제 참여/관전/발언/댓글/이미지 확인
+- 신고와 관리자 숨김 처리 확인
+- 문의 접수와 관리자 처리 확인
+- 다크모드/일반모드 확인
+- 모바일 화면 확인
 
-토론 주제는 다음 상태를 가집니다.
-
-```txt
-draft
-- 관리자 준비 상태
-- 일반 유저에게 보이지 않음
-- 참가 불가
-
-open
-- 일반 유저에게 보임
-- 신규 참가 가능
-- 글 / 댓글 작성 가능
-
-active
-- 일반 유저에게 보임
-- 신규 참가 불가
-- 기존 참가자만 토론 가능
-- 글 / 댓글 작성 가능
-
-closed
-- 일반 유저에게 보임
-- 신규 참가 불가
-- 글 / 댓글 작성 불가
-- 읽기용 상태
-
-archived
-- 관리자 보관 상태
-- 일반 유저에게 보이지 않음
-- 참가 / 작성 불가
-```
-
-## 공지사항 상태
-
-공지사항은 다음 상태를 가집니다.
-
-```txt
-draft
-- 관리자 작성 중 상태
-- 일반 유저에게 보이지 않음
-
-published
-- 일반 유저에게 공개
-- 공지 목록과 상세 페이지에서 확인 가능
-```
-
-공지사항은 고정 여부를 설정할 수 있습니다.
-
-```txt
-is_pinned = true
-```
-
-## 올리브 가지 기능
-
-올리브 가지는 유저 참여를 유도하기 위한 가벼운 리텐션 기능입니다.
-
-```txt
-- 로그인한 유저가 하루에 한 번 물주기 가능
-- 총 물주기 횟수 기록
-- 연속 물주기 일수 기록
-- 최고 연속 기록 저장
-- 오늘 물을 줬는지 여부 표시
-```
-
-## Vercel 배포
-
-Vercel에서 GitHub 저장소를 Import합니다.
-
-설정값:
-
-```txt
-Framework Preset:
-Next.js
-
-Root Directory:
-apps/web
-
-Install Command:
-pnpm install
-
-Build Command:
-pnpm build
-
-Output Directory:
-비워두기
-```
-
-환경변수:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=본인_SUPABASE_PROJECT_URL
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=본인_SUPABASE_PUBLISHABLE_KEY
-```
-
-Environment는 Production에 추가합니다. Preview 배포에서도 테스트하려면 Preview에도 같은 환경변수를 추가합니다.
-
-## 배포 업데이트 방법
-
-로컬에서 수정 후 빌드 확인:
-
-```bash
-cd apps/web
-pnpm build
-```
-
-문제가 없으면 커밋 후 push합니다.
-
-```bash
-cd ../..
-git add .
-git commit -m "Update project"
-git push
-```
-
-GitHub에 push하면 Vercel이 자동으로 Production 배포를 진행합니다.
-
-## 기본 테스트 체크리스트
-
-배포 후 아래 기능을 확인합니다.
-
-```txt
-[ ] 홈 접속
-[ ] 회원가입
-[ ] 로그인
-[ ] 로그아웃
-[ ] 내 계정 확인
-[ ] 프로필 수정
-[ ] 관리자 페이지 접근 제한
-[ ] 관리자 주제 생성
-[ ] 관리자 주제 수정
-[ ] 관리자 주제 상태 변경
-[ ] 관리자 주제 삭제 처리
-[ ] 일반 유저 주제 목록 확인
-[ ] 일반 유저 주제 참가
-[ ] 찬성 / 반대 역할 자동 배정
-[ ] 토론방 입장
-[ ] 게시글 작성
-[ ] 이미지 첨부 게시글 작성
-[ ] 게시글 상세 보기
-[ ] 게시글 삭제
-[ ] 댓글 작성
-[ ] 댓글 삭제
-[ ] 찬성 / 반대 필터
-[ ] 게시글 신고
-[ ] 댓글 신고
-[ ] 관리자 신고 확인
-[ ] 관리자 숨김 처리
-[ ] 공지사항 목록 확인
-[ ] 공지사항 상세 확인
-[ ] 관리자 공지 작성
-[ ] 관리자 공지 수정
-[ ] 관리자 공지 삭제
-[ ] 올리브 가지 물주기
-[ ] 모바일 화면 확인
-```
-
-## 운영 전 확인할 항목
-
-현재 개발 편의를 위해 남아 있는 테스트성 라우트는 실제 유저 테스트 전 정리하는 것이 좋습니다.
-
-```txt
-/supabase-test
-/style-preview
-/style-previews
-/style-athena-poseidon
-/style-country-themes
-/style-experimental-layouts
-/style-gazette-variations
-/style-agora-record
-```
-
-선택지는 다음과 같습니다.
-
-```txt
-1. 삭제
-2. 관리자 전용으로 보호
-3. 개발 환경에서만 접근 가능하게 제한
-```
+자세한 운영 절차는 `docs/admin-guide.md`, 런칭 점검 항목은 `docs/launch-test-result.md`를 참고합니다.
 
 ## 보안 메모
 
-* `.env.local`은 Git에 올리지 않습니다.
-* Supabase secret key 또는 service role key를 프론트엔드 프로젝트에 넣지 않습니다.
-* 일반 유저는 `role`, `status`를 직접 수정할 수 없습니다.
-* 관리자 페이지는 서버에서 admin 권한을 확인합니다.
-* 주요 데이터 변경은 Server Action과 Supabase DB 함수를 통해 처리합니다.
-* 공개 테이블에는 RLS를 적용합니다.
-* 이미지 업로드는 파일 형식과 크기를 제한합니다.
-* 삭제 기능은 실제 삭제와 소프트 삭제를 구분해서 관리합니다.
-
-## 향후 개선 예정
-
-* Supabase SQL migration 파일 정리
-* 관리자 운영 문서 작성
-* 테스트 라우트 정리
-* 스타일 미리보기 라우트 보호 또는 제거
-* 신고 처리 이력 관리
-* 유저 제재 기능 강화
-* 토론 품질 개선 기능
-* 실제 유저 테스트
-* 커스텀 도메인 연결
-* PWA 검토
+- `.env.local`은 Git에 올리지 않습니다.
+- secret 값은 문서, 이슈, PR, 커밋 메시지에 적지 않습니다.
+- Supabase service role key는 프론트엔드 앱 환경변수로 사용하지 않습니다.
+- 관리자 페이지는 서버에서 admin 권한과 active 상태를 확인합니다.
+- 주요 데이터 변경은 Server Action과 Supabase RLS/RPC를 통해 처리합니다.
+- 신고 처리와 유저 정지/복구는 관리자 활동 로그를 함께 확인합니다.
