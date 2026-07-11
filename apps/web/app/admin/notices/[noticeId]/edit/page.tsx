@@ -249,9 +249,13 @@ export default async function AdminNoticeEditPage({
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row">
-              <button className="inline-flex flex-1 items-center justify-center border border-[var(--theme-gold)] bg-[var(--theme-gold)] px-5 py-3 text-sm font-black text-[var(--theme-accent-contrast)] shadow-[var(--shadow-button)] transition duration-300 hover:opacity-85">
+              <ConfirmSubmitButton
+                confirmMessage="공지 수정 내용을 저장하시겠습니까? 공개 상태를 임시저장으로 바꾸면 일반 사용자에게 보이지 않습니다."
+                ariaLabel={`${notice.title} 수정 저장 확인`}
+                className="inline-flex flex-1 items-center justify-center border border-[var(--theme-gold)] bg-[var(--theme-gold)] px-5 py-3 text-sm font-black text-[var(--theme-accent-contrast)] shadow-[var(--shadow-button)] transition duration-300 hover:opacity-85"
+              >
                 수정 저장하기
-              </button>
+              </ConfirmSubmitButton>
 
               <Link
                 href={`/notices/${notice.id}`}
@@ -281,7 +285,8 @@ export default async function AdminNoticeEditPage({
                 <input type="hidden" name="redirect_to" value="/notices" />
 
                 <ConfirmSubmitButton
-                  message="정말 이 공지를 삭제하시겠습니까? 삭제 후에는 복구할 수 없습니다."
+                  confirmMessage="정말 이 공지를 삭제하시겠습니까? 삭제 후에는 복구할 수 없습니다. 이 작업은 운영 로그에 기록될 수 있습니다."
+                  ariaLabel={`${notice.title} 삭제 확인`}
                   className="inline-flex w-full items-center justify-center border border-[var(--message-error-line)] bg-[var(--message-error-bg)] px-5 py-3 text-sm font-black text-[var(--message-error-text)] transition hover:opacity-80 sm:w-auto"
                 >
                   공지 삭제하기

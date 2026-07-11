@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { updateTopic } from "@/app/actions/topics";
+import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { createClient } from "@/lib/supabase/server";
 
 type AdminTopicEditPageProps = {
@@ -415,9 +416,13 @@ export default async function AdminTopicEditPage({
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row">
-              <button className="inline-flex flex-1 items-center justify-center border border-[var(--theme-gold)] bg-[var(--theme-gold)] px-5 py-3 text-sm font-black text-[var(--theme-accent-contrast)] shadow-[var(--shadow-button)] transition duration-300 hover:opacity-85">
+              <ConfirmSubmitButton
+                confirmMessage="주제 수정 내용을 저장하시겠습니까? 상태를 draft 또는 archived로 바꾸면 일반 사용자에게 보이지 않을 수 있습니다."
+                ariaLabel={`${topic.title} 수정 저장 확인`}
+                className="inline-flex flex-1 items-center justify-center border border-[var(--theme-gold)] bg-[var(--theme-gold)] px-5 py-3 text-sm font-black text-[var(--theme-accent-contrast)] shadow-[var(--shadow-button)] transition duration-300 hover:opacity-85"
+              >
                 수정 저장하기
-              </button>
+              </ConfirmSubmitButton>
 
               <Link
                 href="/admin/topics"

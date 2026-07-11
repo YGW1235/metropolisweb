@@ -283,7 +283,8 @@ export default async function AdminNoticesPage({
                       />
 
                       <ConfirmSubmitButton
-                        message="정말 이 공지를 삭제하시겠습니까? 삭제 후에는 복구할 수 없습니다."
+                        confirmMessage="정말 이 공지를 삭제하시겠습니까? 삭제 후에는 복구할 수 없습니다. 이 작업은 운영 로그에 기록될 수 있습니다."
+                        ariaLabel={`${notice.title} 삭제 확인`}
                         className="inline-flex w-full items-center justify-center border border-[var(--message-error-line)] bg-[var(--message-error-bg)] px-4 py-2 text-xs font-black text-[var(--message-error-text)] transition hover:opacity-80"
                       >
                         삭제

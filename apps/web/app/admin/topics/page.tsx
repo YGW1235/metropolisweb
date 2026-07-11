@@ -323,9 +323,13 @@ export default async function AdminTopicsPage({
                           <option value="archived">archived - 보관</option>
                         </select>
 
-                        <button className="inline-flex items-center justify-center border border-[var(--theme-gold)] bg-[var(--theme-gold)] px-3 py-2 text-xs font-black text-[var(--theme-accent-contrast)] shadow-[var(--shadow-button)] transition hover:opacity-85">
+                        <ConfirmSubmitButton
+                          confirmMessage="이 주제의 상태를 선택한 값으로 변경하시겠습니까? draft 또는 archived 상태는 일반 사용자에게 보이지 않을 수 있습니다."
+                          ariaLabel={`${topic.title} 상태 변경 확인`}
+                          className="inline-flex items-center justify-center border border-[var(--theme-gold)] bg-[var(--theme-gold)] px-3 py-2 text-xs font-black text-[var(--theme-accent-contrast)] shadow-[var(--shadow-button)] transition hover:opacity-85"
+                        >
                           변경
-                        </button>
+                        </ConfirmSubmitButton>
                       </form>
 
                       <div className="flex flex-col gap-2 sm:flex-row lg:justify-end">
@@ -371,7 +375,8 @@ export default async function AdminTopicsPage({
                           />
 
                           <ConfirmSubmitButton
-                            message="정말 이 주제를 삭제하시겠습니까? 삭제된 주제는 일반 사용자에게 보이지 않습니다."
+                            confirmMessage="정말 이 주제를 삭제하시겠습니까? 삭제된 주제는 일반 사용자에게 보이지 않습니다. 이 작업은 운영 로그에 기록될 수 있습니다."
+                            ariaLabel={`${topic.title} 삭제 확인`}
                             className="inline-flex w-full items-center justify-center border border-[var(--message-error-line)] bg-[var(--message-error-bg)] px-4 py-2 text-xs font-black text-[var(--message-error-text)] transition hover:opacity-80"
                           >
                             삭제

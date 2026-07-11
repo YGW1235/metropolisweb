@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { setUserStatus } from "@/app/actions/user-moderation";
+import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { requireAdmin } from "@/lib/auth";
 
 type SearchParams = Promise<{
@@ -163,12 +164,13 @@ export default async function AdminUsersPage({
                         className="mb-2 w-full rounded-lg border border-gray-700 bg-gray-950 px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500"
                       />
 
-                      <button
-                        type="submit"
+                      <ConfirmSubmitButton
+                        confirmMessage="이 유저를 정지하시겠습니까? 정지된 유저는 참여와 작성이 제한될 수 있으며, 이 작업은 운영 로그에 기록될 수 있습니다."
+                        ariaLabel={`${profile.email ?? profile.display_name ?? "선택한 유저"} 정지 확인`}
                         className="w-full rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-500"
                       >
                         유저 정지
-                      </button>
+                      </ConfirmSubmitButton>
                     </form>
                   ) : null}
 
@@ -187,12 +189,13 @@ export default async function AdminUsersPage({
                         className="mb-2 w-full rounded-lg border border-gray-700 bg-gray-950 px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500"
                       />
 
-                      <button
-                        type="submit"
+                      <ConfirmSubmitButton
+                        confirmMessage="이 유저의 이용 제한을 해제하시겠습니까? 복구 후 참여와 작성 권한이 다시 허용될 수 있습니다."
+                        ariaLabel={`${profile.email ?? profile.display_name ?? "선택한 유저"} 복구 확인`}
                         className="w-full rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500"
                       >
                         유저 복구
-                      </button>
+                      </ConfirmSubmitButton>
                     </form>
                   ) : null}
 

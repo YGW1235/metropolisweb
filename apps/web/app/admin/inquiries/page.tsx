@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { updateContactInquiry } from "@/app/actions/contact";
+import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { requireAdmin } from "@/lib/auth";
 
 type SearchParams = Promise<{
@@ -173,12 +174,13 @@ export default async function AdminInquiriesPage({
                   />
                 </label>
 
-                <button
-                  type="submit"
+                <ConfirmSubmitButton
+                  confirmMessage="문의 상태와 관리자 메모를 저장하시겠습니까? 해결 또는 종료 상태로 바꾸면 처리 완료로 기록됩니다."
+                  ariaLabel={`${inquiry.title} 문의 상태 저장 확인`}
                   className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500"
                 >
                   문의 상태 저장
-                </button>
+                </ConfirmSubmitButton>
               </form>
             </div>
           </article>

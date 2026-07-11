@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { moderateReport } from "@/app/actions/moderation";
 
 import { setReportTargetAuthorStatus } from "@/app/actions/user-moderation";
+import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 
 async function requireAdmin() {
   const supabase = await createClient();
@@ -185,9 +186,13 @@ export default async function AdminReportsPage({
                         className="mb-2 w-full rounded-lg border border-gray-700 bg-gray-950 px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500"
                       />
 
-                      <button className="rounded-lg border border-yellow-500/50 px-4 py-2 text-sm font-medium text-yellow-200 hover:bg-yellow-500/10">
+                      <ConfirmSubmitButton
+                        confirmMessage="이 신고 상태를 검토 중으로 변경할까요? 이 작업은 운영 로그에 기록될 수 있습니다."
+                        ariaLabel="신고 상태를 검토 중으로 변경 확인"
+                        className="rounded-lg border border-yellow-500/50 px-4 py-2 text-sm font-medium text-yellow-200 hover:bg-yellow-500/10"
+                      >
                         검토 중으로 변경
-                      </button>
+                      </ConfirmSubmitButton>
                     </form>
                   ) : null}
 
@@ -198,9 +203,13 @@ export default async function AdminReportsPage({
                         <input type="hidden" name="topic_id" value={report.topic_id} />
                         <input type="hidden" name="action" value="hide_target" />
 
-                        <button className="rounded-lg border border-red-500/50 px-4 py-2 text-sm font-medium text-red-200 hover:bg-red-500/10">
+                        <ConfirmSubmitButton
+                          confirmMessage="정말 이 신고 대상을 숨김 처리할까요? 숨김 처리된 게시글 또는 댓글은 공개 화면에 보이지 않을 수 있습니다."
+                          ariaLabel="신고 대상 숨김 처리 확인"
+                          className="rounded-lg border border-red-500/50 px-4 py-2 text-sm font-medium text-red-200 hover:bg-red-500/10"
+                        >
                           대상 숨김 처리
-                        </button>
+                        </ConfirmSubmitButton>
                       </form>
 
                       <form action={moderateReport} className="rounded-lg border border-gray-800 bg-gray-950 p-3">
@@ -208,9 +217,13 @@ export default async function AdminReportsPage({
                         <input type="hidden" name="topic_id" value={report.topic_id} />
                         <input type="hidden" name="action" value="dismiss" />
 
-                        <button className="rounded-lg border border-gray-500/50 px-4 py-2 text-sm font-medium text-gray-200 hover:bg-gray-800">
+                        <ConfirmSubmitButton
+                          confirmMessage="이 신고를 기각하시겠습니까? 기각 처리 후에는 신고 목록의 상태가 변경됩니다."
+                          ariaLabel="신고 기각 확인"
+                          className="rounded-lg border border-gray-500/50 px-4 py-2 text-sm font-medium text-gray-200 hover:bg-gray-800"
+                        >
                           신고 기각
-                        </button>
+                        </ConfirmSubmitButton>
                       </form>
                       <div className="mt-5 rounded-xl border border-red-500/20 bg-red-500/10 p-4">
                         <p className="text-sm font-semibold text-red-100">작성자 제재</p>
@@ -233,12 +246,13 @@ export default async function AdminReportsPage({
                               className="mb-2 w-full rounded-lg border border-gray-700 bg-gray-950 px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500"
                             />
 
-                            <button
-                              type="submit"
+                            <ConfirmSubmitButton
+                              confirmMessage="이 신고 대상 작성자를 정지하시겠습니까? 정지된 유저는 참여와 작성이 제한될 수 있으며, 이 작업은 운영 로그에 기록될 수 있습니다."
+                              ariaLabel="신고 대상 작성자 정지 확인"
                               className="w-full rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-500"
                             >
                               대상 작성자 정지
-                            </button>
+                            </ConfirmSubmitButton>
                           </form>
 
                           <form
@@ -255,12 +269,13 @@ export default async function AdminReportsPage({
                               className="mb-2 w-full rounded-lg border border-gray-700 bg-gray-950 px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500"
                             />
 
-                            <button
-                              type="submit"
+                            <ConfirmSubmitButton
+                              confirmMessage="이 신고 대상 작성자의 이용 제한을 해제하시겠습니까? 복구 후 참여와 작성 권한이 다시 허용될 수 있습니다."
+                              ariaLabel="신고 대상 작성자 복구 확인"
                               className="w-full rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500"
                             >
                               대상 작성자 복구
-                            </button>
+                            </ConfirmSubmitButton>
                           </form>
                         </div>
                       </div>
