@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { AdminStateCard } from "@/components/admin-state-card";
+
 type AdminAction = {
   href: string;
   label: string;
@@ -157,6 +159,14 @@ export default function AdminPage() {
             </dl>
           </div>
         </section>
+
+        <div className="mt-6">
+          <AdminStateCard
+            tone="default"
+            title="운영 화면 안내"
+            description="관리자 액션은 공개 화면, 유저 권한, 운영 로그에 영향을 줄 수 있습니다. 신고, 유저, 공지, 주제 상태 변경은 각 페이지의 확인 문구를 확인한 뒤 실행하세요."
+          />
+        </div>
 
         <div className="mt-8 space-y-8">
           {adminSections.map((section) => (

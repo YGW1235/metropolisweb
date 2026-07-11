@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { moderateReport } from "@/app/actions/moderation";
 
 import { setReportTargetAuthorStatus } from "@/app/actions/user-moderation";
+import { AdminStateCard } from "@/components/admin-state-card";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 
 async function requireAdmin() {
@@ -82,6 +83,14 @@ export default async function AdminReportsPage({
         <p className="mt-3 text-gray-300">
           유저가 접수한 게시글/댓글 신고를 확인합니다.
         </p>
+        <div className="mt-6">
+          <AdminStateCard
+            tone="warning"
+            title="신고 처리 전 확인"
+            description="대상 숨김은 사용자 화면에 바로 반영될 수 있습니다. 신고 기각, 대상 숨김, 작성자 정지/복구는 처리 사유를 남기고 신중하게 실행하세요."
+          />
+        </div>
+
         {params.message ? (
           <div className="mt-6 rounded-lg border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-200">
             {params.message}
@@ -89,13 +98,17 @@ export default async function AdminReportsPage({
         ) : null}
 
         {error ? (
-          <div className="mt-6 rounded-lg border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-200">
-            신고 목록을 불러오지 못했습니다: {error.message}
+          <div className="mt-6">
+            <AdminStateCard
+              tone="danger"
+              title="데이터를 불러오지 못했습니다."
+              description={`잠시 후 다시 시도해주세요. 신고 목록 오류: ${error.message}`}
+            />
           </div>
         ) : null}
 
         <div className="mt-8 space-y-4">
-          {reports?.length ? (
+          {!error && reports?.length ? (
             reports.map((report) => (
               <article
                 key={report.id}
@@ -286,11 +299,12 @@ export default async function AdminReportsPage({
 
               </article>
             ))
-          ) : (
-            <div className="rounded-lg border border-gray-700 bg-gray-900 p-8 text-center text-gray-300">
-              접수된 신고가 없습니다.
-            </div>
-          )}
+          ) : !error ? (
+            <AdminStateCard
+              title="처리할 신고가 없습니다."
+              description="새로 접수된 게시글 또는 댓글 신고가 있으면 이곳에 표시됩니다."
+            />
+          ) : null}
         </div>
       </section>
     </main>

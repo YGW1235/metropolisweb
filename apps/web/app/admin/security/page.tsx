@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { AdminStateCard } from "@/components/admin-state-card";
 import { requireAdmin } from "@/lib/auth";
 
 type AdminSecurityStatus = {
@@ -96,17 +97,30 @@ export default async function AdminSecurityPage() {
         </Link>
       </div>
 
+      <div className="mb-6">
+        <AdminStateCard
+          tone="warning"
+          title="보안 점검 안내"
+          description="관리자 계정 상태와 이메일 인증 여부는 배포 전후로 확인하는 것을 권장합니다. 관리자 role 변경은 공개 UI가 아니라 운영 절차에 따라 신중히 처리하세요."
+        />
+      </div>
+
       {error ? (
-        <div className="mb-6 rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-100">
-          관리자 보안 상태를 불러오지 못했습니다: {error.message}
+        <div className="mb-6">
+          <AdminStateCard
+            tone="danger"
+            title="데이터를 불러오지 못했습니다."
+            description={`잠시 후 다시 시도해주세요. 관리자 보안 상태 오류: ${error.message}`}
+          />
         </div>
       ) : null}
 
-      {!status ? (
-        <div className="rounded-2xl border border-gray-800 bg-gray-950/70 p-8 text-center text-sm text-gray-400">
-          관리자 보안 상태 데이터가 없습니다.
-        </div>
-      ) : (
+      {!error && !status ? (
+        <AdminStateCard
+          title="관리자 보안 상태 데이터가 없습니다."
+          description="보안 점검 RPC 결과가 비어 있습니다. Supabase 함수와 관리자 권한 설정을 확인한 뒤 다시 시도해주세요."
+        />
+      ) : status ? (
         <>
           <section className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-2xl border border-gray-800 bg-gray-950/70 p-5">
@@ -184,17 +198,15 @@ export default async function AdminSecurityPage() {
             </div>
           </section>
 
-          <section className="mt-6 rounded-2xl border border-blue-500/20 bg-blue-500/10 p-5 text-sm leading-6 text-blue-100/90">
-            <h2 className="font-semibold text-blue-100">운영 원칙</h2>
-            <ul className="mt-3 grid gap-2">
-              <li>- 관리자 승격 기능은 공개 UI로 만들지 않는 것을 권장합니다.</li>
-              <li>- 관리자 role 변경은 Supabase SQL Editor에서 직접 처리하세요.</li>
-              <li>- 관리자 계정은 탈퇴/정지 대상에서 제외하는 현재 정책을 유지하세요.</li>
-              <li>- 관리자 활동 로그를 주기적으로 확인하세요.</li>
-            </ul>
+          <section className="mt-6">
+            <AdminStateCard
+              tone="default"
+              title="운영 원칙"
+              description="관리자 승격 기능은 공개 UI로 만들지 않는 것을 권장합니다. 관리자 role 변경은 Supabase SQL Editor에서 직접 처리하고, 관리자 계정은 탈퇴/정지 대상에서 제외하는 현재 정책을 유지하세요. 관리자 활동 로그도 주기적으로 확인하세요."
+            />
           </section>
         </>
-      )}
+      ) : null}
     </main>
   );
 }

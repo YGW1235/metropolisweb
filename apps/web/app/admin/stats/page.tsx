@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { AdminStateCard } from "@/components/admin-state-card";
 import { requireAdmin } from "@/lib/auth";
 
 type TopicStats = {
@@ -98,10 +99,26 @@ export default async function AdminStatsPage() {
       </div>
 
       {error ? (
-        <div className="mb-6 rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-100">
-          통계를 불러오지 못했습니다: {error.message}
+        <div className="mb-6">
+          <AdminStateCard
+            tone="danger"
+            title="데이터를 불러오지 못했습니다."
+            description={`잠시 후 다시 시도해주세요. 주제 통계 오류: ${error.message}`}
+          />
         </div>
       ) : null}
+
+      <div className="mb-6">
+        <AdminStateCard
+          tone={totalPendingReports > 0 ? "warning" : "default"}
+          title="주제 통계 확인 안내"
+          description={
+            totalPendingReports > 0
+              ? "대기 중 신고가 있는 주제가 있습니다. 신고 관리 화면에서 처리 상태를 확인하세요."
+              : "주제별 참가자, 게시글, 댓글, 신고 수를 확인해 운영 우선순위를 판단할 수 있습니다."
+          }
+        />
+      </div>
 
       <section className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <div className="rounded-2xl border border-gray-800 bg-gray-950/70 p-5">
@@ -133,7 +150,7 @@ export default async function AdminStatsPage() {
       </section>
 
       <section className="grid gap-4">
-        {stats.length > 0 ? (
+        {!error && stats.length > 0 ? (
           stats.map((topic) => (
             <article
               key={topic.topic_id}
@@ -248,11 +265,12 @@ export default async function AdminStatsPage() {
               </div>
             </article>
           ))
-        ) : (
-          <div className="rounded-2xl border border-gray-800 bg-gray-950/70 p-8 text-center text-sm text-gray-400">
-            아직 통계로 표시할 주제가 없습니다.
-          </div>
-        )}
+        ) : !error ? (
+          <AdminStateCard
+            title="표시할 주제 통계가 없습니다."
+            description="주제가 생성되고 참여 또는 게시 활동이 집계되면 이곳에 통계가 표시됩니다."
+          />
+        ) : null}
       </section>
     </main>
   );

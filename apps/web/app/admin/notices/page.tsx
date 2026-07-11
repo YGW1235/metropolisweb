@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { deleteNotice } from "@/app/actions/notices";
+import { AdminStateCard } from "@/components/admin-state-card";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { createClient } from "@/lib/supabase/server";
 
@@ -90,7 +91,7 @@ export default async function AdminNoticesPage({
   const query = await searchParams;
   const supabase = await getAdminClient();
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("notices")
     .select("id, title, content, status, is_pinned, published_at, created_at, updated_at, view_count")
     .order("is_pinned", { ascending: false })
@@ -156,6 +157,16 @@ export default async function AdminNoticesPage({
           </div>
         ) : null}
 
+        {error ? (
+          <div className="mt-6">
+            <AdminStateCard
+              tone="danger"
+              title="데이터를 불러오지 못했습니다."
+              description={`잠시 후 다시 시도해주세요. 공지 목록 오류: ${error.message}`}
+            />
+          </div>
+        ) : null}
+
         <div className="mt-8 overflow-hidden rounded-[2rem] border border-[var(--theme-line)] bg-[var(--theme-panel-strong)] shadow-[var(--shadow-card-strong)]">
           <div className="grid lg:grid-cols-[0.85fr_1.15fr]">
             <div className="bg-[var(--athena-surface)] p-6 sm:p-8">
@@ -217,9 +228,16 @@ export default async function AdminNoticesPage({
             <p className="text-xs font-black uppercase tracking-[0.28em] text-[var(--theme-blue)]">
               Notice List
             </p>
+            <div className="mt-4">
+              <AdminStateCard
+                tone="default"
+                title="공지 공개 상태 안내"
+                description="공개 상태의 공지는 사용자 공지사항 화면에 표시됩니다. 임시저장 공지는 관리자에게만 보입니다."
+              />
+            </div>
           </div>
 
-          {notices.length ? (
+          {!error && notices.length ? (
             <div className="divide-y divide-[var(--theme-line)]">
               {notices.map((notice) => (
                 <div
@@ -294,23 +312,22 @@ export default async function AdminNoticesPage({
                 </div>
               ))}
             </div>
-          ) : (
-            <div className="p-10 text-center">
-              <p className="font-serif text-2xl font-black text-[var(--theme-text)]">
-                아직 등록된 공지가 없습니다.
-              </p>
-              <p className="mt-3 text-sm text-[var(--theme-muted)]">
-                첫 공지를 작성해 시민들에게 안내를 남겨보세요.
-              </p>
-
-              <Link
-                href="/admin/notices/new"
-                className="mt-6 inline-flex items-center justify-center border border-[var(--theme-gold)] bg-[var(--theme-gold)] px-5 py-3 text-sm font-black text-[var(--theme-accent-contrast)] shadow-[var(--shadow-button)] transition hover:opacity-85"
-              >
-                첫 공지 작성하기
-              </Link>
+          ) : !error ? (
+            <div className="p-6 sm:p-8">
+              <AdminStateCard
+                title="등록된 공지가 없습니다."
+                description="공지사항이 있으면 이곳에서 공개 상태, 고정 여부, 수정일을 확인할 수 있습니다."
+                action={
+                  <Link
+                    href="/admin/notices/new"
+                    className="inline-flex items-center justify-center border border-[var(--theme-gold)] bg-[var(--theme-gold)] px-5 py-3 text-sm font-black text-[var(--theme-accent-contrast)] shadow-[var(--shadow-button)] transition hover:opacity-85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-gold)]"
+                  >
+                    첫 공지 작성하기
+                  </Link>
+                }
+              />
             </div>
-          )}
+          ) : null}
         </section>
       </section>
     </main>

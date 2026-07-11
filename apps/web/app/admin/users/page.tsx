@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { setUserStatus } from "@/app/actions/user-moderation";
+import { AdminStateCard } from "@/components/admin-state-card";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { requireAdmin } from "@/lib/auth";
 
@@ -72,6 +73,14 @@ export default async function AdminUsersPage({
         </Link>
       </div>
 
+      <div className="mb-6">
+        <AdminStateCard
+          tone="warning"
+          title="유저 상태 변경 안내"
+          description="정지된 유저는 글 작성, 댓글 작성, 토론 참여가 제한될 수 있습니다. 정지 또는 복구 사유는 내부 운영 기록으로 남겨주세요."
+        />
+      </div>
+
       {params.message ? (
         <div
           className={
@@ -85,13 +94,16 @@ export default async function AdminUsersPage({
       ) : null}
 
       {usersError ? (
-        <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-100">
-          유저 목록을 불러오지 못했습니다: {usersError.message}
-        </div>
+        <AdminStateCard
+          tone="danger"
+          title="데이터를 불러오지 못했습니다."
+          description={`잠시 후 다시 시도해주세요. 유저 목록 오류: ${usersError.message}`}
+        />
       ) : null}
 
       <section className="grid gap-4">
-        {(users ?? []).map((profile) => {
+        {!usersError && (users ?? []).length > 0 ? (
+          (users ?? []).map((profile) => {
           const isMe = profile.id === user.id;
           const isAdmin = profile.role === "admin";
           const canSuspend = !isMe && !isAdmin && profile.status !== "suspended";
@@ -208,7 +220,13 @@ export default async function AdminUsersPage({
               </div>
             </article>
           );
-        })}
+          })
+        ) : !usersError ? (
+          <AdminStateCard
+            title="표시할 유저가 없습니다."
+            description="가입된 유저가 있으면 이곳에서 상태와 최근 제재 정보를 확인할 수 있습니다."
+          />
+        ) : null}
       </section>
 
       <section className="mt-10 rounded-2xl border border-gray-800 bg-gray-950/70 p-5">
@@ -248,7 +266,10 @@ export default async function AdminUsersPage({
               </div>
             ))
           ) : (
-            <p className="text-sm text-gray-500">아직 제재 이력이 없습니다.</p>
+            <AdminStateCard
+              title="아직 기록된 유저 제재 이력이 없습니다."
+              description="유저 정지 또는 복구 작업이 실행되면 최근 이력이 이곳에 표시됩니다."
+            />
           )}
         </div>
       </section>

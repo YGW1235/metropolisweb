@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { deleteTopic } from "@/app/actions/admin-topics";
 import { updateTopicStatus } from "@/app/actions/topics";
+import { AdminStateCard } from "@/components/admin-state-card";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { createClient } from "@/lib/supabase/server";
 
@@ -156,7 +157,7 @@ export default async function AdminTopicsPage({
   const query = await searchParams;
   const supabase = await getAdminClient();
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("topics")
     .select("id, title, description, status, starts_at, ends_at, created_at")
     .is("deleted_at", null)
@@ -225,6 +226,16 @@ export default async function AdminTopicsPage({
           </div>
         ) : null}
 
+        {error ? (
+          <div className="mt-6">
+            <AdminStateCard
+              tone="danger"
+              title="데이터를 불러오지 못했습니다."
+              description={`잠시 후 다시 시도해주세요. 주제 목록 오류: ${error.message}`}
+            />
+          </div>
+        ) : null}
+
         <div className="mt-8 overflow-hidden rounded-[2rem] border border-[var(--theme-line)] bg-[var(--theme-panel-strong)] shadow-[var(--shadow-card-strong)]">
           <div className="grid lg:grid-cols-[0.85fr_1.15fr]">
             <div className="bg-[var(--athena-surface)] p-6 sm:p-8">
@@ -262,9 +273,16 @@ export default async function AdminTopicsPage({
             <p className="text-xs font-black uppercase tracking-[0.28em] text-[var(--theme-blue)]">
               Topic List
             </p>
+            <div className="mt-4">
+              <AdminStateCard
+                tone="warning"
+                title="주제 상태 변경 안내"
+                description="draft와 archived 상태는 일반 사용자에게 숨겨질 수 있습니다. open, active, closed 상태는 공개 화면에 영향을 줍니다."
+              />
+            </div>
           </div>
 
-          {topics.length ? (
+          {!error && topics.length ? (
             <div className="divide-y divide-[var(--theme-line)]">
               {topics.map((topic) => {
                 const canOpenUserPages = isPublicTopicStatus(topic.status);
@@ -388,24 +406,22 @@ export default async function AdminTopicsPage({
                 );
               })}
             </div>
-          ) : (
-            <div className="p-10 text-center">
-              <p className="font-serif text-2xl font-black text-[var(--theme-text)]">
-                관리할 주제가 없습니다.
-              </p>
-
-              <p className="mt-3 text-sm text-[var(--theme-muted)]">
-                삭제되지 않은 주제가 이곳에 표시됩니다.
-              </p>
-
-              <Link
-                href="/admin/topics/new"
-                className="mt-6 inline-flex items-center justify-center border border-[var(--theme-gold)] bg-[var(--theme-gold)] px-5 py-3 text-sm font-black text-[var(--theme-accent-contrast)] shadow-[var(--shadow-button)] transition hover:opacity-85"
-              >
-                새 주제 만들기
-              </Link>
+          ) : !error ? (
+            <div className="p-6 sm:p-8">
+              <AdminStateCard
+                title="등록된 주제가 없습니다."
+                description="삭제되지 않은 주제가 있으면 이곳에 표시됩니다. 새 토론 주제를 만들어 공개 상태를 설정할 수 있습니다."
+                action={
+                  <Link
+                    href="/admin/topics/new"
+                    className="inline-flex items-center justify-center border border-[var(--theme-gold)] bg-[var(--theme-gold)] px-5 py-3 text-sm font-black text-[var(--theme-accent-contrast)] shadow-[var(--shadow-button)] transition hover:opacity-85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-gold)]"
+                  >
+                    새 주제 만들기
+                  </Link>
+                }
+              />
             </div>
-          )}
+          ) : null}
         </section>
       </section>
     </main>

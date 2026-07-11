@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { updateContactInquiry } from "@/app/actions/contact";
+import { AdminStateCard } from "@/components/admin-state-card";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { requireAdmin } from "@/lib/auth";
 
@@ -76,6 +77,14 @@ export default async function AdminInquiriesPage({
         </Link>
       </div>
 
+      <div className="mb-6">
+        <AdminStateCard
+          tone="default"
+          title="문의 처리 안내"
+          description="관리자 메모에는 내부 운영용 내용을 적어주세요. 사용자에게 직접 발송되는 답변이 아니라 처리 상태와 후속 조치 기록으로 사용됩니다."
+        />
+      </div>
+
       {params.message ? (
         <div
           className={
@@ -89,13 +98,15 @@ export default async function AdminInquiriesPage({
       ) : null}
 
       {error ? (
-        <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-100">
-          문의 목록을 불러오지 못했습니다: {error.message}
-        </div>
+        <AdminStateCard
+          tone="danger"
+          title="데이터를 불러오지 못했습니다."
+          description={`잠시 후 다시 시도해주세요. 문의 목록 오류: ${error.message}`}
+        />
       ) : null}
 
       <section className="grid gap-4">
-        {(inquiries ?? []).map((inquiry) => (
+        {!error ? (inquiries ?? []).map((inquiry) => (
           <article
             key={inquiry.id}
             className="rounded-2xl border border-gray-800 bg-gray-950/70 p-5"
@@ -184,12 +195,13 @@ export default async function AdminInquiriesPage({
               </form>
             </div>
           </article>
-        ))}
+        )) : null}
 
-        {(inquiries ?? []).length === 0 ? (
-          <div className="rounded-2xl border border-gray-800 bg-gray-950/70 p-8 text-center text-sm text-gray-400">
-            아직 접수된 문의가 없습니다.
-          </div>
+        {!error && (inquiries ?? []).length === 0 ? (
+          <AdminStateCard
+            title="접수된 문의가 없습니다."
+            description="문의하기 화면에서 접수된 내용이 있으면 이곳에 표시됩니다."
+          />
         ) : null}
       </section>
     </main>

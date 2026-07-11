@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { AdminStateCard } from "@/components/admin-state-card";
 import { requireAdmin } from "@/lib/auth";
 
 type SearchParams = Promise<{
@@ -129,6 +130,14 @@ export default async function AdminActivityPage({
         </Link>
       </div>
 
+      <div className="mb-6">
+        <AdminStateCard
+          tone="default"
+          title="활동 로그 확인 안내"
+          description="신고 처리, 유저 정지/복구 등 주요 관리자 작업이 기록됩니다. 운영 중에는 필터를 활용해 최근 처리 내역을 주기적으로 확인하세요."
+        />
+      </div>
+
       <section className="mb-6 flex flex-wrap gap-2">
         <Link
           href="/admin/activity"
@@ -163,13 +172,15 @@ export default async function AdminActivityPage({
       </section>
 
       {error ? (
-        <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-100">
-          활동 로그를 불러오지 못했습니다: {error.message}
-        </div>
+        <AdminStateCard
+          tone="danger"
+          title="데이터를 불러오지 못했습니다."
+          description={`잠시 후 다시 시도해주세요. 활동 로그 오류: ${error.message}`}
+        />
       ) : null}
 
       <section className="grid gap-4">
-        {activityLogs.length > 0 ? (
+        {!error && activityLogs.length > 0 ? (
           activityLogs.map((log) => {
             const actor = log.actor_id ? profileMap.get(log.actor_id) : null;
 
@@ -234,11 +245,12 @@ export default async function AdminActivityPage({
               </article>
             );
           })
-        ) : (
-          <div className="rounded-2xl border border-gray-800 bg-gray-950/70 p-8 text-center text-sm text-gray-400">
-            아직 관리자 활동 로그가 없습니다.
-          </div>
-        )}
+        ) : !error ? (
+          <AdminStateCard
+            title="아직 기록된 관리자 활동이 없습니다."
+            description="관리자가 신고, 유저, 문의 등 운영 작업을 처리하면 이곳에 활동 로그가 표시됩니다."
+          />
+        ) : null}
       </section>
     </main>
   );
