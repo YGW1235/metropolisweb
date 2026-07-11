@@ -223,12 +223,43 @@ secret 값은 이 문서에 기록하지 않습니다.
 
 상태: 확인 필요
 
-## 13. 최종 런칭 체크
+## 13. Production Smoke Test
+
+운영 사이트 공개 페이지가 정상 렌더링되는지 확인하기 위한 수동 실행 workflow가 추가되었습니다.
+
+- workflow: `Production Smoke Test`
+- workflow 파일: `.github/workflows/prod-smoke.yml`
+- 운영 주소: `https://metropolisagora.com`
+- 수동 실행 방식: GitHub Actions -> `Production Smoke Test` -> `Run workflow`
+- 실행 결과: `7 passed`
+
+테스트 대상:
+
+- `/`
+- `/topics`
+- `/login`
+- `/contact`
+- `/notices`
+- `/terms`
+- `/privacy`
+
+실패 시 확인할 항목:
+
+- GitHub Secrets
+- 운영 도메인 접속 상태
+- Supabase 환경변수
+- Playwright `E2E_BASE_URL`
+- Vercel 배포 상태
+
+상태: 사용자 전달 실행 결과 기준 `7 passed`
+
+## 14. 최종 런칭 체크
 
 런칭 전 최소 확인 목록:
 
 ```txt
 [ ] Web CI 성공
+[ ] Production Smoke Test 성공
 [ ] Vercel Production Ready
 [ ] https://metropolisagora.com 접속
 [ ] Supabase Auth URL 설정
@@ -245,7 +276,7 @@ secret 값은 이 문서에 기록하지 않습니다.
 [ ] 모바일 화면
 ```
 
-## 14. 기록란
+## 15. 기록란
 
 수동 테스트를 실행한 뒤 아래에 결과를 기록합니다.
 
