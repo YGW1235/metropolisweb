@@ -93,9 +93,7 @@ v_tree.best_streak_count,
 v_tree.last_watered_on,
 true;
 
-```
 return;
-```
 
 end if;
 

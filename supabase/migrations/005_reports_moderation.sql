@@ -101,11 +101,9 @@ from public.debate_posts
 where id = p_target_id
 and status = 'visible';
 
-```
 if not found then
   raise exception '신고할 게시글을 찾을 수 없습니다.';
 end if;
-```
 
 end if;
 
@@ -116,11 +114,9 @@ from public.debate_comments
 where id = p_target_id
 and status = 'visible';
 
-```
 if not found then
   raise exception '신고할 댓글을 찾을 수 없습니다.';
 end if;
-```
 
 end if;
 
@@ -222,9 +218,7 @@ where id = p_report_id
 returning *
 into v_result;
 
-```
 return v_result;
-```
 
 end if;
 
@@ -235,9 +229,7 @@ where id = p_report_id
 returning *
 into v_result;
 
-```
 return v_result;
-```
 
 end if;
 
@@ -254,7 +246,6 @@ else
 raise exception '신고 대상이 올바르지 않습니다.';
 end if;
 
-```
 update public.reports
 set status = 'resolved'
 where id = p_report_id
@@ -262,7 +253,6 @@ returning *
 into v_result;
 
 return v_result;
-```
 
 end if;
 
