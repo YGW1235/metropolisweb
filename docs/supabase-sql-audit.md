@@ -10,6 +10,7 @@
 - 2026-07-11: `supabase/migrations/003_participants.sql`, `supabase/patches/005_user_suspension.sql`의 구버전 `join_topic(p_topic_id uuid)` 정의를 canonical `join_topic(p_topic_id uuid, p_join_side text default 'auto')` 정의로 교체 완료.
 - 2026-07-11: 운영 DB에 남아 있을 수 있는 legacy `join_topic(uuid)` overload 제거를 위해 `supabase/patches/016_drop_legacy_join_topic_overload.sql` 추가. 이 patch는 repo에 추가된 것이며, 운영 DB에 자동 적용된 것은 아닙니다.
 - 2026-07-11: participants/posts/comments 원본 테이블의 넓은 public raw read 정책을 제거하고 anonymous RPC 조회 구조를 보장하기 위해 `supabase/patches/017_enforce_private_debate_raw_reads.sql` 추가. topics의 제한 공개 read 정책은 유지합니다.
+- 2026-07-11: apps/web RPC 호출과 Supabase SQL function/grant signature 상세 감사는 `docs/supabase-rpc-audit.md`에 별도 기록.
 - 실제 운영 DB 적용 전에는 Supabase Dashboard에서 현재 함수 정의와 정책 상태를 다시 확인해야 합니다.
 
 ## 요약
