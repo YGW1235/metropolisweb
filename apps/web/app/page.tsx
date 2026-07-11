@@ -12,15 +12,16 @@ type PublicTopic = {
   poseidon_position: string | null;
 };
 
-type TopicParticipant = {
-  topic_id: string;
-  assigned_side: string | null;
-};
-
 type TopicCounts = {
   athena: number;
   poseidon: number;
   total: number;
+};
+
+type PublicParticipantCounts = {
+  pro_count: number | string | null;
+  con_count: number | string | null;
+  total_count: number | string | null;
 };
 
 const features = [
@@ -206,6 +207,29 @@ function getCountsForTopic(
       total: 0,
     }
   );
+}
+
+function toCount(value: number | string | null | undefined) {
+  const count = Number(value ?? 0);
+  return Number.isFinite(count) ? count : 0;
+}
+
+function getParticipantCountsFromRpc(
+  row: PublicParticipantCounts | null | undefined,
+): TopicCounts {
+  return {
+    athena: toCount(row?.pro_count),
+    poseidon: toCount(row?.con_count),
+    total: toCount(row?.total_count),
+  };
+}
+
+function getFirstParticipantCountRow(data: unknown) {
+  if (Array.isArray(data)) {
+    return (data[0] as PublicParticipantCounts | undefined) ?? null;
+  }
+
+  return (data as PublicParticipantCounts | null) ?? null;
 }
 
 
@@ -444,44 +468,26 @@ export default async function HomePage() {
     .limit(3);
 
   const publicTopics = (topicsData ?? []) as PublicTopic[];
-  const topicIds = publicTopics.map((topic) => topic.id);
-  const participantCounts = new Map<string, TopicCounts>();
+  const participantCountEntries = await Promise.all(
+    publicTopics.map(async (topic) => {
+      const { data, error } = await supabase.rpc(
+        "get_public_topic_participant_counts",
+        {
+          p_topic_id: topic.id,
+        },
+      );
 
-  for (const topic of publicTopics) {
-    participantCounts.set(topic.id, {
-      athena: 0,
-      poseidon: 0,
-      total: 0,
-    });
-  }
-
-  if (topicIds.length > 0) {
-    const { data: participantsData } = await supabase
-      .from("topic_participants")
-      .select("topic_id, assigned_side")
-      .in("topic_id", topicIds);
-
-    const participants = (participantsData ?? []) as TopicParticipant[];
-
-    for (const participant of participants) {
-      const current = participantCounts.get(participant.topic_id) ?? {
-        athena: 0,
-        poseidon: 0,
-        total: 0,
-      };
-
-      if (participant.assigned_side === "pro") {
-        current.athena += 1;
+      if (error) {
+        return [topic.id, getParticipantCountsFromRpc(null)] as const;
       }
 
-      if (participant.assigned_side === "con") {
-        current.poseidon += 1;
-      }
-
-      current.total += 1;
-      participantCounts.set(participant.topic_id, current);
-    }
-  }
+      return [
+        topic.id,
+        getParticipantCountsFromRpc(getFirstParticipantCountRow(data)),
+      ] as const;
+    }),
+  );
+  const participantCounts = new Map<string, TopicCounts>(participantCountEntries);
 
   return (
     <main className="min-h-screen bg-[var(--theme-bg)] text-[var(--theme-text)] transition-colors duration-300">

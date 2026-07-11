@@ -33,6 +33,12 @@ type Participation = {
   side_index: number | null;
 };
 
+type PublicParticipantCounts = {
+  pro_count: number | string | null;
+  con_count: number | string | null;
+  total_count: number | string | null;
+};
+
 type MyProfileStatus = {
   status: string | null;
   status_reason: string | null;
@@ -90,6 +96,19 @@ function formatDate(value: string | null) {
     month: "short",
     day: "numeric",
   }).format(new Date(value));
+}
+
+function toCount(value: number | string | null | undefined) {
+  const count = Number(value ?? 0);
+  return Number.isFinite(count) ? count : 0;
+}
+
+function getFirstParticipantCountRow(data: unknown) {
+  if (Array.isArray(data)) {
+    return (data[0] as PublicParticipantCounts | undefined) ?? null;
+  }
+
+  return (data as PublicParticipantCounts | null) ?? null;
 }
 
 function getSideLabel(side: string | null | undefined) {
@@ -390,17 +409,17 @@ export default async function TopicDetailPage({
     participation = data;
   }
 
-  const { count: athenaCount } = await supabase
-    .from("topic_participants")
-    .select("*", { count: "exact", head: true })
-    .eq("topic_id", topicId)
-    .eq("assigned_side", "pro");
+  const { data: participantCountRows, error: participantCountError } =
+    await supabase.rpc("get_public_topic_participant_counts", {
+      p_topic_id: topicId,
+    });
 
-  const { count: poseidonCount } = await supabase
-    .from("topic_participants")
-    .select("*", { count: "exact", head: true })
-    .eq("topic_id", topicId)
-    .eq("assigned_side", "con");
+  const participantCounts = participantCountError
+    ? null
+    : getFirstParticipantCountRow(participantCountRows);
+  const athenaCount = toCount(participantCounts?.pro_count);
+  const poseidonCount = toCount(participantCounts?.con_count);
+  const totalCount = toCount(participantCounts?.total_count);
 
   const startDate = formatDate(topic.starts_at);
   const endDate = formatDate(topic.ends_at);
@@ -492,17 +511,17 @@ export default async function TopicDetailPage({
               <div className="mt-6 grid gap-3 sm:grid-cols-3">
                 <StatCard
                   label="아테나"
-                  value={`${athenaCount ?? 0}`}
+                  value={`${athenaCount}`}
                   tone="gold"
                 />
                 <StatCard
                   label="포세이돈"
-                  value={`${poseidonCount ?? 0}`}
+                  value={`${poseidonCount}`}
                   tone="blue"
                 />
                 <StatCard
                   label="총 시민"
-                  value={`${(athenaCount ?? 0) + (poseidonCount ?? 0)}`}
+                  value={`${totalCount}`}
                   tone="stone"
                 />
               </div>
