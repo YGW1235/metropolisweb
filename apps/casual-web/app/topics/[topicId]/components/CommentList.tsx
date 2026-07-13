@@ -104,7 +104,7 @@ function CommentItem({
               }&returnTo=${encodeURIComponent(`/topics/${topicId}`)}`}
               className="text-xs font-bold text-stone-400 underline underline-offset-4 hover:text-red-600"
             >
-              신고
+              댓글 신고
             </Link>
 
             {currentUserId === comment.user_id && (
@@ -170,52 +170,54 @@ export function CommentList({
     comments.length === 0 ? "댓글 쓰기" : `댓글보기 ${comments.length}`;
 
   return (
-    <details className="group contents">
-      <summary className="inline-flex cursor-pointer list-none items-center gap-1 rounded-full bg-white px-3 py-2 text-xs font-black text-stone-700 transition hover:bg-orange-100 hover:text-orange-800 marker:hidden group-open:bg-orange-100 group-open:text-orange-800">
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 24 24"
-          className="h-3.5 w-3.5"
-          fill="none"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2.4"
-        >
-          <path d="M21 12a8 8 0 0 1-8 8H6l-3 3v-7a8 8 0 1 1 18-4Z" />
-        </svg>
-        {summaryText}
-      </summary>
+    <div className="contents">
+      <details className="group contents">
+        <summary className="inline-flex cursor-pointer list-none items-center gap-1 rounded-full bg-white px-3 py-2 text-xs font-black text-stone-700 transition hover:bg-orange-100 hover:text-orange-800 marker:hidden group-open:bg-orange-100 group-open:text-orange-800">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            className="h-3.5 w-3.5"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2.4"
+          >
+            <path d="M21 12a8 8 0 0 1-8 8H6l-3 3v-7a8 8 0 1 1 18-4Z" />
+          </svg>
+          {summaryText}
+        </summary>
 
-      <div className="mt-3 w-full basis-full pl-1 sm:pl-2">
-        <div className="min-w-0 border-l-2 border-orange-100 pl-2 sm:pl-3">
-          {comments.length > 0 && (
-            <div>
-              {comments.map((comment) => (
-                <CommentItem
-                  key={comment.id}
-                  comment={comment}
-                  commentProfile={profileByUserId.get(comment.user_id)}
-                  currentUserId={currentUserId}
-                  topicId={topicId}
-                />
-              ))}
-            </div>
-          )}
+        <div className="order-last mt-3 w-full basis-full pl-1 sm:pl-2">
+          <div className="min-w-0 border-l-2 border-orange-100 pl-2 sm:pl-3">
+            {comments.length > 0 && (
+              <div>
+                {comments.map((comment) => (
+                  <CommentItem
+                    key={comment.id}
+                    comment={comment}
+                    commentProfile={profileByUserId.get(comment.user_id)}
+                    currentUserId={currentUserId}
+                    topicId={topicId}
+                  />
+                ))}
+              </div>
+            )}
 
-          {comments.length === 0 && (
-            <p className="rounded-2xl bg-orange-50/60 px-3 py-3 text-xs font-bold text-stone-500">
-              첫 댓글을 남겨보세요.
-            </p>
-          )}
+            {comments.length === 0 && (
+              <p className="rounded-2xl bg-orange-50/60 px-3 py-3 text-xs font-bold text-stone-500">
+                첫 댓글을 남겨보세요.
+              </p>
+            )}
 
-          <CommentForm
-            isLoggedIn={isLoggedIn}
-            opinionId={opinionId}
-            topicId={topicId}
-          />
+            <CommentForm
+              isLoggedIn={isLoggedIn}
+              opinionId={opinionId}
+              topicId={topicId}
+            />
+          </div>
         </div>
-      </div>
-    </details>
+      </details>
+    </div>
   );
 }

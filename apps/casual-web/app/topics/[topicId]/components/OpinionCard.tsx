@@ -213,9 +213,9 @@ export function OpinionCard({
           href={`/report?targetType=opinion&targetId=${
             opinion.id
           }&returnTo=${encodeURIComponent(`/topics/${topicId}`)}`}
-          className="ml-0 text-xs font-bold text-stone-400 underline underline-offset-4 hover:text-red-600 sm:ml-auto"
+          className="ml-auto rounded-full px-2 py-2 text-xs font-bold text-stone-400 underline underline-offset-4 hover:text-red-600"
         >
-          신고
+          의견 신고
         </Link>
       </div>
     </article>
