@@ -71,9 +71,11 @@ export function OpinionColumn({
   const styles = COLUMN_STYLES[side];
 
   return (
-    <div>
+    <div className="min-w-0">
       <div className={`mb-4 rounded-2xl px-4 py-3 ${styles.header}`}>
-        <h3 className={`font-black ${styles.title}`}>{optionLabel}</h3>
+        <h3 className={`break-words font-black leading-snug ${styles.title}`}>
+          {optionLabel}
+        </h3>
         <p className={`mt-1 text-xs font-bold ${styles.countText}`}>
           {totalCount}개 의견
         </p>
@@ -106,7 +108,7 @@ export function OpinionColumn({
       </div>
 
       {(hasPreviousPage || hasNextPage || totalCount > opinions.length) && (
-        <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-white/70 p-3 text-xs font-black text-stone-500">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-white/70 p-3 text-xs font-black text-stone-500">
           {hasPreviousPage ? (
             <Link
               href={previousHref}

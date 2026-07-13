@@ -37,14 +37,16 @@ function VoteButton({
       <input type="hidden" name="topicId" value={topicId} />
       <input type="hidden" name="choice" value={choice} />
       <button
-        className={`w-full rounded-3xl px-6 py-6 text-left transition hover:-translate-y-0.5 ${
+        className={`w-full rounded-3xl px-4 py-5 text-left transition hover:-translate-y-0.5 sm:px-6 sm:py-6 ${
           isSelected ? selectedClass : defaultClass
         }`}
       >
         <span className="block text-sm font-black opacity-80">
           {choice.toUpperCase()}
         </span>
-        <span className="mt-1 block text-2xl font-black">{label}</span>
+        <span className="mt-1 block break-words text-xl font-black leading-tight sm:text-2xl">
+          {label}
+        </span>
         {isSelected && (
           <span className="mt-2 block text-sm font-bold">
             내가 선택한 입장
@@ -74,7 +76,7 @@ export function TopicVotePanel({
   const hasVoted = Boolean(currentVote);
 
   return (
-    <article className="mt-8 rounded-[2rem] border border-orange-100 bg-white p-6 shadow-sm">
+    <article className="mt-5 rounded-[1.5rem] border border-orange-100 bg-white p-4 shadow-sm sm:mt-8 sm:rounded-[2rem] sm:p-6">
       <div className="flex flex-wrap items-center gap-2">
         {topic.is_today && (
           <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-black text-orange-800">
@@ -90,12 +92,14 @@ export function TopicVotePanel({
       </div>
 
       <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <h1 className="text-4xl font-black leading-tight">{topic.title}</h1>
+        <h1 className="break-words text-3xl font-black leading-tight sm:text-4xl">
+          {topic.title}
+        </h1>
 
         <form action={toggleTopicBookmark} className="shrink-0">
           <input type="hidden" name="topicId" value={topic.id} />
           <button
-            className={`rounded-full px-5 py-3 text-sm font-black transition hover:-translate-y-0.5 ${
+            className={`w-full rounded-full px-5 py-3 text-sm font-black transition hover:-translate-y-0.5 sm:w-auto ${
               isBookmarked
                 ? "bg-orange-500 text-white shadow-lg shadow-orange-100"
                 : "border border-orange-200 bg-orange-50 text-orange-800 hover:bg-orange-100"
@@ -106,7 +110,7 @@ export function TopicVotePanel({
         </form>
       </div>
 
-      <p className="mt-4 text-lg leading-8 text-stone-700">
+      <p className="mt-4 break-words text-base leading-7 text-stone-700 sm:text-lg sm:leading-8">
         {topic.description}
       </p>
 
@@ -148,8 +152,8 @@ export function TopicVotePanel({
       )}
 
       {hasVoted ? (
-        <section className="mt-8 rounded-3xl bg-orange-50 p-5">
-          <div className="flex items-center justify-between gap-4">
+        <section className="mt-8 rounded-3xl bg-orange-50 p-4 sm:p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-xl font-black">투표 결과</h2>
             <p className="text-sm font-bold text-stone-600">
               총 {totalVotes}명 참여
@@ -158,9 +162,9 @@ export function TopicVotePanel({
 
           <div className="mt-5 space-y-4">
             <div>
-              <div className="flex justify-between text-sm font-black text-stone-700">
-                <span>{topic.option_a}</span>
-                <span>
+              <div className="flex gap-3 text-sm font-black text-stone-700">
+                <span className="min-w-0 flex-1 break-words">{topic.option_a}</span>
+                <span className="shrink-0">
                   {aPercent}% · {topic.vote_a_count}표
                 </span>
               </div>
@@ -173,9 +177,9 @@ export function TopicVotePanel({
             </div>
 
             <div>
-              <div className="flex justify-between text-sm font-black text-stone-700">
-                <span>{topic.option_b}</span>
-                <span>
+              <div className="flex gap-3 text-sm font-black text-stone-700">
+                <span className="min-w-0 flex-1 break-words">{topic.option_b}</span>
+                <span className="shrink-0">
                   {bPercent}% · {topic.vote_b_count}표
                 </span>
               </div>
@@ -189,7 +193,7 @@ export function TopicVotePanel({
           </div>
         </section>
       ) : (
-        <section className="mt-8 rounded-3xl bg-stone-50 p-5 text-center">
+        <section className="mt-8 rounded-3xl bg-stone-50 p-4 text-center sm:p-5">
           <h2 className="text-xl font-black">먼저 선택해보세요</h2>
           <p className="mt-2 text-sm leading-6 text-stone-600">
             투표 후 다른 사람들의 선택 비율을 볼 수 있습니다.

@@ -396,14 +396,14 @@ export default async function TopicDetailPage({
   const bHasNextPage = bPage * OPINIONS_PER_PAGE < bOpinionCount;
   const opinionGridClassName =
     opinionSide === "all"
-      ? "mt-8 grid gap-6 lg:grid-cols-2"
-      : "mx-auto mt-8 grid max-w-3xl gap-6";
+      ? "mt-6 grid gap-5 lg:mt-8 lg:grid-cols-2 lg:gap-6"
+      : "mx-auto mt-6 grid max-w-3xl gap-5 lg:mt-8";
 
   return (
-    <main className="min-h-screen bg-[#fff7ed] text-[#2f2118]">
+    <main className="min-h-screen bg-[#fff7ed] pb-28 text-[#2f2118] md:pb-0">
       <ViewTracker topicId={topicDetail.id} />
       <SiteHeader />
-      <section className="mx-auto max-w-4xl">
+      <section className="mx-auto w-full max-w-4xl px-3 sm:px-6">
         {query.message && (
           <div
             className={`mt-6 rounded-2xl p-4 text-sm font-bold ${
@@ -424,9 +424,9 @@ export default async function TopicDetailPage({
           topic={topicDetail}
         />
 
-        <section className="mt-6 rounded-3xl border border-orange-100 bg-white p-6 shadow-sm">
+        <section className="mt-5 rounded-3xl border border-orange-100 bg-white p-4 shadow-sm sm:mt-6 sm:p-6">
           <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
+            <div className="min-w-0">
               <p className="text-sm font-bold tracking-[0.3em] text-orange-700">
                 OPINIONS
               </p>
@@ -450,7 +450,7 @@ export default async function TopicDetailPage({
 
           <div className="mt-6 space-y-3 rounded-2xl bg-stone-50/70 p-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="mr-1 text-xs font-black text-stone-500">
+              <span className="mr-1 shrink-0 text-xs font-black text-stone-500">
                 의견 보기
               </span>
 
@@ -468,7 +468,7 @@ export default async function TopicDetailPage({
                     opinionSort,
                     topicId: topicDetail.id,
                   })}
-                  className={`max-w-full rounded-full px-4 py-2 text-xs font-black transition ${
+                  className={`inline-flex max-w-full rounded-full px-4 py-2 text-left text-xs font-black leading-5 transition ${
                     opinionSide === option.side
                       ? "bg-orange-500 text-white"
                       : "bg-white text-stone-600 hover:bg-orange-100 hover:text-orange-800"
@@ -480,7 +480,7 @@ export default async function TopicDetailPage({
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <span className="mr-1 text-xs font-black text-stone-500">
+              <span className="mr-1 shrink-0 text-xs font-black text-stone-500">
                 의견 정렬
               </span>
               {OPINION_SORT_OPTIONS.map((option) => (

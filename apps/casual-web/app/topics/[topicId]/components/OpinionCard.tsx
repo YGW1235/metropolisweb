@@ -101,7 +101,9 @@ export function OpinionCard({
   const relativeTime = formatRelativeTime(opinion.created_at);
 
   return (
-    <article className={`rounded-3xl border p-4 shadow-sm ${styles.card}`}>
+    <article
+      className={`min-w-0 rounded-[1.35rem] border p-3 shadow-sm sm:rounded-3xl sm:p-4 ${styles.card}`}
+    >
       <div className="flex items-start gap-3">
         {opinionProfile?.avatar_url ? (
           <img
@@ -122,7 +124,7 @@ export function OpinionCard({
             {opinionProfile?.nickname ? (
               <Link
                 href={`/users/${encodeURIComponent(opinionProfile.nickname)}`}
-                className="truncate text-sm font-black text-stone-900 hover:text-orange-700"
+                className="min-w-0 truncate text-sm font-black text-stone-900 hover:text-orange-700"
               >
                 {opinionProfile.nickname}
               </Link>
@@ -140,7 +142,7 @@ export function OpinionCard({
           </div>
 
           <span
-            className={`mt-1 inline-flex rounded-full px-2.5 py-1 text-xs font-black ${styles.badge}`}
+            className={`mt-1 inline-flex max-w-full break-words rounded-full px-2.5 py-1 text-xs font-black leading-4 ${styles.badge}`}
           >
             {optionLabel} 측
           </span>
@@ -163,7 +165,7 @@ export function OpinionCard({
           <input type="hidden" name="opinionId" value={opinion.id} />
           <input type="hidden" name="reactionType" value="like" />
           <button
-            className={`rounded-full px-3 py-2 text-xs font-black ${
+            className={`rounded-full px-3 py-2 text-xs font-black leading-none ${
               myReaction === "like"
                 ? "bg-orange-500 text-white"
                 : "bg-white text-stone-700"
@@ -178,7 +180,7 @@ export function OpinionCard({
           <input type="hidden" name="opinionId" value={opinion.id} />
           <input type="hidden" name="reactionType" value="dislike" />
           <button
-            className={`rounded-full px-3 py-2 text-xs font-black ${
+            className={`rounded-full px-3 py-2 text-xs font-black leading-none ${
               myReaction === "dislike"
                 ? "bg-stone-900 text-white"
                 : "bg-white text-stone-700"
@@ -211,7 +213,7 @@ export function OpinionCard({
           href={`/report?targetType=opinion&targetId=${
             opinion.id
           }&returnTo=${encodeURIComponent(`/topics/${topicId}`)}`}
-          className="ml-auto text-xs font-bold text-stone-400 underline underline-offset-4 hover:text-red-600"
+          className="ml-0 text-xs font-bold text-stone-400 underline underline-offset-4 hover:text-red-600 sm:ml-auto"
         >
           신고
         </Link>

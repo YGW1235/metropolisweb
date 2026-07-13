@@ -57,7 +57,7 @@ function CommentItem({
 
   return (
     <article className="border-b border-stone-100 py-3 last:border-b-0">
-      <div className="flex gap-2.5">
+      <div className="flex min-w-0 gap-2.5">
         {commentProfile?.avatar_url ? (
           <img
             src={commentProfile.avatar_url}
@@ -113,7 +113,7 @@ function CommentItem({
                   내 댓글 수정/삭제
                 </summary>
 
-                <div className="mt-2 rounded-2xl border border-stone-100 bg-white/80 p-3">
+                <div className="mt-2 max-w-full rounded-2xl border border-stone-100 bg-white/80 p-3">
                   <form action={updateComment}>
                     <input type="hidden" name="topicId" value={topicId} />
                     <input type="hidden" name="commentId" value={comment.id} />
@@ -187,8 +187,8 @@ export function CommentList({
         {summaryText}
       </summary>
 
-      <div className="mt-3 w-full basis-full pl-2">
-        <div className="border-l-2 border-orange-100 pl-3">
+      <div className="mt-3 w-full basis-full pl-1 sm:pl-2">
+        <div className="min-w-0 border-l-2 border-orange-100 pl-2 sm:pl-3">
           {comments.length > 0 && (
             <div>
               {comments.map((comment) => (

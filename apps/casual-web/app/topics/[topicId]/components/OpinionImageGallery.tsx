@@ -91,7 +91,7 @@ export function OpinionImageGallery({ images }: { images: OpinionImage[] }) {
               src={image.public_url}
               alt="의견 이미지"
               loading="lazy"
-              className="max-h-[28rem] w-full object-contain"
+              className="max-h-[22rem] w-full object-contain sm:max-h-[28rem]"
             />
           </button>
         ))}
@@ -101,11 +101,11 @@ export function OpinionImageGallery({ images }: { images: OpinionImage[] }) {
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/80 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/80 p-3 sm:p-4"
           onClick={() => setActiveIndex(null)}
         >
           <div
-            className="relative flex max-h-[92vh] w-full max-w-5xl flex-col items-center"
+            className="relative flex max-h-[92vh] w-full max-w-5xl flex-col items-center pt-12 sm:pt-0"
             onClick={(event) => event.stopPropagation()}
           >
             <button
@@ -120,10 +120,10 @@ export function OpinionImageGallery({ images }: { images: OpinionImage[] }) {
             <img
               src={activeImage.public_url}
               alt="의견 이미지"
-              className="max-h-[80vh] max-w-full rounded-2xl object-contain shadow-2xl"
+              className="max-h-[72vh] max-w-full rounded-2xl object-contain shadow-2xl sm:max-h-[80vh]"
             />
 
-            <div className="mt-3 flex items-center justify-center gap-3 rounded-full bg-white/95 px-4 py-2 text-xs font-black text-stone-700">
+            <div className="mt-3 flex max-w-full flex-wrap items-center justify-center gap-3 rounded-full bg-white/95 px-4 py-2 text-xs font-black text-stone-700">
               {hasMultipleImages && (
                 <button
                   type="button"

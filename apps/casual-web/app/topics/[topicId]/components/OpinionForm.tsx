@@ -15,10 +15,10 @@ export function OpinionForm({
 }) {
   if (isLoggedIn && currentVote) {
     return (
-      <details className="mt-6 rounded-3xl bg-orange-50 p-4">
+      <details className="mt-6 rounded-[1.35rem] bg-orange-50 p-4 sm:rounded-3xl">
         <summary className="cursor-pointer list-none text-sm font-black text-stone-800 marker:hidden">
           의견 작성하기
-          <span className="ml-2 text-xs font-bold text-stone-500">
+          <span className="mt-1 block text-xs font-bold text-stone-500 sm:ml-2 sm:mt-0 sm:inline">
             최대 500자, 이미지 3장
           </span>
         </summary>
@@ -28,7 +28,7 @@ export function OpinionForm({
 
           <div>
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <p className="text-sm font-black text-stone-700">
+              <p className="min-w-0 break-words text-sm font-black text-stone-700">
                 {currentVote.choice === "a"
                   ? `"${topic.option_a}" 입장으로 의견 작성`
                   : `"${topic.option_b}" 입장으로 의견 작성`}
@@ -46,7 +46,7 @@ export function OpinionForm({
 
             <label className="mt-3 block rounded-2xl border border-dashed border-orange-200 bg-white px-4 py-3 text-sm font-bold text-stone-600">
               이미지 첨부
-              <span className="ml-2 text-xs font-semibold text-stone-400">
+              <span className="mt-1 block text-xs font-semibold text-stone-400 sm:ml-2 sm:mt-0 sm:inline">
                 JPEG/PNG/WEBP/GIF, 최대 3장, 파일당 5MB
               </span>
               <input
@@ -71,7 +71,7 @@ export function OpinionForm({
 
   if (isLoggedIn) {
     return (
-      <div className="mt-6 rounded-3xl bg-stone-50 p-5 text-center">
+      <div className="mt-6 rounded-3xl bg-stone-50 p-4 text-center sm:p-5">
         <h3 className="text-lg font-black">먼저 투표해주세요</h3>
         <p className="mt-2 text-sm text-stone-600">
           A/B 중 하나를 선택한 뒤 의견을 작성할 수 있습니다.
@@ -81,7 +81,7 @@ export function OpinionForm({
   }
 
   return (
-    <div className="mt-6 rounded-3xl bg-stone-50 p-5 text-center">
+    <div className="mt-6 rounded-3xl bg-stone-50 p-4 text-center sm:p-5">
       <h3 className="text-lg font-black">로그인이 필요합니다</h3>
       <p className="mt-2 text-sm text-stone-600">
         로그인하면 투표와 의견 작성, 공감/비공감에 참여할 수 있습니다.
