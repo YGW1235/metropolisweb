@@ -11,16 +11,16 @@ export function CommentForm({
 }) {
   if (!isLoggedIn) {
     return (
-      <div className="mt-3 rounded-2xl bg-stone-50 p-3 text-center text-xs font-bold text-stone-500">
+      <div className="mt-3 rounded-2xl bg-stone-50/80 px-3 py-3 text-center text-xs font-bold text-stone-500">
         댓글을 작성하려면 로그인이 필요합니다.
       </div>
     );
   }
 
   return (
-    <details className="mt-3 rounded-2xl border border-stone-100 bg-white p-3">
-      <summary className="cursor-pointer list-none text-xs font-black text-stone-600 marker:hidden">
-        댓글 작성하기
+    <details className="mt-3 rounded-2xl border border-dashed border-orange-100 bg-white/70 p-3">
+      <summary className="inline-flex cursor-pointer list-none rounded-full bg-orange-50 px-3 py-2 text-xs font-black text-orange-800 marker:hidden hover:bg-orange-100">
+        댓글 쓰기
       </summary>
 
       <form action={createComment} className="mt-3">
