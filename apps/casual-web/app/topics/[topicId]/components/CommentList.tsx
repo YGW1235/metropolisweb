@@ -31,6 +31,14 @@ function CommentItem({
         )}
 
         <span className="text-xs text-stone-300">·</span>
+        <time dateTime={comment.created_at} className="text-xs text-stone-400">
+          {new Date(comment.created_at).toLocaleDateString("ko-KR", {
+            day: "numeric",
+            month: "short",
+          })}
+        </time>
+
+        <span className="text-xs text-stone-300">·</span>
 
         <Link
           href={`/report?targetType=comment&targetId=${
@@ -100,31 +108,50 @@ export function CommentList({
   profileByUserId: Map<string, PublicProfile>;
   topicId: string;
 }) {
-  return (
-    <div className="mt-4 rounded-2xl bg-white/70 p-3">
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <p className="text-xs font-black text-stone-600">
-          댓글 {comments.length}개
-        </p>
-      </div>
+  const summaryText =
+    comments.length === 0 ? "댓글 쓰기" : `댓글보기 ${comments.length}`;
 
-      <div className="space-y-2">
-        {comments.map((comment) => (
-          <CommentItem
-            key={comment.id}
-            comment={comment}
-            commentProfile={profileByUserId.get(comment.user_id)}
-            currentUserId={currentUserId}
+  return (
+    <details className="group contents">
+      <summary className="inline-flex cursor-pointer list-none items-center gap-1 rounded-full bg-white px-3 py-2 text-xs font-black text-stone-700 transition hover:bg-orange-100 hover:text-orange-800 marker:hidden group-open:bg-orange-100 group-open:text-orange-800">
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          className="h-3.5 w-3.5"
+          fill="none"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2.4"
+        >
+          <path d="M21 12a8 8 0 0 1-8 8H6l-3 3v-7a8 8 0 1 1 18-4Z" />
+        </svg>
+        {summaryText}
+      </summary>
+
+      <div className="mt-3 w-full basis-full rounded-2xl bg-white/70 p-3">
+        <div className="border-l-2 border-orange-100 pl-3">
+          {comments.length > 0 && (
+            <div className="space-y-2">
+              {comments.map((comment) => (
+                <CommentItem
+                  key={comment.id}
+                  comment={comment}
+                  commentProfile={profileByUserId.get(comment.user_id)}
+                  currentUserId={currentUserId}
+                  topicId={topicId}
+                />
+              ))}
+            </div>
+          )}
+
+          <CommentForm
+            isLoggedIn={isLoggedIn}
+            opinionId={opinionId}
             topicId={topicId}
           />
-        ))}
+        </div>
       </div>
-
-      <CommentForm
-        isLoggedIn={isLoggedIn}
-        opinionId={opinionId}
-        topicId={topicId}
-      />
-    </div>
+    </details>
   );
 }

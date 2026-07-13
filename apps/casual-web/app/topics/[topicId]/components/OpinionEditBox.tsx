@@ -10,9 +10,9 @@ export function OpinionEditBox({
   topicId: string;
 }) {
   return (
-    <details className="mt-4 rounded-2xl bg-white/70 p-3">
+    <details className="mt-3 rounded-2xl border border-white/80 bg-white/60 p-3">
       <summary className="cursor-pointer text-xs font-black text-stone-500">
-        내 의견 수정/삭제
+        더보기 · 내 의견 수정/삭제
       </summary>
 
       <form action={updateOpinion} className="mt-3">
