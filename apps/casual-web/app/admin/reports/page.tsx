@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import type { ReactNode } from "react";
 
 import {
   closeTopicAndResolve,
@@ -25,10 +26,118 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
+const OPINION_IMAGE_BUCKET = "casual-opinion-images";
+const MISSING_TARGET_MESSAGE =
+  "신고 대상을 찾을 수 없습니다. 이미 삭제되었거나 숨김 처리되었을 수 있습니다.";
+const ADMIN_NOTE_PLACEHOLDER = "처리 메모를 입력하세요. 선택 사항입니다.";
+
 type SearchParams = Promise<{
   message?: string;
   type?: "success" | "error";
 }>;
+
+type AdminReport = {
+  id: string;
+  reporter_id: string | null;
+  target_type: string;
+  target_id: string;
+  reason: string;
+  details: string | null;
+  status: string;
+  admin_note: string | null;
+  created_at: string;
+  resolved_at: string | null;
+};
+
+type ProfileRecord = {
+  user_id: string;
+  nickname: string | null;
+};
+
+type TopicRecord = {
+  id: string;
+  title: string;
+  description: string;
+  option_a: string;
+  option_b: string;
+  status: string;
+};
+
+type OpinionRecord = {
+  id: string;
+  topic_id: string;
+  user_id: string;
+  body: string;
+  choice: string;
+  like_count: number | null;
+  dislike_count: number | null;
+  is_hidden: boolean | null;
+};
+
+type CommentRecord = {
+  id: string;
+  opinion_id: string;
+  user_id: string;
+  body: string;
+  is_hidden: boolean | null;
+};
+
+type OpinionImagePreview = {
+  publicUrl: string;
+  storagePath: string;
+};
+
+type TargetPreview =
+  | {
+      found: false;
+      label: string;
+    }
+  | {
+      found: true;
+      type: "topic";
+      label: "주제";
+      topicId: string;
+      title: string;
+      description: string;
+      optionA: string;
+      optionB: string;
+      status: string;
+    }
+  | {
+      found: true;
+      type: "opinion";
+      label: "의견";
+      topicId: string;
+      topicTitle: string;
+      authorNickname: string;
+      choiceLabel: string;
+      body: string;
+      images: OpinionImagePreview[];
+      likeCount: number;
+      dislikeCount: number;
+      isHidden: boolean;
+    }
+  | {
+      found: true;
+      type: "comment";
+      label: "댓글";
+      topicId: string | null;
+      topicTitle: string;
+      authorNickname: string;
+      body: string;
+      isHidden: boolean;
+      opinionAuthorNickname: string;
+      opinionBody: string;
+      opinionChoiceLabel: string;
+    };
+
+type PreviewMaps = {
+  topicById: Map<string, TopicRecord>;
+  opinionById: Map<string, OpinionRecord>;
+  commentById: Map<string, CommentRecord>;
+  profileByUserId: Map<string, ProfileRecord>;
+  imagesByOpinionId: Map<string, OpinionImagePreview[]>;
+};
 
 function getReasonLabel(reason: string) {
   if (reason === "abuse") return "욕설/비방";
@@ -54,6 +163,32 @@ function getStatusClass(status: string) {
   return "bg-stone-100 text-stone-700";
 }
 
+function getTargetLabel(targetType: string) {
+  if (targetType === "topic") return "주제";
+  if (targetType === "opinion") return "의견";
+  if (targetType === "comment") return "댓글";
+  return targetType;
+}
+
+function getChoiceLabel(
+  choice: string | undefined,
+  optionA?: string,
+  optionB?: string,
+) {
+  if (choice === "a") return optionA ?? "A측";
+  if (choice === "b") return optionB ?? "B측";
+  return "선택 정보 없음";
+}
+
+function getNickname(
+  profileByUserId: Map<string, ProfileRecord>,
+  userId?: string | null,
+) {
+  if (!userId) return "알 수 없음";
+
+  return profileByUserId.get(userId)?.nickname ?? "알 수 없음";
+}
+
 function formatDate(value: string | null) {
   if (!value) return "-";
 
@@ -61,6 +196,436 @@ function formatDate(value: string | null) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
+}
+
+function getReportPreview(report: AdminReport, maps: PreviewMaps): TargetPreview {
+  if (report.target_type === "topic") {
+    const topic = maps.topicById.get(report.target_id);
+
+    if (!topic) {
+      return { found: false, label: "주제" };
+    }
+
+    return {
+      found: true,
+      type: "topic",
+      label: "주제",
+      topicId: topic.id,
+      title: topic.title,
+      description: topic.description,
+      optionA: topic.option_a,
+      optionB: topic.option_b,
+      status: topic.status,
+    };
+  }
+
+  if (report.target_type === "opinion") {
+    const opinion = maps.opinionById.get(report.target_id);
+
+    if (!opinion) {
+      return { found: false, label: "의견" };
+    }
+
+    const topic = maps.topicById.get(opinion.topic_id);
+
+    return {
+      found: true,
+      type: "opinion",
+      label: "의견",
+      topicId: opinion.topic_id,
+      topicTitle: topic?.title ?? "관련 주제를 찾을 수 없습니다.",
+      authorNickname: getNickname(maps.profileByUserId, opinion.user_id),
+      choiceLabel: getChoiceLabel(
+        opinion.choice,
+        topic?.option_a,
+        topic?.option_b,
+      ),
+      body: opinion.body,
+      images: maps.imagesByOpinionId.get(opinion.id) ?? [],
+      likeCount: opinion.like_count ?? 0,
+      dislikeCount: opinion.dislike_count ?? 0,
+      isHidden: Boolean(opinion.is_hidden),
+    };
+  }
+
+  if (report.target_type === "comment") {
+    const comment = maps.commentById.get(report.target_id);
+
+    if (!comment) {
+      return { found: false, label: "댓글" };
+    }
+
+    const opinion = maps.opinionById.get(comment.opinion_id);
+    const topic = opinion ? maps.topicById.get(opinion.topic_id) : null;
+
+    return {
+      found: true,
+      type: "comment",
+      label: "댓글",
+      topicId: opinion?.topic_id ?? null,
+      topicTitle: topic?.title ?? "관련 주제를 찾을 수 없습니다.",
+      authorNickname: getNickname(maps.profileByUserId, comment.user_id),
+      body: comment.body,
+      isHidden: Boolean(comment.is_hidden),
+      opinionAuthorNickname: getNickname(
+        maps.profileByUserId,
+        opinion?.user_id,
+      ),
+      opinionBody: opinion?.body ?? "원 의견을 찾을 수 없습니다.",
+      opinionChoiceLabel: getChoiceLabel(
+        opinion?.choice,
+        topic?.option_a,
+        topic?.option_b,
+      ),
+    };
+  }
+
+  return { found: false, label: getTargetLabel(report.target_type) };
+}
+
+function getPreviewTopicId(preview: TargetPreview) {
+  if (!preview.found) return null;
+  return preview.topicId;
+}
+
+function Badge({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className: string;
+}) {
+  return (
+    <span className={`rounded-full px-3 py-1 text-xs font-black ${className}`}>
+      {children}
+    </span>
+  );
+}
+
+function InfoItem({
+  label,
+  value,
+}: {
+  label: string;
+  value: ReactNode;
+}) {
+  return (
+    <div className="rounded-2xl bg-stone-50 px-4 py-3">
+      <p className="text-xs font-black text-stone-500">{label}</p>
+      <div className="mt-1 break-words text-sm font-bold text-stone-800">
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function AdminNoteInput() {
+  return (
+    <input
+      name="adminNote"
+      className="w-full rounded-2xl border border-stone-200 px-3 py-2 text-sm outline-none transition focus:border-orange-400"
+      placeholder={ADMIN_NOTE_PLACEHOLDER}
+    />
+  );
+}
+
+function TopicLink({ topicId }: { topicId: string | null }) {
+  if (!topicId) {
+    return null;
+  }
+
+  return (
+    <Link
+      href={`/topics/${topicId}`}
+      className="rounded-full border border-orange-200 bg-white px-4 py-2 text-xs font-black text-orange-800 transition hover:bg-orange-50"
+    >
+      주제 상세로 이동
+    </Link>
+  );
+}
+
+function ReportTargetPreview({ preview }: { preview: TargetPreview }) {
+  if (!preview.found) {
+    return (
+      <section className="rounded-3xl border border-red-100 bg-red-50 p-5">
+        <p className="text-xs font-black text-red-700">신고 대상 확인</p>
+        <h3 className="mt-2 text-lg font-black text-red-900">
+          신고 대상: {preview.label}
+        </h3>
+        <p className="mt-3 text-sm leading-6 text-red-800">
+          {MISSING_TARGET_MESSAGE}
+        </p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="rounded-3xl border border-orange-100 bg-orange-50/70 p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-black text-orange-800">신고 대상 확인</p>
+          <h3 className="mt-1 text-lg font-black">
+            신고 대상: {preview.label}
+          </h3>
+        </div>
+        <TopicLink topicId={getPreviewTopicId(preview)} />
+      </div>
+
+      {preview.type === "topic" && (
+        <div className="mt-4 space-y-4">
+          <div>
+            <h4 className="break-words text-xl font-black">{preview.title}</h4>
+            <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-stone-700">
+              {preview.description}
+            </p>
+          </div>
+
+          <div className="grid gap-2 sm:grid-cols-2">
+            <div className="rounded-2xl bg-white px-4 py-3">
+              <p className="text-xs font-black text-orange-700">A 선택지</p>
+              <p className="mt-1 break-words text-sm font-black">
+                {preview.optionA}
+              </p>
+            </div>
+            <div className="rounded-2xl bg-white px-4 py-3">
+              <p className="text-xs font-black text-stone-500">B 선택지</p>
+              <p className="mt-1 break-words text-sm font-black">
+                {preview.optionB}
+              </p>
+            </div>
+          </div>
+
+          <Badge className="bg-white text-stone-700">
+            현재 상태 {preview.status}
+          </Badge>
+        </div>
+      )}
+
+      {preview.type === "opinion" && (
+        <div className="mt-4 space-y-4">
+          <div>
+            <p className="text-xs font-black text-stone-500">관련 주제</p>
+            <h4 className="mt-1 break-words text-xl font-black">
+              {preview.topicTitle}
+            </h4>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-stone-500">
+            <span>의견 작성자 {preview.authorNickname}</span>
+            <span>·</span>
+            <span>{preview.choiceLabel} 측</span>
+          </div>
+
+          <p className="max-h-60 overflow-hidden whitespace-pre-wrap rounded-2xl bg-white px-4 py-3 text-sm leading-6 text-stone-700">
+            {preview.body}
+          </p>
+
+          {preview.images.length > 0 && (
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {preview.images.map((image) => (
+                <a
+                  key={image.storagePath}
+                  href={image.publicUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block"
+                >
+                  <img
+                    src={image.publicUrl}
+                    alt="의견 이미지"
+                    className="aspect-square w-full rounded-2xl bg-white object-cover ring-1 ring-orange-100"
+                  />
+                </a>
+              ))}
+            </div>
+          )}
+
+          <div className="flex flex-wrap gap-2">
+            <Badge className="bg-white text-stone-700">
+              공감 {preview.likeCount}
+            </Badge>
+            <Badge className="bg-white text-stone-700">
+              비공감 {preview.dislikeCount}
+            </Badge>
+            <Badge
+              className={
+                preview.isHidden
+                  ? "bg-red-50 text-red-700"
+                  : "bg-white text-stone-700"
+              }
+            >
+              {preview.isHidden ? "숨김됨" : "공개 상태"}
+            </Badge>
+          </div>
+        </div>
+      )}
+
+      {preview.type === "comment" && (
+        <div className="mt-4 space-y-4">
+          <div>
+            <p className="text-xs font-black text-stone-500">관련 주제</p>
+            <h4 className="mt-1 break-words text-xl font-black">
+              {preview.topicTitle}
+            </h4>
+          </div>
+
+          <div className="rounded-2xl bg-white px-4 py-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-xs font-black text-orange-700">댓글</p>
+              <span className="text-xs font-bold text-stone-400">·</span>
+              <p className="text-xs font-bold text-stone-500">
+                댓글 작성자 {preview.authorNickname}
+              </p>
+              <span className="text-xs font-bold text-stone-400">·</span>
+              <p
+                className={`text-xs font-black ${
+                  preview.isHidden ? "text-red-700" : "text-stone-500"
+                }`}
+              >
+                {preview.isHidden ? "숨김됨" : "공개 상태"}
+              </p>
+            </div>
+            <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-stone-700">
+              {preview.body}
+            </p>
+          </div>
+
+          <div className="rounded-2xl bg-white/70 px-4 py-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-xs font-black text-stone-500">원 의견</p>
+              <span className="text-xs font-bold text-stone-400">·</span>
+              <p className="text-xs font-bold text-stone-500">
+                작성자 {preview.opinionAuthorNickname}
+              </p>
+              <span className="text-xs font-bold text-stone-400">·</span>
+              <p className="text-xs font-bold text-stone-500">
+                {preview.opinionChoiceLabel} 측
+              </p>
+            </div>
+            <p className="mt-3 max-h-32 overflow-hidden whitespace-pre-wrap text-sm leading-6 text-stone-600">
+              {preview.opinionBody}
+            </p>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function ReportActions({
+  preview,
+  report,
+}: {
+  preview: TargetPreview;
+  report: AdminReport;
+}) {
+  const isOpen = report.status === "open";
+  const canHideOpinion =
+    isOpen && preview.found && preview.type === "opinion" && !preview.isHidden;
+  const canHideComment =
+    isOpen && preview.found && preview.type === "comment" && !preview.isHidden;
+  const canCloseTopic = isOpen && preview.found && preview.type === "topic";
+  const canUnhideOpinion =
+    preview.found && preview.type === "opinion" && preview.isHidden;
+  const canUnhideComment =
+    preview.found && preview.type === "comment" && preview.isHidden;
+
+  return (
+    <aside className="flex min-w-0 flex-col gap-3 lg:w-72 lg:shrink-0">
+      {getPreviewTopicId(preview) && (
+        <Link
+          href={`/topics/${getPreviewTopicId(preview)}`}
+          className="rounded-full border border-stone-200 px-4 py-2 text-center text-sm font-bold text-stone-700 transition hover:bg-stone-50"
+        >
+          사용자 화면 보기
+        </Link>
+      )}
+
+      {isOpen ? (
+        <div className="space-y-3 rounded-3xl border border-stone-100 bg-stone-50 p-3">
+          <p className="px-1 text-xs font-black text-stone-500">처리 액션</p>
+
+          <form action={resolveReport} className="space-y-2">
+            <input type="hidden" name="reportId" value={report.id} />
+            <AdminNoteInput />
+            <button className="w-full rounded-full bg-green-600 px-4 py-2 text-sm font-black text-white transition hover:-translate-y-0.5">
+              신고 처리완료
+            </button>
+          </form>
+
+          {canHideOpinion && (
+            <form action={hideOpinionAndResolve} className="space-y-2">
+              <input type="hidden" name="reportId" value={report.id} />
+              <input type="hidden" name="targetId" value={report.target_id} />
+              <AdminNoteInput />
+              <button className="w-full rounded-full bg-red-600 px-4 py-2 text-sm font-black text-white transition hover:-translate-y-0.5">
+                의견 숨김 + 처리완료
+              </button>
+            </form>
+          )}
+
+          {canHideComment && (
+            <form action={hideCommentAndResolve} className="space-y-2">
+              <input type="hidden" name="reportId" value={report.id} />
+              <input type="hidden" name="targetId" value={report.target_id} />
+              <AdminNoteInput />
+              <button className="w-full rounded-full bg-red-600 px-4 py-2 text-sm font-black text-white transition hover:-translate-y-0.5">
+                댓글 숨김 + 처리완료
+              </button>
+            </form>
+          )}
+
+          {canCloseTopic && (
+            <form action={closeTopicAndResolve} className="space-y-2">
+              <input type="hidden" name="reportId" value={report.id} />
+              <input type="hidden" name="targetId" value={report.target_id} />
+              <AdminNoteInput />
+              <button className="w-full rounded-full bg-red-600 px-4 py-2 text-sm font-black text-white transition hover:-translate-y-0.5">
+                주제 종료 + 처리완료
+              </button>
+            </form>
+          )}
+
+          <form action={dismissReport} className="space-y-2">
+            <input type="hidden" name="reportId" value={report.id} />
+            <AdminNoteInput />
+            <button className="w-full rounded-full bg-stone-200 px-4 py-2 text-sm font-black text-stone-800 transition hover:bg-stone-300">
+              신고 기각
+            </button>
+          </form>
+        </div>
+      ) : (
+        <div className="rounded-3xl border border-stone-100 bg-stone-50 p-4">
+          <p className="text-sm font-black text-stone-700">
+            {getStatusLabel(report.status)}된 신고입니다.
+          </p>
+          {report.admin_note && (
+            <p className="mt-2 whitespace-pre-wrap text-xs leading-5 text-stone-500">
+              {report.admin_note}
+            </p>
+          )}
+        </div>
+      )}
+
+      {canUnhideOpinion && (
+        <form action={unhideOpinion}>
+          <input type="hidden" name="targetId" value={report.target_id} />
+          <button className="w-full rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-black text-stone-700 transition hover:bg-stone-50">
+            의견 숨김 해제
+          </button>
+        </form>
+      )}
+
+      {canUnhideComment && (
+        <form action={unhideComment}>
+          <input type="hidden" name="targetId" value={report.target_id} />
+          <button className="w-full rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-black text-stone-700 transition hover:bg-stone-50">
+            댓글 숨김 해제
+          </button>
+        </form>
+      )}
+    </aside>
+  );
 }
 
 export default async function AdminReportsPage({
@@ -104,77 +669,142 @@ export default async function AdminReportsPage({
     );
   }
 
-  const reportList = reports ?? [];
-
+  const reportList = (reports ?? []) as AdminReport[];
   const reporterIds = Array.from(
     new Set(reportList.map((report) => report.reporter_id).filter(Boolean)),
   ) as string[];
-
-  const topicIds = reportList
+  const topicTargetIds = reportList
     .filter((report) => report.target_type === "topic")
     .map((report) => report.target_id);
-
-  const opinionIds = reportList
+  const opinionTargetIds = reportList
     .filter((report) => report.target_type === "opinion")
     .map((report) => report.target_id);
-
-  const commentIds = reportList
+  const commentTargetIds = reportList
     .filter((report) => report.target_type === "comment")
     .map((report) => report.target_id);
 
-  const { data: reporterProfilesData } =
-    reporterIds.length > 0
-      ? await supabase
-          .from("casual_profiles")
-          .select("user_id, nickname")
-          .in("user_id", reporterIds)
-      : { data: [] };
-
-  const { data: topicsData } =
-    topicIds.length > 0
-      ? await supabase
-          .from("casual_topics")
-          .select("id, title, description, status, is_today")
-          .in("id", topicIds)
-      : { data: [] };
-
-  const { data: opinionsData } =
-    opinionIds.length > 0
-      ? await supabase
+  const [opinionTargetsResult, commentTargetsResult] = await Promise.all([
+    opinionTargetIds.length > 0
+      ? supabase
           .from("casual_opinions")
-          .select("id, topic_id, user_id, body, choice, is_hidden")
-          .in("id", opinionIds)
-      : { data: [] };
-
-  const { data: commentsData } =
-    commentIds.length > 0
-      ? await supabase
+          .select(
+            "id, topic_id, user_id, body, choice, like_count, dislike_count, is_hidden",
+          )
+          .in("id", opinionTargetIds)
+      : Promise.resolve({ data: [] }),
+    commentTargetIds.length > 0
+      ? supabase
           .from("casual_comments")
           .select("id, opinion_id, user_id, body, is_hidden")
-          .in("id", commentIds)
+          .in("id", commentTargetIds)
+      : Promise.resolve({ data: [] }),
+  ]);
+
+  const opinionTargets = (opinionTargetsResult.data ?? []) as OpinionRecord[];
+  const commentTargets = (commentTargetsResult.data ?? []) as CommentRecord[];
+  const commentOpinionIds = Array.from(
+    new Set(commentTargets.map((comment) => comment.opinion_id)),
+  );
+
+  const { data: commentOpinionsData } =
+    commentOpinionIds.length > 0
+      ? await supabase
+          .from("casual_opinions")
+          .select(
+            "id, topic_id, user_id, body, choice, like_count, dislike_count, is_hidden",
+          )
+          .in("id", commentOpinionIds)
       : { data: [] };
 
-  const reporterById = new Map(
-    (reporterProfilesData ?? []).map((profile) => [profile.user_id, profile]),
+  const commentOpinions = (commentOpinionsData ?? []) as OpinionRecord[];
+  const allOpinions = [...opinionTargets, ...commentOpinions];
+  const allOpinionIds = Array.from(
+    new Set(allOpinions.map((opinion) => opinion.id)),
+  );
+  const allTopicIds = Array.from(
+    new Set([
+      ...topicTargetIds,
+      ...allOpinions.map((opinion) => opinion.topic_id),
+    ]),
+  );
+  const allUserIds = Array.from(
+    new Set([
+      ...reporterIds,
+      ...allOpinions.map((opinion) => opinion.user_id),
+      ...commentTargets.map((comment) => comment.user_id),
+    ]),
   );
 
-  const topicById = new Map((topicsData ?? []).map((topic) => [topic.id, topic]));
+  const [topicsResult, profilesResult, imagesResult] = await Promise.all([
+    allTopicIds.length > 0
+      ? supabase
+          .from("casual_topics")
+          .select("id, title, description, option_a, option_b, status")
+          .in("id", allTopicIds)
+      : Promise.resolve({ data: [] }),
+    allUserIds.length > 0
+      ? supabase
+          .from("casual_profiles")
+          .select("user_id, nickname")
+          .in("user_id", allUserIds)
+      : Promise.resolve({ data: [] }),
+    opinionTargetIds.length > 0
+      ? supabase
+          .from("casual_opinion_images")
+          .select("opinion_id, storage_bucket, storage_path, display_order")
+          .in("opinion_id", opinionTargetIds)
+          .order("display_order", { ascending: true })
+      : Promise.resolve({ data: [] }),
+  ]);
 
-  const opinionById = new Map(
-    (opinionsData ?? []).map((opinion) => [opinion.id, opinion]),
+  const topicById = new Map<string, TopicRecord>(
+    ((topicsResult.data ?? []) as TopicRecord[]).map((topic) => [
+      topic.id,
+      topic,
+    ]),
   );
-
-  const commentById = new Map(
-    (commentsData ?? []).map((comment) => [comment.id, comment]),
+  const opinionById = new Map<string, OpinionRecord>(
+    allOpinions.map((opinion) => [opinion.id, opinion]),
   );
+  const commentById = new Map<string, CommentRecord>(
+    commentTargets.map((comment) => [comment.id, comment]),
+  );
+  const profileByUserId = new Map<string, ProfileRecord>(
+    ((profilesResult.data ?? []) as ProfileRecord[]).map((profile) => [
+      profile.user_id,
+      profile,
+    ]),
+  );
+  const imagesByOpinionId = new Map<string, OpinionImagePreview[]>();
 
+  for (const image of imagesResult.data ?? []) {
+    const storageBucket = image.storage_bucket ?? OPINION_IMAGE_BUCKET;
+    const { data } = supabase.storage
+      .from(storageBucket)
+      .getPublicUrl(image.storage_path);
+    const images = imagesByOpinionId.get(image.opinion_id) ?? [];
+
+    images.push({
+      publicUrl: data.publicUrl,
+      storagePath: image.storage_path,
+    });
+    imagesByOpinionId.set(image.opinion_id, images);
+  }
+
+  const previewMaps: PreviewMaps = {
+    topicById,
+    opinionById,
+    commentById,
+    profileByUserId,
+    imagesByOpinionId,
+  };
   const openCount = reportList.filter((report) => report.status === "open").length;
 
   return (
-    <main className="min-h-screen bg-[#fff7ed] text-[#2f2118]">
+    <main className="min-h-screen bg-[#fff7ed] pb-24 text-[#2f2118]">
       <SiteHeader />
-      <section className="mx-auto max-w-6xl">
-        <section className="mt-8 rounded-3xl border border-orange-100 bg-white p-6 shadow-sm">
+      <section className="mx-auto max-w-6xl px-4 sm:px-6">
+        <section className="mt-8 rounded-3xl border border-orange-100 bg-white p-5 shadow-sm sm:p-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-sm font-bold tracking-[0.3em] text-orange-700">
@@ -182,7 +812,11 @@ export default async function AdminReportsPage({
               </p>
               <h1 className="mt-2 text-3xl font-black">신고 관리</h1>
               <p className="mt-3 text-sm leading-6 text-stone-600">
-                신고 접수 상태를 확인하고 필요한 운영 조치를 처리합니다.
+                신고 접수 상태와 신고 대상을 함께 확인하고 필요한 운영 조치를
+                처리합니다.
+              </p>
+              <p className="mt-3 text-sm font-bold text-stone-500">
+                대기 중인 신고 {openCount}건 · 전체 {reportList.length}건
               </p>
             </div>
 
@@ -239,96 +873,78 @@ export default async function AdminReportsPage({
           </div>
         )}
 
-        <section className="mt-8 space-y-4">
+        <section className="mt-8 space-y-5">
           {reportList.map((report) => {
             const reporter = report.reporter_id
-              ? reporterById.get(report.reporter_id)
+              ? profileByUserId.get(report.reporter_id)
               : null;
-
-            const topic =
-              report.target_type === "topic"
-                ? topicById.get(report.target_id)
-                : null;
-
-            const opinion =
-              report.target_type === "opinion"
-                ? opinionById.get(report.target_id)
-                : null;
-
-            const comment =
-              report.target_type === "comment"
-                ? commentById.get(report.target_id)
-                : null;
-
-            const targetTitle =
-              topic?.title ??
-              (opinion ? "신고된 의견" : null) ??
-              (comment ? "신고된 댓글" : null) ??
-              "대상을 찾을 수 없음";
-
-            const targetBody =
-              topic?.description ?? opinion?.body ?? comment?.body ?? "";
-
-            const targetTopicId = topic?.id ?? opinion?.topic_id ?? null;
+            const preview = getReportPreview(report, previewMaps);
 
             return (
               <article
                 key={report.id}
-                className="rounded-3xl border border-orange-100 bg-white p-5 shadow-sm"
+                className="rounded-3xl border border-orange-100 bg-white p-4 shadow-sm sm:p-5"
               >
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div className="min-w-0 flex-1">
+                <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_18rem]">
+                  <div className="min-w-0 space-y-4">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-black ${getStatusClass(
-                          report.status,
-                        )}`}
-                      >
+                      <Badge className={getStatusClass(report.status)}>
                         {getStatusLabel(report.status)}
-                      </span>
-
-                      <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-black text-orange-800">
+                      </Badge>
+                      <Badge className="bg-stone-100 text-stone-700">
+                        {getTargetLabel(report.target_type)}
+                      </Badge>
+                      <Badge className="bg-orange-100 text-orange-800">
                         {getReasonLabel(report.reason)}
-                      </span>
-
-                      <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-black text-stone-600">
-                        {report.target_type}
-                      </span>
-
-                      {opinion?.is_hidden && (
-                        <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-black text-red-700">
-                          의견 숨김됨
-                        </span>
-                      )}
-
-                      {comment?.is_hidden && (
-                        <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-black text-red-700">
-                          댓글 숨김됨
-                        </span>
-                      )}
+                      </Badge>
+                      {preview.found &&
+                        preview.type === "opinion" &&
+                        preview.isHidden && (
+                          <Badge className="bg-red-50 text-red-700">
+                            의견 숨김됨
+                          </Badge>
+                        )}
+                      {preview.found &&
+                        preview.type === "comment" &&
+                        preview.isHidden && (
+                          <Badge className="bg-red-50 text-red-700">
+                            댓글 숨김됨
+                          </Badge>
+                        )}
                     </div>
 
-                    <h2 className="mt-3 text-xl font-black">{targetTitle}</h2>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <InfoItem
+                        label="신고 사유"
+                        value={getReasonLabel(report.reason)}
+                      />
+                      <InfoItem
+                        label="신고자"
+                        value={reporter?.nickname ?? "알 수 없음"}
+                      />
+                      <InfoItem
+                        label="신고 접수 시각"
+                        value={formatDate(report.created_at)}
+                      />
+                      <InfoItem
+                        label="처리 시각"
+                        value={
+                          report.resolved_at ? formatDate(report.resolved_at) : "-"
+                        }
+                      />
+                    </div>
 
-                    {targetBody && (
-                      <p className="mt-3 whitespace-pre-wrap rounded-2xl bg-stone-50 p-4 text-sm leading-6 text-stone-700">
-                        {targetBody}
+                    <div className="rounded-2xl bg-red-50 p-4">
+                      <p className="text-xs font-black text-red-700">
+                        신고 상세 내용
                       </p>
-                    )}
-
-                    {report.details && (
-                      <div className="mt-3 rounded-2xl bg-red-50 p-4">
-                        <p className="text-xs font-black text-red-700">
-                          신고 상세
-                        </p>
-                        <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-red-900">
-                          {report.details}
-                        </p>
-                      </div>
-                    )}
+                      <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-red-900">
+                        {report.details || "상세 내용이 입력되지 않았습니다."}
+                      </p>
+                    </div>
 
                     {report.admin_note && (
-                      <div className="mt-3 rounded-2xl bg-green-50 p-4">
+                      <div className="rounded-2xl bg-green-50 p-4">
                         <p className="text-xs font-black text-green-700">
                           관리자 메모
                         </p>
@@ -338,132 +954,10 @@ export default async function AdminReportsPage({
                       </div>
                     )}
 
-                    <div className="mt-4 flex flex-wrap gap-2 text-xs font-bold text-stone-500">
-                      <span>신고자 {reporter?.nickname ?? "알 수 없음"}</span>
-                      <span>·</span>
-                      <span>접수 {formatDate(report.created_at)}</span>
-                      {report.resolved_at && (
-                        <>
-                          <span>·</span>
-                          <span>처리 {formatDate(report.resolved_at)}</span>
-                        </>
-                      )}
-                    </div>
+                    <ReportTargetPreview preview={preview} />
                   </div>
 
-                  <div className="flex min-w-[220px] flex-col gap-2">
-                    {targetTopicId && (
-                      <Link
-                        href={`/topics/${targetTopicId}`}
-                        className="rounded-full border border-stone-200 px-4 py-2 text-center text-sm font-bold text-stone-700 transition hover:bg-stone-50"
-                      >
-                        사용자 화면 보기
-                      </Link>
-                    )}
-
-                    {report.status === "open" && (
-                      <>
-                        <form action={resolveReport} className="space-y-2">
-                          <input type="hidden" name="reportId" value={report.id} />
-                          <input
-                            name="adminNote"
-                            className="w-full rounded-2xl border border-stone-200 px-3 py-2 text-sm outline-none focus:border-orange-400"
-                            placeholder="관리자 메모"
-                          />
-                          <button className="w-full rounded-full bg-green-600 px-4 py-2 text-sm font-black text-white transition hover:-translate-y-0.5">
-                            처리완료
-                          </button>
-                        </form>
-
-                        <form action={dismissReport}>
-                          <input type="hidden" name="reportId" value={report.id} />
-                          <button className="w-full rounded-full bg-stone-100 px-4 py-2 text-sm font-black text-stone-700 transition hover:bg-stone-200">
-                            기각
-                          </button>
-                        </form>
-
-                        {report.target_type === "opinion" && opinion && (
-                          <form action={hideOpinionAndResolve}>
-                            <input
-                              type="hidden"
-                              name="reportId"
-                              value={report.id}
-                            />
-                            <input
-                              type="hidden"
-                              name="targetId"
-                              value={report.target_id}
-                            />
-                            <button className="w-full rounded-full bg-red-600 px-4 py-2 text-sm font-black text-white transition hover:-translate-y-0.5">
-                              의견 숨김 + 처리완료
-                            </button>
-                          </form>
-                        )}
-
-                        {report.target_type === "comment" && comment && (
-                          <form action={hideCommentAndResolve}>
-                            <input
-                              type="hidden"
-                              name="reportId"
-                              value={report.id}
-                            />
-                            <input
-                              type="hidden"
-                              name="targetId"
-                              value={report.target_id}
-                            />
-                            <button className="w-full rounded-full bg-red-600 px-4 py-2 text-sm font-black text-white transition hover:-translate-y-0.5">
-                              댓글 숨김 + 처리완료
-                            </button>
-                          </form>
-                        )}
-
-                        {report.target_type === "topic" && topic && (
-                          <form action={closeTopicAndResolve}>
-                            <input
-                              type="hidden"
-                              name="reportId"
-                              value={report.id}
-                            />
-                            <input
-                              type="hidden"
-                              name="targetId"
-                              value={report.target_id}
-                            />
-                            <button className="w-full rounded-full bg-red-600 px-4 py-2 text-sm font-black text-white transition hover:-translate-y-0.5">
-                              주제 종료 + 처리완료
-                            </button>
-                          </form>
-                        )}
-                      </>
-                    )}
-
-                    {report.target_type === "opinion" && opinion?.is_hidden && (
-                      <form action={unhideOpinion}>
-                        <input
-                          type="hidden"
-                          name="targetId"
-                          value={report.target_id}
-                        />
-                        <button className="w-full rounded-full border border-stone-200 px-4 py-2 text-sm font-black text-stone-700 transition hover:bg-stone-50">
-                          의견 숨김 해제
-                        </button>
-                      </form>
-                    )}
-
-                    {report.target_type === "comment" && comment?.is_hidden && (
-                      <form action={unhideComment}>
-                        <input
-                          type="hidden"
-                          name="targetId"
-                          value={report.target_id}
-                        />
-                        <button className="w-full rounded-full border border-stone-200 px-4 py-2 text-sm font-black text-stone-700 transition hover:bg-stone-50">
-                          댓글 숨김 해제
-                        </button>
-                      </form>
-                    )}
-                  </div>
+                  <ReportActions preview={preview} report={report} />
                 </div>
               </article>
             );
