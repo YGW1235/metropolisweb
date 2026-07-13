@@ -141,6 +141,46 @@ async function redirectIfUserRestricted(
   }
 }
 
+async function removeUploadedOpinionImages(
+  supabase: SupabaseClient,
+  storagePaths: string[],
+) {
+  if (storagePaths.length === 0) {
+    return;
+  }
+
+  const { error } = await supabase.storage
+    .from(OPINION_IMAGE_BUCKET)
+    .remove(storagePaths);
+
+  if (error) {
+    console.error("Failed to remove uploaded opinion images", error);
+  }
+}
+
+async function hideFailedOpinion(supabase: SupabaseClient, opinionId: string) {
+  const { error } = await supabase.rpc("hide_own_casual_opinion", {
+    p_opinion_id: opinionId,
+  });
+
+  if (error) {
+    console.error("Failed to hide opinion after image failure", error);
+  }
+}
+
+async function cleanupFailedOpinionImages({
+  opinionId,
+  storagePaths,
+  supabase,
+}: {
+  opinionId: string;
+  storagePaths: string[];
+  supabase: SupabaseClient;
+}) {
+  await removeUploadedOpinionImages(supabase, storagePaths);
+  await hideFailedOpinion(supabase, opinionId);
+}
+
 export async function voteTopic(formData: FormData) {
   const topicId = getString(formData, "topicId");
   const choice = getString(formData, "choice");
@@ -319,9 +359,15 @@ export async function createOpinion(formData: FormData) {
       });
 
     if (uploadError) {
+      await cleanupFailedOpinionImages({
+        opinionId: opinion.id,
+        storagePaths: uploadedImages.map((image) => image.storage_path),
+        supabase,
+      });
+
       redirectWithMessage(
         `/topics/${topicId}`,
-        "이미지 업로드에 실패했습니다. 잠시 후 다시 시도해주세요.",
+        "이미지 업로드에 실패해 의견 작성을 완료하지 못했습니다. 잠시 후 다시 시도해주세요.",
         "error",
       );
     }
@@ -346,9 +392,15 @@ export async function createOpinion(formData: FormData) {
       );
 
     if (imageInsertError) {
+      await cleanupFailedOpinionImages({
+        opinionId: opinion.id,
+        storagePaths: uploadedImages.map((image) => image.storage_path),
+        supabase,
+      });
+
       redirectWithMessage(
         `/topics/${topicId}`,
-        "이미지 정보를 저장하지 못했습니다. 잠시 후 다시 시도해주세요.",
+        "이미지 정보를 저장하지 못해 의견 작성을 완료하지 못했습니다. 잠시 후 다시 시도해주세요.",
         "error",
       );
     }
