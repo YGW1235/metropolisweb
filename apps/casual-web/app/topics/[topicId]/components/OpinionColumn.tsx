@@ -1,7 +1,10 @@
+import Link from "next/link";
+
 import { OpinionCard } from "./OpinionCard";
 import type {
   Comment,
   Opinion,
+  OpinionImage,
   OpinionReaction,
   PublicProfile,
   VoteChoice,
@@ -33,23 +36,37 @@ const COLUMN_STYLES: Record<
 export function OpinionColumn({
   commentsByOpinionId,
   currentUserId,
+  currentPage,
+  hasNextPage,
+  hasPreviousPage,
+  imagesByOpinionId,
   isLoggedIn,
   myReactionByOpinionId,
+  nextHref,
   opinions,
   optionLabel,
+  previousHref,
   profileByUserId,
   side,
   topicId,
+  totalCount,
 }: {
   commentsByOpinionId: Map<string, Comment[]>;
   currentUserId?: string;
+  currentPage: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  imagesByOpinionId: Map<string, OpinionImage[]>;
   isLoggedIn: boolean;
   myReactionByOpinionId: Map<string, OpinionReaction>;
+  nextHref: string;
   opinions: Opinion[];
   optionLabel: string;
+  previousHref: string;
   profileByUserId: Map<string, PublicProfile>;
   side: VoteChoice;
   topicId: string;
+  totalCount: number;
 }) {
   const styles = COLUMN_STYLES[side];
 
@@ -58,7 +75,7 @@ export function OpinionColumn({
       <div className={`mb-4 rounded-2xl px-4 py-3 ${styles.header}`}>
         <h3 className={`font-black ${styles.title}`}>{optionLabel}</h3>
         <p className={`mt-1 text-xs font-bold ${styles.countText}`}>
-          {opinions.length}개 의견
+          {totalCount}개 의견
         </p>
       </div>
 
@@ -68,6 +85,7 @@ export function OpinionColumn({
             key={opinion.id}
             comments={commentsByOpinionId.get(opinion.id) ?? []}
             currentUserId={currentUserId}
+            images={imagesByOpinionId.get(opinion.id) ?? []}
             isLoggedIn={isLoggedIn}
             myReaction={myReactionByOpinionId.get(opinion.id)}
             opinion={opinion}
@@ -86,6 +104,38 @@ export function OpinionColumn({
           </div>
         )}
       </div>
+
+      {(hasPreviousPage || hasNextPage || totalCount > opinions.length) && (
+        <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-white/70 p-3 text-xs font-black text-stone-500">
+          {hasPreviousPage ? (
+            <Link
+              href={previousHref}
+              className="rounded-full bg-stone-100 px-3 py-2 text-stone-700 hover:bg-orange-100 hover:text-orange-800"
+            >
+              이전
+            </Link>
+          ) : (
+            <span className="rounded-full bg-stone-50 px-3 py-2 text-stone-300">
+              이전
+            </span>
+          )}
+
+          <span>{currentPage}페이지</span>
+
+          {hasNextPage ? (
+            <Link
+              href={nextHref}
+              className="rounded-full bg-stone-950 px-3 py-2 text-white hover:bg-orange-700"
+            >
+              다음
+            </Link>
+          ) : (
+            <span className="rounded-full bg-stone-50 px-3 py-2 text-stone-300">
+              다음
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }

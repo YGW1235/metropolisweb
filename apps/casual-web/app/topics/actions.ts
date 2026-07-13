@@ -12,6 +12,16 @@ import { createClient } from "@/lib/supabase/server";
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
+const OPINION_IMAGE_BUCKET = "casual-opinion-images";
+const MAX_OPINION_IMAGE_COUNT = 3;
+const MAX_OPINION_IMAGE_SIZE = 5 * 1024 * 1024;
+const OPINION_IMAGE_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+]);
+
 function getString(formData: FormData, key: string) {
   const value = formData.get(key);
 
@@ -20,6 +30,55 @@ function getString(formData: FormData, key: string) {
   }
 
   return value.trim();
+}
+
+function getOpinionImageFiles(formData: FormData) {
+  return formData
+    .getAll("images")
+    .filter((value): value is File => value instanceof File && value.size > 0);
+}
+
+function getOpinionImageExtension(file: File) {
+  switch (file.type) {
+    case "image/jpeg":
+      return "jpg";
+    case "image/png":
+      return "png";
+    case "image/webp":
+      return "webp";
+    case "image/gif":
+      return "gif";
+    default:
+      return "";
+  }
+}
+
+function validateOpinionImages(files: File[], returnPath: string) {
+  if (files.length > MAX_OPINION_IMAGE_COUNT) {
+    redirectWithMessage(
+      returnPath,
+      "이미지는 최대 3장까지 첨부할 수 있습니다.",
+      "error",
+    );
+  }
+
+  for (const file of files) {
+    if (!OPINION_IMAGE_TYPES.has(file.type)) {
+      redirectWithMessage(
+        returnPath,
+        "이미지는 JPEG, PNG, WEBP, GIF 형식만 첨부할 수 있습니다.",
+        "error",
+      );
+    }
+
+    if (file.size > MAX_OPINION_IMAGE_SIZE) {
+      redirectWithMessage(
+        returnPath,
+        "이미지는 파일당 5MB 이하만 첨부할 수 있습니다.",
+        "error",
+      );
+    }
+  }
 }
 
 function redirectWithMessage(
@@ -144,6 +203,7 @@ export async function voteTopic(formData: FormData) {
 export async function createOpinion(formData: FormData) {
   const topicId = getString(formData, "topicId");
   const body = getString(formData, "body");
+  const imageFiles = getOpinionImageFiles(formData);
 
   if (!topicId) {
     redirectWithMessage("/topics", "주제 정보가 올바르지 않습니다.", "error");
@@ -156,6 +216,8 @@ export async function createOpinion(formData: FormData) {
       "error",
     );
   }
+
+  validateOpinionImages(imageFiles, `/topics/${topicId}`);
 
   const supabase = await createClient();
 
@@ -222,15 +284,74 @@ export async function createOpinion(formData: FormData) {
     );
   }
 
-  const { error } = await supabase.from("casual_opinions").insert({
-    topic_id: topicId,
-    user_id: user.id,
-    choice: vote.choice,
-    body,
-  });
+  const { data: opinion, error } = await supabase
+    .from("casual_opinions")
+    .insert({
+      topic_id: topicId,
+      user_id: user.id,
+      choice: vote.choice,
+      body,
+    })
+    .select("id")
+    .single();
 
-  if (error) {
-    redirectWithMessage(`/topics/${topicId}`, error.message, "error");
+  if (error || !opinion) {
+    redirectWithMessage(
+      `/topics/${topicId}`,
+      error?.message ?? "의견을 남기지 못했습니다.",
+      "error",
+    );
+  }
+
+  const uploadedImages: {
+    display_order: number;
+    storage_path: string;
+  }[] = [];
+
+  for (const [index, file] of imageFiles.entries()) {
+    const extension = getOpinionImageExtension(file);
+    const storagePath = `${user.id}/${crypto.randomUUID()}.${extension}`;
+    const { error: uploadError } = await supabase.storage
+      .from(OPINION_IMAGE_BUCKET)
+      .upload(storagePath, file, {
+        contentType: file.type,
+        upsert: false,
+      });
+
+    if (uploadError) {
+      redirectWithMessage(
+        `/topics/${topicId}`,
+        "이미지 업로드에 실패했습니다. 잠시 후 다시 시도해주세요.",
+        "error",
+      );
+    }
+
+    uploadedImages.push({
+      display_order: index,
+      storage_path: storagePath,
+    });
+  }
+
+  if (uploadedImages.length > 0) {
+    const { error: imageInsertError } = await supabase
+      .from("casual_opinion_images")
+      .insert(
+        uploadedImages.map((image) => ({
+          opinion_id: opinion.id,
+          user_id: user.id,
+          storage_bucket: OPINION_IMAGE_BUCKET,
+          storage_path: image.storage_path,
+          display_order: image.display_order,
+        })),
+      );
+
+    if (imageInsertError) {
+      redirectWithMessage(
+        `/topics/${topicId}`,
+        "이미지 정보를 저장하지 못했습니다. 잠시 후 다시 시도해주세요.",
+        "error",
+      );
+    }
   }
 
   revalidatePath("/");

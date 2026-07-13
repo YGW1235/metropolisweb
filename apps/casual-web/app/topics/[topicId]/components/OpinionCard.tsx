@@ -10,6 +10,7 @@ import { OpinionEditBox } from "./OpinionEditBox";
 import type {
   Comment,
   Opinion,
+  OpinionImage,
   OpinionReaction,
   PublicProfile,
   VoteChoice,
@@ -39,6 +40,7 @@ export function OpinionCard({
   comments,
   currentUserId,
   isLoggedIn,
+  images,
   myReaction,
   opinion,
   opinionProfile,
@@ -49,6 +51,7 @@ export function OpinionCard({
   comments: Comment[];
   currentUserId?: string;
   isLoggedIn: boolean;
+  images: OpinionImage[];
   myReaction?: OpinionReaction;
   opinion: Opinion;
   opinionProfile?: PublicProfile;
@@ -67,7 +70,7 @@ export function OpinionCard({
           {(opinionProfile?.nickname ?? "익명").slice(0, 1)}
         </div>
 
-        <div>
+        <div className="min-w-0">
           {opinionProfile?.nickname ? (
             <Link
               href={`/users/${encodeURIComponent(opinionProfile.nickname)}`}
@@ -79,7 +82,13 @@ export function OpinionCard({
             <p className="text-sm font-black">알 수 없음</p>
           )}
           <p className={`text-xs font-bold ${styles.sideText}`}>
-            {optionLabel} 측
+            {optionLabel} 측 ·{" "}
+            <time dateTime={opinion.created_at}>
+              {new Date(opinion.created_at).toLocaleString("ko-KR", {
+                dateStyle: "short",
+                timeStyle: "short",
+              })}
+            </time>
           </p>
         </div>
       </div>
@@ -87,6 +96,20 @@ export function OpinionCard({
       <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-stone-700">
         {opinion.body}
       </p>
+
+      {images.length > 0 && (
+        <div className="mt-4 space-y-2">
+          {images.map((image) => (
+            <img
+              key={image.storage_path}
+              src={image.public_url}
+              alt="의견 이미지"
+              loading="lazy"
+              className="max-h-96 w-full rounded-2xl border border-orange-100 bg-white object-contain"
+            />
+          ))}
+        </div>
+      )}
 
       {currentUserId === opinion.user_id && (
         <OpinionEditBox opinion={opinion} topicId={topicId} />

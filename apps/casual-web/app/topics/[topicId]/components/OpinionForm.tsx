@@ -15,34 +15,57 @@ export function OpinionForm({
 }) {
   if (isLoggedIn && currentVote) {
     return (
-      <form action={createOpinion} className="mt-6">
-        <input type="hidden" name="topicId" value={topic.id} />
+      <details className="mt-6 rounded-3xl bg-orange-50 p-4">
+        <summary className="cursor-pointer list-none text-sm font-black text-stone-800 marker:hidden">
+          의견 작성하기
+          <span className="ml-2 text-xs font-bold text-stone-500">
+            최대 500자, 이미지 3장
+          </span>
+        </summary>
 
-        <div className="rounded-3xl bg-orange-50 p-4">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <p className="text-sm font-black text-stone-700">
-              {currentVote.choice === "a"
-                ? `"${topic.option_a}" 입장으로 의견 작성`
-                : `"${topic.option_b}" 입장으로 의견 작성`}
-            </p>
-            <p className="text-xs font-bold text-stone-500">최대 500자</p>
+        <form action={createOpinion} encType="multipart/form-data" className="mt-4">
+          <input type="hidden" name="topicId" value={topic.id} />
+
+          <div>
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <p className="text-sm font-black text-stone-700">
+                {currentVote.choice === "a"
+                  ? `"${topic.option_a}" 입장으로 의견 작성`
+                  : `"${topic.option_b}" 입장으로 의견 작성`}
+              </p>
+              <p className="text-xs font-bold text-stone-500">최대 500자</p>
+            </div>
+
+            <textarea
+              name="body"
+              required
+              maxLength={500}
+              className="min-h-28 w-full resize-none rounded-2xl border border-orange-100 bg-white px-4 py-3 text-sm leading-6 outline-none focus:border-orange-400"
+              placeholder="내 선택의 이유를 짧게 남겨보세요."
+            />
+
+            <label className="mt-3 block rounded-2xl border border-dashed border-orange-200 bg-white px-4 py-3 text-sm font-bold text-stone-600">
+              이미지 첨부
+              <span className="ml-2 text-xs font-semibold text-stone-400">
+                JPEG/PNG/WEBP/GIF, 최대 3장, 파일당 5MB
+              </span>
+              <input
+                type="file"
+                name="images"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                multiple
+                className="mt-3 block w-full text-xs font-bold text-stone-500 file:mr-3 file:rounded-full file:border-0 file:bg-orange-100 file:px-4 file:py-2 file:text-xs file:font-black file:text-orange-800"
+              />
+            </label>
+
+            <div className="mt-3 flex justify-end">
+              <button className="rounded-full bg-stone-950 px-5 py-3 text-sm font-black text-white transition hover:-translate-y-0.5">
+                의견 남기기
+              </button>
+            </div>
           </div>
-
-          <textarea
-            name="body"
-            required
-            maxLength={500}
-            className="min-h-28 w-full resize-none rounded-2xl border border-orange-100 bg-white px-4 py-3 text-sm leading-6 outline-none focus:border-orange-400"
-            placeholder="내 선택의 이유를 짧게 남겨보세요."
-          />
-
-          <div className="mt-3 flex justify-end">
-            <button className="rounded-full bg-stone-950 px-5 py-3 text-sm font-black text-white transition hover:-translate-y-0.5">
-              의견 남기기
-            </button>
-          </div>
-        </div>
-      </form>
+        </form>
+      </details>
     );
   }
 

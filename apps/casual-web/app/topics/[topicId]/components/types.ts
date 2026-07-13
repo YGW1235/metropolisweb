@@ -32,6 +32,14 @@ export type Opinion = {
   created_at: string;
 };
 
+export type OpinionImage = {
+  opinion_id: string;
+  storage_bucket: string;
+  storage_path: string;
+  display_order: number;
+  public_url: string;
+};
+
 export type Comment = {
   id: string;
   opinion_id: string;
