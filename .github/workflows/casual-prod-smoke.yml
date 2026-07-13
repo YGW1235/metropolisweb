@@ -1,0 +1,66 @@
+name: Casual Production Smoke Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    name: Check casual-web production routes
+    runs-on: ubuntu-latest
+    env:
+      CASUAL_WEB_PROD_URL: ${{ secrets.CASUAL_WEB_PROD_URL || vars.CASUAL_WEB_PROD_URL }}
+
+    steps:
+      - name: Validate production URL
+        shell: bash
+        run: |
+          if [ -z "${CASUAL_WEB_PROD_URL}" ]; then
+            echo "::error::CASUAL_WEB_PROD_URL secret or variable is required."
+            exit 1
+          fi
+
+          if [[ ! "${CASUAL_WEB_PROD_URL}" =~ ^https?:// ]]; then
+            echo "::error::CASUAL_WEB_PROD_URL must start with http:// or https://."
+            exit 1
+          fi
+
+      - name: Check public routes
+        shell: bash
+        run: |
+          set -u
+
+          base_url="${CASUAL_WEB_PROD_URL%/}"
+          paths=(
+            "/"
+            "/topics"
+            "/robots.txt"
+            "/sitemap.xml"
+            "/login"
+            "/signup"
+          )
+          failed=0
+
+          for path in "${paths[@]}"; do
+            url="${base_url}${path}"
+            body_file="$(mktemp)"
+            status="$(curl -L -sS -o "${body_file}" -w "%{http_code}" "${url}" || echo "000")"
+            bytes="$(wc -c < "${body_file}" | tr -d ' ')"
+
+            echo "${path} -> HTTP ${status} (${bytes} bytes)"
+
+            if [ "${status}" != "200" ]; then
+              echo "::error::${path} returned HTTP ${status}."
+              failed=1
+            fi
+
+            if [ "${bytes}" -eq 0 ]; then
+              echo "::error::${path} returned an empty response."
+              failed=1
+            fi
+
+            rm -f "${body_file}"
+          done
+
+          if [ "${failed}" -ne 0 ]; then
+            exit 1
+          fi
