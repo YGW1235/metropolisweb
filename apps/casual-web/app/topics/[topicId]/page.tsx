@@ -28,6 +28,7 @@ const OPINIONS_PER_PAGE = 10;
 const OPINION_IMAGE_BUCKET = "casual-opinion-images";
 
 type OpinionSort = "latest" | "popular" | "likes";
+type OpinionSide = "all" | "a" | "b";
 
 const OPINION_SORT_OPTIONS: {
   hrefSort: OpinionSort;
@@ -53,6 +54,14 @@ function getOpinionSort(value?: string): OpinionSort {
   return "latest";
 }
 
+function getOpinionSide(value?: string): OpinionSide {
+  if (value === "a" || value === "b") {
+    return value;
+  }
+
+  return "all";
+}
+
 function getPageNumber(value?: string) {
   const parsed = Number(value);
 
@@ -66,15 +75,18 @@ function getPageNumber(value?: string) {
 function getTopicOpinionHref({
   aPage,
   bPage,
+  opinionSide,
   opinionSort,
   topicId,
 }: {
   aPage: number;
   bPage: number;
+  opinionSide: OpinionSide;
   opinionSort: OpinionSort;
   topicId: string;
 }) {
   const params = new URLSearchParams({
+    opinionSide,
     opinionSort,
   });
 
@@ -97,6 +109,7 @@ type SearchParams = Promise<{
   aPage?: string;
   message?: string;
   bPage?: string;
+  opinionSide?: string;
   opinionSort?: string;
   type?: "success" | "error";
 }>;
@@ -158,6 +171,7 @@ export default async function TopicDetailPage({
   const { topicId } = await params;
   const query = await searchParams;
   const opinionSort = getOpinionSort(query.opinionSort);
+  const opinionSide = getOpinionSide(query.opinionSide);
   const aPage = getPageNumber(query.aPage);
   const bPage = getPageNumber(query.bPage);
 
@@ -253,9 +267,16 @@ export default async function TopicDetailPage({
     return opinionQuery;
   }
 
+  const showAOpinions = opinionSide === "all" || opinionSide === "a";
+  const showBOpinions = opinionSide === "all" || opinionSide === "b";
+
   const [aOpinionsResult, bOpinionsResult] = await Promise.all([
-    getOpinionQuery("a", aPage),
-    getOpinionQuery("b", bPage),
+    showAOpinions
+      ? getOpinionQuery("a", aPage)
+      : Promise.resolve({ count: 0, data: [] }),
+    showBOpinions
+      ? getOpinionQuery("b", bPage)
+      : Promise.resolve({ count: 0, data: [] }),
   ]);
 
   const aOpinions = (aOpinionsResult.data ?? []) as Opinion[];
@@ -373,6 +394,10 @@ export default async function TopicDetailPage({
   const bHasPreviousPage = bPage > 1;
   const aHasNextPage = aPage * OPINIONS_PER_PAGE < aOpinionCount;
   const bHasNextPage = bPage * OPINIONS_PER_PAGE < bOpinionCount;
+  const opinionGridClassName =
+    opinionSide === "all"
+      ? "mt-8 grid gap-6 lg:grid-cols-2"
+      : "mx-auto mt-8 grid max-w-3xl gap-6";
 
   return (
     <main className="min-h-screen bg-[#fff7ed] text-[#2f2118]">
@@ -423,88 +448,129 @@ export default async function TopicDetailPage({
             topic={topicDetail}
           />
 
-          <div className="mt-6 flex flex-wrap items-center gap-2">
-            <span className="mr-1 text-xs font-black text-stone-500">
-              의견 정렬
-            </span>
-            {OPINION_SORT_OPTIONS.map((option) => (
-              <Link
-                key={option.hrefSort}
-                href={getTopicOpinionHref({
-                  aPage: 1,
-                  bPage: 1,
-                  opinionSort: option.hrefSort,
-                  topicId: topicDetail.id,
-                })}
-                className={`rounded-full px-4 py-2 text-xs font-black transition ${
-                  opinionSort === option.hrefSort
-                    ? "bg-orange-500 text-white"
-                    : "bg-stone-100 text-stone-600 hover:bg-orange-100 hover:text-orange-800"
-                }`}
-              >
-                {option.label}
-              </Link>
-            ))}
+          <div className="mt-6 space-y-3 rounded-2xl bg-stone-50/70 p-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="mr-1 text-xs font-black text-stone-500">
+                의견 보기
+              </span>
+
+              {[
+                { label: "전체", side: "all" as const },
+                { label: topicDetail.option_a, side: "a" as const },
+                { label: topicDetail.option_b, side: "b" as const },
+              ].map((option) => (
+                <Link
+                  key={option.side}
+                  href={getTopicOpinionHref({
+                    aPage: 1,
+                    bPage: 1,
+                    opinionSide: option.side,
+                    opinionSort,
+                    topicId: topicDetail.id,
+                  })}
+                  className={`max-w-full rounded-full px-4 py-2 text-xs font-black transition ${
+                    opinionSide === option.side
+                      ? "bg-orange-500 text-white"
+                      : "bg-white text-stone-600 hover:bg-orange-100 hover:text-orange-800"
+                  }`}
+                >
+                  {option.label}
+                </Link>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="mr-1 text-xs font-black text-stone-500">
+                의견 정렬
+              </span>
+              {OPINION_SORT_OPTIONS.map((option) => (
+                <Link
+                  key={option.hrefSort}
+                  href={getTopicOpinionHref({
+                    aPage: 1,
+                    bPage: 1,
+                    opinionSide,
+                    opinionSort: option.hrefSort,
+                    topicId: topicDetail.id,
+                  })}
+                  className={`rounded-full px-4 py-2 text-xs font-black transition ${
+                    opinionSort === option.hrefSort
+                      ? "bg-orange-500 text-white"
+                      : "bg-white text-stone-600 hover:bg-orange-100 hover:text-orange-800"
+                  }`}
+                >
+                  {option.label}
+                </Link>
+              ))}
+            </div>
           </div>
 
-          <div className="mt-8 grid gap-6 lg:grid-cols-2">
-            <OpinionColumn
-              commentsByOpinionId={commentsByOpinionId}
-              currentUserId={user?.id}
-              currentPage={aPage}
-              hasNextPage={aHasNextPage}
-              hasPreviousPage={aHasPreviousPage}
-              imagesByOpinionId={imagesByOpinionId}
-              isLoggedIn={isLoggedIn}
-              myReactionByOpinionId={myReactionByOpinionId}
-              nextHref={getTopicOpinionHref({
-                aPage: aPage + 1,
-                bPage,
-                opinionSort,
-                topicId: topicDetail.id,
-              })}
-              opinions={aOpinions}
-              optionLabel={topicDetail.option_a}
-              previousHref={getTopicOpinionHref({
-                aPage: Math.max(1, aPage - 1),
-                bPage,
-                opinionSort,
-                topicId: topicDetail.id,
-              })}
-              profileByUserId={profileByUserId}
-              side="a"
-              topicId={topicDetail.id}
-              totalCount={aOpinionCount}
-            />
+          <div className={opinionGridClassName}>
+            {showAOpinions && (
+              <OpinionColumn
+                commentsByOpinionId={commentsByOpinionId}
+                currentUserId={user?.id}
+                currentPage={aPage}
+                hasNextPage={aHasNextPage}
+                hasPreviousPage={aHasPreviousPage}
+                imagesByOpinionId={imagesByOpinionId}
+                isLoggedIn={isLoggedIn}
+                myReactionByOpinionId={myReactionByOpinionId}
+                nextHref={getTopicOpinionHref({
+                  aPage: aPage + 1,
+                  bPage,
+                  opinionSide,
+                  opinionSort,
+                  topicId: topicDetail.id,
+                })}
+                opinions={aOpinions}
+                optionLabel={topicDetail.option_a}
+                previousHref={getTopicOpinionHref({
+                  aPage: Math.max(1, aPage - 1),
+                  bPage,
+                  opinionSide,
+                  opinionSort,
+                  topicId: topicDetail.id,
+                })}
+                profileByUserId={profileByUserId}
+                side="a"
+                topicId={topicDetail.id}
+                totalCount={aOpinionCount}
+              />
+            )}
 
-            <OpinionColumn
-              commentsByOpinionId={commentsByOpinionId}
-              currentUserId={user?.id}
-              currentPage={bPage}
-              hasNextPage={bHasNextPage}
-              hasPreviousPage={bHasPreviousPage}
-              imagesByOpinionId={imagesByOpinionId}
-              isLoggedIn={isLoggedIn}
-              myReactionByOpinionId={myReactionByOpinionId}
-              nextHref={getTopicOpinionHref({
-                aPage,
-                bPage: bPage + 1,
-                opinionSort,
-                topicId: topicDetail.id,
-              })}
-              opinions={bOpinions}
-              optionLabel={topicDetail.option_b}
-              previousHref={getTopicOpinionHref({
-                aPage,
-                bPage: Math.max(1, bPage - 1),
-                opinionSort,
-                topicId: topicDetail.id,
-              })}
-              profileByUserId={profileByUserId}
-              side="b"
-              topicId={topicDetail.id}
-              totalCount={bOpinionCount}
-            />
+            {showBOpinions && (
+              <OpinionColumn
+                commentsByOpinionId={commentsByOpinionId}
+                currentUserId={user?.id}
+                currentPage={bPage}
+                hasNextPage={bHasNextPage}
+                hasPreviousPage={bHasPreviousPage}
+                imagesByOpinionId={imagesByOpinionId}
+                isLoggedIn={isLoggedIn}
+                myReactionByOpinionId={myReactionByOpinionId}
+                nextHref={getTopicOpinionHref({
+                  aPage,
+                  bPage: bPage + 1,
+                  opinionSide,
+                  opinionSort,
+                  topicId: topicDetail.id,
+                })}
+                opinions={bOpinions}
+                optionLabel={topicDetail.option_b}
+                previousHref={getTopicOpinionHref({
+                  aPage,
+                  bPage: Math.max(1, bPage - 1),
+                  opinionSide,
+                  opinionSort,
+                  topicId: topicDetail.id,
+                })}
+                profileByUserId={profileByUserId}
+                side="b"
+                topicId={topicDetail.id}
+                totalCount={bOpinionCount}
+              />
+            )}
           </div>
         </section>
       </section>
