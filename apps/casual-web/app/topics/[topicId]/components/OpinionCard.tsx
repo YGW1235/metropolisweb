@@ -7,6 +7,7 @@ import {
 
 import { CommentList } from "./CommentList";
 import { OpinionEditBox } from "./OpinionEditBox";
+import { OpinionImageGallery } from "./OpinionImageGallery";
 import type {
   Comment,
   Opinion,
@@ -150,26 +151,7 @@ export function OpinionCard({
         {opinion.body}
       </p>
 
-      {images.length > 0 && (
-        <div className="mt-4 space-y-2">
-          {images.map((image) => (
-            <a
-              key={image.storage_path}
-              href={image.public_url}
-              target="_blank"
-              rel="noreferrer"
-              className="block overflow-hidden rounded-2xl bg-white/80"
-            >
-              <img
-                src={image.public_url}
-                alt="의견 이미지"
-                loading="lazy"
-                className="max-h-[28rem] w-full object-contain"
-              />
-            </a>
-          ))}
-        </div>
-      )}
+      <OpinionImageGallery images={images} />
 
       {currentUserId === opinion.user_id && (
         <OpinionEditBox opinion={opinion} topicId={topicId} />

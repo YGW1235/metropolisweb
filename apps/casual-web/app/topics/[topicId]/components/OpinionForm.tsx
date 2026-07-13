@@ -23,7 +23,7 @@ export function OpinionForm({
           </span>
         </summary>
 
-        <form action={createOpinion} encType="multipart/form-data" className="mt-4">
+        <form action={createOpinion} className="mt-4">
           <input type="hidden" name="topicId" value={topic.id} />
 
           <div>
