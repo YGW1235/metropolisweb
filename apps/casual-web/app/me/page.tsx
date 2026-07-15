@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { signOut } from "@/app/auth/actions";
 import { SiteHeader } from "@/components/SiteHeader";
 import { TopicTagBadges } from "@/components/TopicTagBadges";
 import {
@@ -10,8 +11,10 @@ import {
   type TopicTagLink,
 } from "@/lib/casual-tags";
 import {
+  getCasualUserStatusLabel,
   getCasualUserRestrictionMessage,
   getCasualUserStatus,
+  type CasualUserStatus,
 } from "@/lib/casual-user-status";
 import { createClient } from "@/lib/supabase/server";
 
@@ -37,6 +40,61 @@ function formatDate(value: string | null | undefined) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
+}
+
+type ModerationDetail = {
+  status: string | null;
+  reason: string | null;
+  expires_at: string | null;
+  moderated_at?: string | null;
+};
+
+function getAccountNoticeClass(status: CasualUserStatus) {
+  if (status === "suspended") {
+    return {
+      box: "border-red-100 bg-red-50 text-red-950",
+      badge: "bg-red-100 text-red-800",
+      muted: "text-red-800",
+      panel: "bg-white/70",
+    };
+  }
+
+  return {
+    box: "border-yellow-200 bg-yellow-50 text-yellow-950",
+    badge: "bg-yellow-100 text-yellow-800",
+    muted: "text-yellow-800",
+    panel: "bg-white/70",
+  };
+}
+
+function getAccountNoticeTitle(status: CasualUserStatus) {
+  if (status === "suspended") return "계정 상태: 이용 정지";
+  return "계정 상태: 참여 제한";
+}
+
+async function getMyModerationDetail(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+): Promise<ModerationDetail | null> {
+  const query = supabase
+    .from("casual_user_moderation")
+    .select("status, reason, expires_at, moderated_at")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  const { data, error } = await query;
+
+  if (!error) {
+    return data as ModerationDetail | null;
+  }
+
+  const { data: fallbackData } = await supabase
+    .from("casual_user_moderation")
+    .select("status, reason, expires_at")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  return fallbackData as ModerationDetail | null;
 }
 
 export default async function MyPage() {
@@ -77,6 +135,11 @@ export default async function MyPage() {
   const accountWarning = userStatusErrorMessage
     ? null
     : getCasualUserRestrictionMessage(userStatus, "participation");
+
+  const moderationDetail =
+    accountWarning && (userStatus === "limited" || userStatus === "suspended")
+      ? await getMyModerationDetail(supabase, user.id)
+      : null;
 
   const { data: votesData } = await supabase
     .from("casual_votes")
@@ -225,13 +288,86 @@ export default async function MyPage() {
             >
               프로필 수정
             </Link>
+
+            <form action={signOut}>
+              <button className="rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-bold text-stone-700 transition hover:bg-stone-50">
+                로그아웃
+              </button>
+            </form>
           </div>
         </header>
 
         {accountWarning && (
-          <section className="mt-6 rounded-3xl border border-red-100 bg-red-50 p-5 text-red-900">
-            <p className="text-sm font-black">{accountWarning}</p>
-            <p className="mt-2 text-sm leading-6 text-red-700">
+          <section
+            className={`mt-6 rounded-3xl border p-5 ${
+              getAccountNoticeClass(userStatus).box
+            }`}
+          >
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-black ${
+                  getAccountNoticeClass(userStatus).badge
+                }`}
+              >
+                {userStatus}
+              </span>
+              <h2 className="text-lg font-black">
+                {getAccountNoticeTitle(userStatus)}
+              </h2>
+            </div>
+
+            <p
+              className={`mt-3 text-sm font-black ${
+                getAccountNoticeClass(userStatus).muted
+              }`}
+            >
+              {accountWarning}
+            </p>
+
+            <div
+              className={`mt-4 grid gap-3 rounded-2xl p-4 text-sm sm:grid-cols-2 ${
+                getAccountNoticeClass(userStatus).panel
+              }`}
+            >
+              <div>
+                <p className="text-xs font-black opacity-60">현재 상태</p>
+                <p className="mt-1 font-bold">
+                  {getCasualUserStatusLabel(userStatus)} ({userStatus})
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs font-black opacity-60">제한 만료일</p>
+                <p className="mt-1 font-bold">
+                  {moderationDetail?.expires_at
+                    ? formatDate(moderationDetail.expires_at)
+                    : "만료일 없음"}
+                </p>
+              </div>
+
+              {moderationDetail?.moderated_at && (
+                <div>
+                  <p className="text-xs font-black opacity-60">조치일</p>
+                  <p className="mt-1 font-bold">
+                    {formatDate(moderationDetail.moderated_at)}
+                  </p>
+                </div>
+              )}
+
+              <div className="sm:col-span-2">
+                <p className="text-xs font-black opacity-60">사유</p>
+                <p className="mt-1 whitespace-pre-wrap font-bold leading-6">
+                  {moderationDetail?.reason?.trim() ||
+                    "사유가 등록되지 않았습니다."}
+                </p>
+              </div>
+            </div>
+
+            <p
+              className={`mt-3 text-sm leading-6 ${
+                getAccountNoticeClass(userStatus).muted
+              }`}
+            >
               계정 상태와 관련해 궁금한 점이 있으면 관리자에게 문의해주세요.
             </p>
           </section>
