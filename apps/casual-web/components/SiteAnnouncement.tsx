@@ -94,47 +94,49 @@ export async function SiteAnnouncement() {
   const hasCompleteLink = Boolean(linkText && safeLink);
 
   return (
-    <section className="mx-auto w-full max-w-6xl px-6 pb-4">
-      <div
-        className={`rounded-3xl border px-5 py-4 shadow-sm ${toneClass.box}`}
-      >
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <span
-                className={`rounded-full px-3 py-1 text-xs font-black ${toneClass.badge}`}
-              >
-                공지
-              </span>
-              <h2 className="text-base font-black">{title}</h2>
+    <section className="bg-[#fff7ed] px-4 py-3 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-[1400px]">
+        <div
+          className={`rounded-2xl border px-4 py-3 shadow-[0_4px_14px_rgba(120,53,15,0.035)] sm:rounded-3xl sm:px-5 sm:py-4 ${toneClass.box}`}
+        >
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-black ${toneClass.badge}`}
+                >
+                  공지
+                </span>
+                <h2 className="text-base font-black">{title}</h2>
+              </div>
+
+              {body && (
+                <p className="mt-2 whitespace-pre-wrap text-sm leading-6 opacity-80">
+                  {body}
+                </p>
+              )}
             </div>
 
-            {body && (
-              <p className="mt-2 whitespace-pre-wrap text-sm leading-6 opacity-80">
-                {body}
-              </p>
+            {hasCompleteLink && safeLink && (
+              safeLink.isExternal ? (
+                <a
+                  href={safeLink.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={`inline-flex shrink-0 justify-center rounded-full border px-4 py-2 text-sm font-black transition ${toneClass.button}`}
+                >
+                  {linkText}
+                </a>
+              ) : (
+                <Link
+                  href={safeLink.href}
+                  className={`inline-flex shrink-0 justify-center rounded-full border px-4 py-2 text-sm font-black transition ${toneClass.button}`}
+                >
+                  {linkText}
+                </Link>
+              )
             )}
           </div>
-
-          {hasCompleteLink && safeLink && (
-            safeLink.isExternal ? (
-              <a
-                href={safeLink.href}
-                target="_blank"
-                rel="noreferrer"
-                className={`inline-flex shrink-0 justify-center rounded-full border px-4 py-2 text-sm font-black transition ${toneClass.button}`}
-              >
-                {linkText}
-              </a>
-            ) : (
-              <Link
-                href={safeLink.href}
-                className={`inline-flex shrink-0 justify-center rounded-full border px-4 py-2 text-sm font-black transition ${toneClass.button}`}
-              >
-                {linkText}
-              </Link>
-            )
-          )}
         </div>
       </div>
     </section>
