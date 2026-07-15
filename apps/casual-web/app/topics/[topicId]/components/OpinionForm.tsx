@@ -15,13 +15,17 @@ export function OpinionForm({
 }) {
   if (isLoggedIn && currentVote) {
     return (
-      <details className="mt-6 rounded-[1.35rem] bg-orange-50 p-4 sm:rounded-3xl">
-        <summary className="cursor-pointer list-none text-sm font-black text-stone-800 marker:hidden">
-          의견 작성하기
-          <span className="mt-1 block text-xs font-bold text-stone-500 sm:ml-2 sm:mt-0 sm:inline">
-            최대 500자, 이미지 3장
+      <details className="mx-auto mt-5 max-w-5xl rounded-[1.35rem] bg-orange-50 p-4 sm:rounded-3xl">
+        <summary className="inline-flex cursor-pointer list-none items-center gap-2 rounded-full bg-stone-950 px-4 py-2 text-sm font-black text-white transition hover:-translate-y-0.5 marker:hidden">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-orange-500 text-base leading-none">
+            +
           </span>
+          <span>의견 작성</span>
         </summary>
+
+        <p className="mt-3 text-xs font-bold text-stone-500">
+          최대 500자, 이미지 3장까지 첨부할 수 있습니다.
+        </p>
 
         <form action={createOpinion} className="mt-4">
           <input type="hidden" name="topicId" value={topic.id} />
@@ -71,7 +75,7 @@ export function OpinionForm({
 
   if (isLoggedIn) {
     return (
-      <div className="mt-6 rounded-3xl bg-stone-50 p-4 text-center sm:p-5">
+      <div className="mx-auto mt-5 max-w-5xl rounded-3xl bg-stone-50 p-4 text-center sm:p-5">
         <h3 className="text-lg font-black">먼저 투표해주세요</h3>
         <p className="mt-2 text-sm text-stone-600">
           A/B 중 하나를 선택한 뒤 의견을 작성할 수 있습니다.
@@ -81,7 +85,7 @@ export function OpinionForm({
   }
 
   return (
-    <div className="mt-6 rounded-3xl bg-stone-50 p-4 text-center sm:p-5">
+    <div className="mx-auto mt-5 max-w-5xl rounded-3xl bg-stone-50 p-4 text-center sm:p-5">
       <h3 className="text-lg font-black">로그인이 필요합니다</h3>
       <p className="mt-2 text-sm text-stone-600">
         로그인하면 투표와 의견 작성, 공감/비공감에 참여할 수 있습니다.
