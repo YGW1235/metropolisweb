@@ -96,8 +96,8 @@ export async function createAnnouncement(formData: FormData) {
   const body = getString(formData, "body");
   const tone = getTone(getString(formData, "tone"));
   const status = getStatus(getString(formData, "status"));
-  const linkLabel = getString(formData, "linkLabel");
-  const linkUrl = getString(formData, "linkUrl");
+  const linkLabel = String(formData.get("linkLabel") ?? "").trim();
+  const linkUrl = String(formData.get("linkUrl") ?? "").trim();
   const startsAt = getOptionalDate(
     getString(formData, "startsAt"),
     "/admin/announcements",
@@ -126,7 +126,7 @@ export async function createAnnouncement(formData: FormData) {
   if ((linkLabel && !linkUrl) || (!linkLabel && linkUrl)) {
     redirectWithMessage(
       "/admin/announcements",
-      "공지 링크 문구와 URL을 함께 입력해주세요.",
+      "링크를 사용하려면 링크 문구와 링크 URL을 모두 입력해주세요.",
       "error",
     );
   }
@@ -140,8 +140,8 @@ export async function createAnnouncement(formData: FormData) {
       body,
       tone,
       status,
-      link_label: linkLabel || null,
-      link_url: linkUrl || null,
+      link_label: linkLabel,
+      link_url: linkUrl,
       starts_at: startsAt,
       ends_at: endsAt,
     })
