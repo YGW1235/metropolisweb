@@ -90,6 +90,8 @@ export async function SiteAnnouncement() {
   const tone = getTone(announcement.tone);
   const toneClass = getToneClass(tone);
   const safeLink = getSafeLink(linkUrl);
+  const linkText = linkLabel?.trim() ?? "";
+  const hasCompleteLink = Boolean(linkText && safeLink);
 
   return (
     <section className="mx-auto w-full max-w-6xl px-6 pb-4">
@@ -114,7 +116,7 @@ export async function SiteAnnouncement() {
             )}
           </div>
 
-          {safeLink && linkLabel && (
+          {hasCompleteLink && safeLink && (
             safeLink.isExternal ? (
               <a
                 href={safeLink.href}
@@ -122,14 +124,14 @@ export async function SiteAnnouncement() {
                 rel="noreferrer"
                 className={`inline-flex shrink-0 justify-center rounded-full border px-4 py-2 text-sm font-black transition ${toneClass.button}`}
               >
-                {linkLabel}
+                {linkText}
               </a>
             ) : (
               <Link
                 href={safeLink.href}
                 className={`inline-flex shrink-0 justify-center rounded-full border px-4 py-2 text-sm font-black transition ${toneClass.button}`}
               >
-                {linkLabel}
+                {linkText}
               </Link>
             )
           )}

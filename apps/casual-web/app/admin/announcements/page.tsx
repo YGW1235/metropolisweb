@@ -241,28 +241,33 @@ export default async function AdminAnnouncementsPage({
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <label className="text-sm font-bold text-stone-700">
-                  링크 문구
+                  링크 문구, 선택
                 </label>
                 <input
                   name="linkLabel"
                   maxLength={40}
                   className="mt-2 w-full rounded-2xl border border-stone-200 px-4 py-3 outline-none focus:border-orange-400"
-                  placeholder="예: 자세히 보기"
+                  placeholder="예: 자세히 보기. 링크가 있을 때만 입력"
                 />
               </div>
 
               <div>
                 <label className="text-sm font-bold text-stone-700">
-                  링크 URL
+                  링크 URL, 선택
                 </label>
                 <input
                   name="linkUrl"
                   maxLength={500}
                   className="mt-2 w-full rounded-2xl border border-stone-200 px-4 py-3 outline-none focus:border-orange-400"
-                  placeholder="/topics 또는 https://example.com"
+                  placeholder="/topics 또는 https://example.com. 링크가 있을 때만 입력"
                 />
               </div>
             </div>
+
+            <p className="-mt-2 text-xs font-bold text-stone-500">
+              링크 없이 공지를 만들 수 있습니다. 링크를 사용하려면 문구와 URL을
+              모두 입력해주세요.
+            </p>
 
             <div className="grid gap-4 md:grid-cols-2">
               <div>
