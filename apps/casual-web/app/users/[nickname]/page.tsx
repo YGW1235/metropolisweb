@@ -71,9 +71,7 @@ export default async function UserProfilePage({
 
   const { data: profile, error: profileError } = await supabase
     .from("casual_profiles")
-    .select(
-      "id, user_id, nickname, bio, avatar_url, opinion_count, received_like_count, created_at",
-    )
+    .select("id, user_id, nickname, bio, avatar_url, created_at")
     .eq("nickname", decodedNickname)
     .maybeSingle();
 
@@ -89,7 +87,7 @@ export default async function UserProfilePage({
     .eq("user_id", profile.user_id)
     .eq("is_hidden", false)
     .order("created_at", { ascending: false })
-    .limit(100);
+    .limit(1000);
 
   const opinionCandidates = opinionsData ?? [];
 
@@ -110,16 +108,20 @@ export default async function UserProfilePage({
     (topicsData ?? []).map((topic) => [topic.id, topic]),
   );
 
-  const opinions = opinionCandidates
-    .filter((opinion) => topicById.has(opinion.topic_id))
-    .slice(0, 30);
+  const publicOpinions = opinionCandidates.filter((opinion) =>
+    topicById.has(opinion.topic_id),
+  );
 
-  const totalLikes = opinions.reduce(
+  const opinions = publicOpinions.slice(0, 30);
+
+  const publicOpinionCount = publicOpinions.length;
+
+  const totalLikes = publicOpinions.reduce(
     (sum, opinion) => sum + Number(opinion.like_count ?? 0),
     0,
   );
 
-  const totalDislikes = opinions.reduce(
+  const totalDislikes = publicOpinions.reduce(
     (sum, opinion) => sum + Number(opinion.dislike_count ?? 0),
     0,
   );
@@ -156,14 +158,14 @@ export default async function UserProfilePage({
             <div className="rounded-2xl bg-orange-50 p-4">
               <p className="text-xs font-black text-orange-700">작성 의견</p>
               <p className="mt-2 text-2xl font-black">
-                {formatCount(profile.opinion_count)}
+                {formatCount(publicOpinionCount)}
               </p>
             </div>
 
             <div className="rounded-2xl bg-orange-50 p-4">
               <p className="text-xs font-black text-orange-700">받은 공감</p>
               <p className="mt-2 text-2xl font-black">
-                {formatCount(profile.received_like_count)}
+                {formatCount(totalLikes)}
               </p>
             </div>
 

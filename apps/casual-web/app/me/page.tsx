@@ -112,9 +112,7 @@ export default async function MyPage() {
 
   const { data: profile, error: profileError } = await supabase
     .from("casual_profiles")
-    .select(
-      "id, user_id, nickname, bio, avatar_url, opinion_count, received_like_count, created_at",
-    )
+    .select("id, user_id, nickname, bio, avatar_url, created_at")
     .eq("user_id", user.id)
     .single();
 
@@ -173,6 +171,18 @@ export default async function MyPage() {
     .order("created_at", { ascending: false })
     .limit(20);
 
+  const { data: opinionStatsData, count: visibleOpinionCount } = await supabase
+    .from("casual_opinions")
+    .select("like_count", { count: "exact" })
+    .eq("user_id", user.id)
+    .eq("is_hidden", false);
+
+  const { count: visibleCommentCount } = await supabase
+    .from("casual_comments")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .eq("is_hidden", false);
+
   const { count: unreadNotificationCount } = await supabase
     .from("casual_notifications")
     .select("id", { count: "exact", head: true })
@@ -223,7 +233,13 @@ export default async function MyPage() {
     (topicsData ?? []).map((topic) => [topic.id, topic]),
   );
 
-  const bookmarkedTopicIds = bookmarks.map((bookmark) => bookmark.topic_id);
+  const visibleBookmarks = bookmarks.filter((bookmark) =>
+    topicById.has(bookmark.topic_id),
+  );
+
+  const bookmarkedTopicIds = visibleBookmarks.map(
+    (bookmark) => bookmark.topic_id,
+  );
   const { data: allTagsData } = await supabase
     .from("casual_topic_tags")
     .select("id, name, slug")
@@ -243,7 +259,7 @@ export default async function MyPage() {
     (bookmarkTagLinksData ?? []) as TopicTagLink[],
   );
 
-  const totalOpinionLikes = opinions.reduce(
+  const visibleOpinionLikeCount = (opinionStatsData ?? []).reduce(
     (sum, opinion) => sum + Number(opinion.like_count ?? 0),
     0,
   );
@@ -401,19 +417,19 @@ export default async function MyPage() {
             <div className="rounded-2xl bg-orange-50 p-4">
               <p className="text-xs font-black text-orange-700">작성 의견</p>
               <p className="mt-2 text-2xl font-black">
-                {formatCount(profile.opinion_count)}
+                {formatCount(visibleOpinionCount ?? opinions.length)}
               </p>
             </div>
 
             <div className="rounded-2xl bg-orange-50 p-4">
               <p className="text-xs font-black text-orange-700">받은 공감</p>
               <p className="mt-2 text-2xl font-black">
-                {formatCount(profile.received_like_count)}
+                {formatCount(visibleOpinionLikeCount)}
               </p>
             </div>
 
             <div className="rounded-2xl bg-stone-50 p-4">
-              <p className="text-xs font-black text-stone-600">표시 의견</p>
+              <p className="text-xs font-black text-stone-600">최근 의견</p>
               <p className="mt-2 text-2xl font-black">
                 {formatCount(opinions.length)}
               </p>
@@ -422,14 +438,14 @@ export default async function MyPage() {
             <div className="rounded-2xl bg-stone-50 p-4">
               <p className="text-xs font-black text-stone-600">저장 주제</p>
               <p className="mt-2 text-2xl font-black">
-                {formatCount(bookmarks.length)}
+                {formatCount(visibleBookmarks.length)}
               </p>
             </div>
 
             <div className="rounded-2xl bg-stone-50 p-4">
-              <p className="text-xs font-black text-stone-600">표시 댓글</p>
+              <p className="text-xs font-black text-stone-600">작성 댓글</p>
               <p className="mt-2 text-2xl font-black">
-                {formatCount(comments.length)}
+                {formatCount(visibleCommentCount ?? comments.length)}
               </p>
             </div>
           </div>
@@ -448,7 +464,7 @@ export default async function MyPage() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            {bookmarks.map((bookmark) => {
+            {visibleBookmarks.map((bookmark) => {
               const topic = topicById.get(bookmark.topic_id);
 
               if (!topic) {
@@ -508,7 +524,7 @@ export default async function MyPage() {
             })}
           </div>
 
-          {bookmarks.length === 0 && (
+          {visibleBookmarks.length === 0 && (
             <div className="rounded-2xl bg-stone-50 p-6 text-center text-sm font-bold text-stone-500">
               아직 저장한 주제가 없습니다.
             </div>
@@ -575,7 +591,7 @@ export default async function MyPage() {
               </div>
 
               <span className="rounded-full bg-orange-50 px-4 py-2 text-xs font-black text-orange-700">
-                표시 의견 공감 {formatCount(totalOpinionLikes)}
+                작성 의견 공감 {formatCount(visibleOpinionLikeCount)}
               </span>
             </div>
 
