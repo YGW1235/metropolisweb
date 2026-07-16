@@ -9,6 +9,7 @@ import {
 } from "@/lib/casual-tags";
 
 import { SiteHeader } from "@/components/SiteHeader";
+import { PublicShell } from "@/components/PublicShell";
 import { TopicTagBadges } from "@/components/TopicTagBadges";
 
 export const metadata: Metadata = {
@@ -147,7 +148,8 @@ export default async function Home() {
   return (
     <main className="min-h-screen bg-[#fff7ed] text-[#2f2118]">
       <SiteHeader />
-      <section className="mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-10">
+      <PublicShell>
+      <section className="flex min-h-screen flex-col py-4 lg:py-6">
 
         <section className="grid flex-1 items-center gap-10 py-16 lg:grid-cols-[1.05fr_0.95fr]">
           <div>
@@ -462,6 +464,7 @@ export default async function Home() {
           )}
         </section>
       </section>
+      </PublicShell>
     </main>
   );
 }

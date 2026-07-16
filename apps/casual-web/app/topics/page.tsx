@@ -10,6 +10,7 @@ import {
 } from "@/lib/casual-tags";
 
 import { SiteHeader } from "@/components/SiteHeader";
+import { PublicShell } from "@/components/PublicShell";
 import { TopicTagBadges } from "@/components/TopicTagBadges";
 
 export const metadata: Metadata = {
@@ -209,7 +210,8 @@ export default async function TopicsPage({
   return (
     <main className="min-h-screen bg-[#fff7ed] text-[#2f2118]">
       <SiteHeader />
-      <section className="mx-auto max-w-6xl">
+      <PublicShell activeTagSlug={requestedTagSlug}>
+      <section className="w-full">
 
         {params.message && (
           <div
@@ -413,6 +415,7 @@ export default async function TopicsPage({
           </div>
         )}
       </section>
+      </PublicShell>
     </main>
   );
 }

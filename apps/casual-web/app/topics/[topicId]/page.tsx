@@ -21,6 +21,7 @@ import type {
 } from "./components/types";
 
 import { SiteHeader } from "@/components/SiteHeader";
+import { PublicShell } from "@/components/PublicShell";
 
 export const dynamic = "force-dynamic";
 
@@ -397,10 +398,11 @@ export default async function TopicDetailPage({
   const hasNextPage = opinionPage * OPINIONS_PER_PAGE < opinionCount;
 
   return (
-    <main className="min-h-screen bg-[#fff7ed] pb-28 text-[#2f2118] md:pb-0">
+    <main className="min-h-screen bg-[#fff7ed] text-[#2f2118]">
       <ViewTracker topicId={topicDetail.id} />
       <SiteHeader />
-      <section className="mx-auto w-full max-w-[1400px] px-3 sm:px-6 lg:px-8">
+      <PublicShell>
+      <section className="w-full">
         {query.message && (
           <div
             className={`mt-6 rounded-2xl p-4 text-sm font-bold ${
@@ -531,6 +533,7 @@ export default async function TopicDetailPage({
           />
         </section>
       </section>
+      </PublicShell>
     </main>
   );
 }
