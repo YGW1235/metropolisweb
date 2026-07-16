@@ -1,10 +1,16 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { createAdminAuditLog } from "@/lib/casual-admin-audit-log";
 import { createClient } from "@/lib/supabase/server";
+
+type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
+
+const MAX_SLUG_LENGTH = 60;
+const MAX_FALLBACK_SLUG_ATTEMPTS = 5;
 
 function getString(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -60,14 +66,55 @@ function revalidateTagPaths() {
   revalidatePath("/admin/logs");
 }
 
-function createTagSlug(name: string) {
-  return name
-    .normalize("NFKC")
-    .trim()
-    .toLowerCase()
-    .replace(/[^\p{Letter}\p{Number}]+/gu, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 60);
+function trimSlug(value: string) {
+  return value.slice(0, MAX_SLUG_LENGTH).replace(/-+$/g, "");
+}
+
+function createAsciiSlug(name: string) {
+  return trimSlug(
+    name
+      .normalize("NFKD")
+      .trim()
+      .toLowerCase()
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-+|-+$/g, ""),
+  );
+}
+
+function createFallbackSlug() {
+  return `tag-${randomUUID().replace(/-/g, "").slice(0, 8)}`;
+}
+
+async function slugExists(supabase: SupabaseClient, slug: string) {
+  const { data } = await supabase
+    .from("casual_topic_tags")
+    .select("id")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  return Boolean(data);
+}
+
+async function createUniqueFallbackSlug(supabase: SupabaseClient) {
+  for (let attempt = 0; attempt < MAX_FALLBACK_SLUG_ATTEMPTS; attempt += 1) {
+    const slug = createFallbackSlug();
+
+    if (!(await slugExists(supabase, slug))) {
+      return slug;
+    }
+  }
+
+  redirectWithMessage(
+    "/admin/tags",
+    "태그 slug를 생성하지 못했습니다. 다시 시도해주세요.",
+    "error",
+  );
+}
+
+function isSafeTagSlug(slug: string) {
+  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug);
 }
 
 export async function createTopicTag(formData: FormData) {
@@ -85,16 +132,6 @@ export async function createTopicTag(formData: FormData) {
     );
   }
 
-  const slug = createTagSlug(name);
-
-  if (!slug) {
-    redirectWithMessage(
-      "/admin/tags",
-      "태그 이름으로 사용할 수 있는 글자를 입력해주세요.",
-      "error",
-    );
-  }
-
   const { supabase } = await requireAdmin();
 
   const { data: existingByName } = await supabase
@@ -107,13 +144,18 @@ export async function createTopicTag(formData: FormData) {
     redirectWithMessage("/admin/tags", "이미 등록된 태그 이름입니다.", "error");
   }
 
-  const { data: existingBySlug } = await supabase
-    .from("casual_topic_tags")
-    .select("id")
-    .eq("slug", slug)
-    .maybeSingle();
+  const asciiSlug = createAsciiSlug(name);
+  let slug = asciiSlug;
 
-  if (existingBySlug) {
+  if (!slug) {
+    slug = await createUniqueFallbackSlug(supabase);
+  }
+
+  if (!isSafeTagSlug(slug)) {
+    slug = await createUniqueFallbackSlug(supabase);
+  }
+
+  if (asciiSlug && (await slugExists(supabase, slug))) {
     redirectWithMessage("/admin/tags", "이미 등록된 태그 slug입니다.", "error");
   }
 
