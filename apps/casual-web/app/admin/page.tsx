@@ -270,6 +270,12 @@ export default async function AdminDashboardPage() {
                 주제 관리
               </Link>
               <Link
+                href="/admin/tags"
+                className="rounded-full border border-stone-200 px-4 py-2 text-sm font-bold text-stone-700 transition hover:bg-stone-50"
+              >
+                태그 관리
+              </Link>
+              <Link
                 href="/admin/users"
                 className="rounded-full border border-stone-200 px-4 py-2 text-sm font-bold text-stone-700 transition hover:bg-stone-50"
               >

@@ -270,10 +270,7 @@ export default async function Home() {
                 <h3 className="text-xl font-black">
                   오늘의 논쟁이 아직 없습니다.
                 </h3>
-                <p className="mt-2 text-sm leading-6 text-stone-600">
-                  Supabase에서 `is_today`가 true인 활성 주제를 하나 지정하면
-                  이곳에 표시됩니다.
-                </p>
+
                 <Link
                   href="/topics"
                   className="mt-5 inline-flex rounded-full bg-stone-950 px-5 py-3 text-sm font-black text-white"
