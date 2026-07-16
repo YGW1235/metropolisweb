@@ -413,11 +413,12 @@ function CommentCard({
                 <input type="hidden" name="post_id" value={postId} />
                 <input type="hidden" name="comment_id" value={comment.id} />
                 <ConfirmSubmitButton
-                  confirmMessage="내 댓글을 삭제하시겠습니까? 삭제 후에는 공개 댓글 목록에서 제거됩니다."
+                  confirmMessage="이 댓글을 삭제하시겠습니까? 삭제한 댓글은 사용자 화면에서 다시 보이지 않을 수 있습니다."
                   pendingText="삭제 중..."
+                  ariaLabel="댓글 삭제 확인"
                   className="border border-[var(--message-error-line)] bg-[var(--message-error-bg)] px-3 py-2 text-xs font-black text-[var(--message-error-text)] transition hover:opacity-80"
                 >
-                  내 댓글 삭제
+                  댓글 삭제
                 </ConfirmSubmitButton>
               </form>
             ) : null}
@@ -647,11 +648,12 @@ export default async function PostDetailPage({
                     <input type="hidden" name="post_id" value={post.id} />
 
                     <ConfirmSubmitButton
-                      confirmMessage="내 발언을 삭제하시겠습니까? 첨부 이미지가 있으면 함께 삭제될 수 있습니다."
+                      confirmMessage="이 발언을 삭제하시겠습니까? 삭제한 발언은 사용자 화면에서 다시 보이지 않을 수 있습니다."
                       pendingText="삭제 중..."
+                      ariaLabel={`${post.title} 발언 삭제 확인`}
                       className="border border-[var(--message-error-line)] bg-[var(--message-error-bg)] px-4 py-2 text-xs font-black text-[var(--message-error-text)] transition hover:opacity-80"
                     >
-                      내 발언 삭제
+                      발언 삭제
                     </ConfirmSubmitButton>
                   </form>
                 ) : null}

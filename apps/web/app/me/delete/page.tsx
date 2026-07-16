@@ -143,11 +143,12 @@ export default async function DeleteAccountPage({
         </label>
 
         <ConfirmSubmitButton
-          confirmMessage="계정 탈퇴 요청을 제출하시겠습니까? 제출 후 계정 이용 제한 처리 절차가 진행될 수 있습니다."
-          pendingText="요청 중..."
+          confirmMessage="정말 계정 탈퇴를 요청하시겠습니까? 탈퇴 후 계정 이용이 제한됩니다."
+          pendingText="탈퇴 처리 중..."
+          ariaLabel="계정 탈퇴 요청 확인"
           className="rounded-lg bg-red-600 px-4 py-3 text-sm font-semibold text-white hover:bg-red-500"
         >
-          계정 탈퇴하기
+          계정 탈퇴 요청
         </ConfirmSubmitButton>
       </form>
     </main>
