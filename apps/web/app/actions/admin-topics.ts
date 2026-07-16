@@ -121,9 +121,10 @@ export async function deleteTopic(formData: FormData) {
     .eq("id", topicId);
 
   if (error) {
+    console.error("Delete topic failed", error);
     redirectWithMessage(
       redirectTo,
-      `주제를 삭제하지 못했습니다: ${error.message}`,
+      "주제를 삭제하지 못했습니다. 잠시 후 다시 시도해주세요.",
       "error",
     );
   }

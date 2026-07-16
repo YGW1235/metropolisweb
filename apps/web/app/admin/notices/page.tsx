@@ -162,7 +162,7 @@ export default async function AdminNoticesPage({
             <AdminStateCard
               tone="danger"
               title="데이터를 불러오지 못했습니다."
-              description={`잠시 후 다시 시도해주세요. 공지 목록 오류: ${error.message}`}
+              description="공지 목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요."
             />
           </div>
         ) : null}

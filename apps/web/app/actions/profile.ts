@@ -57,7 +57,12 @@ export async function updateProfile(formData: FormData) {
     .eq("id", user.id);
 
   if (error) {
-    redirectWithMessage("/settings/profile", error.message, "error");
+    console.error("Profile update failed", error);
+    redirectWithMessage(
+      "/settings/profile",
+      "프로필을 저장하지 못했습니다. 잠시 후 다시 시도해주세요.",
+      "error",
+    );
   }
 
   revalidatePath("/me");

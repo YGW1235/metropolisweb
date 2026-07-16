@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { requestPasswordReset } from "@/app/actions/password";
+import { FormMessage } from "@/components/form-message";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 
 type SearchParams = Promise<{
@@ -30,15 +31,12 @@ export default async function ForgotPasswordPage({
       </div>
 
       {params.message ? (
-        <div
-          className={
-            params.type === "error"
-              ? "mt-6 rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-100"
-              : "mt-6 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-100"
-          }
+        <FormMessage
+          type={params.type === "error" ? "error" : "success"}
+          className="mt-6"
         >
           {params.message}
-        </div>
+        </FormMessage>
       ) : null}
 
       <form

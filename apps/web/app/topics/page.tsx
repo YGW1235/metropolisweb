@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { FormMessage } from "@/components/form-message";
 import { createClient } from "@/lib/supabase/server";
 
 type TopicsPageProps = {
@@ -268,30 +269,18 @@ export default async function TopicsPage({ searchParams }: TopicsPageProps) {
           </div>
 
           {params.message ? (
-            <div
-              className={
-                params.type === "success"
-                  ? "mt-8 rounded-2xl border bg-[var(--message-success-bg)] p-4 text-sm font-bold text-[var(--message-success-text)]"
-                  : "mt-8 rounded-2xl border bg-[var(--message-error-bg)] p-4 text-sm font-bold text-[var(--message-error-text)]"
-              }
-              style={{
-                borderColor:
-                  params.type === "success"
-                    ? "var(--message-success-line)"
-                    : "var(--message-error-line)",
-              }}
+            <FormMessage
+              type={params.type === "success" ? "success" : "error"}
+              className="mt-8"
             >
               {params.message}
-            </div>
+            </FormMessage>
           ) : null}
 
           {error ? (
-            <div
-              className="mt-8 rounded-2xl border bg-[var(--message-error-bg)] p-4 text-sm font-bold text-[var(--message-error-text)]"
-              style={{ borderColor: "var(--message-error-line)" }}
-            >
-              주제 목록을 불러오지 못했습니다: {error.message}
-            </div>
+            <FormMessage type="error" className="mt-8">
+              주제 목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.
+            </FormMessage>
           ) : null}
         </div>
       </section>

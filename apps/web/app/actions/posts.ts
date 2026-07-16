@@ -171,7 +171,12 @@ export async function createDebatePost(formData: FormData) {
   });
 
   if (error) {
-    redirectWithMessage(`/topics/${topicId}/debate/new`, error.message, "error");
+    console.error("Create debate post failed", error);
+    redirectWithMessage(
+      `/topics/${topicId}/debate/new`,
+      "발언을 작성하지 못했습니다. 잠시 후 다시 시도해주세요.",
+      "error",
+    );
   }
 
   const createdPostId = getCreatedPostId(data);
@@ -204,12 +209,13 @@ export async function createDebatePost(formData: FormData) {
       });
 
     if (uploadError) {
+      console.error("Debate post image upload failed", uploadError);
       revalidatePath(`/topics/${topicId}/debate`);
       revalidatePath(`/topics/${topicId}/debate/${createdPostId}`);
 
       redirectWithMessage(
         `/topics/${topicId}/debate/${createdPostId}`,
-        `발언은 작성되었지만 이미지 업로드에 실패했습니다: ${uploadError.message}`,
+        "발언은 작성되었지만 첨부 이미지 업로드에 실패했습니다. 잠시 후 다시 확인해주세요.",
         "error",
       );
     }
@@ -228,12 +234,13 @@ export async function createDebatePost(formData: FormData) {
       .eq("author_id", user.id);
 
     if (updateError) {
+      console.error("Debate post image metadata update failed", updateError);
       revalidatePath(`/topics/${topicId}/debate`);
       revalidatePath(`/topics/${topicId}/debate/${createdPostId}`);
 
       redirectWithMessage(
         `/topics/${topicId}/debate/${createdPostId}`,
-        `발언은 작성되었지만 이미지 연결에 실패했습니다: ${updateError.message}`,
+        "발언은 작성되었지만 첨부 이미지 연결에 실패했습니다. 잠시 후 다시 확인해주세요.",
         "error",
       );
     }
@@ -267,9 +274,10 @@ export async function createDebateComment(formData: FormData) {
   });
 
   if (error) {
+    console.error("Create debate comment failed", error);
     redirectWithMessage(
       `/topics/${topicId}/debate/${postId}`,
-      error.message,
+      "댓글을 작성하지 못했습니다. 잠시 후 다시 시도해주세요.",
       "error",
     );
   }
@@ -334,9 +342,10 @@ export async function deleteDebatePost(formData: FormData) {
     .eq("author_id", user.id);
 
   if (deletePostError) {
+    console.error("Delete debate post failed", deletePostError);
     redirectWithMessage(
       `/topics/${topicId}/debate/${postId}`,
-      deletePostError.message,
+      "발언을 삭제하지 못했습니다. 잠시 후 다시 시도해주세요.",
       "error",
     );
   }
@@ -347,9 +356,10 @@ export async function deleteDebatePost(formData: FormData) {
       .remove([post.image_path]);
 
     if (imageDeleteError) {
+      console.error("Debate post image delete failed", imageDeleteError);
       redirectWithMessage(
         `/topics/${topicId}/debate`,
-        `발언은 삭제되었지만 이미지 파일 삭제에 실패했습니다: ${imageDeleteError.message}`,
+        "발언은 삭제되었지만 첨부 이미지 정리에 실패했습니다. 잠시 후 다시 확인해주세요.",
         "error",
       );
     }
@@ -386,9 +396,10 @@ export async function deleteDebateComment(formData: FormData) {
   });
 
   if (error) {
+    console.error("Delete debate comment failed", error);
     redirectWithMessage(
       `/topics/${topicId}/debate/${postId}`,
-      error.message,
+      "댓글을 삭제하지 못했습니다. 잠시 후 다시 시도해주세요.",
       "error",
     );
   }

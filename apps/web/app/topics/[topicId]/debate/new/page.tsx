@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { createDebatePost } from "@/app/actions/posts";
 import { joinTopic } from "@/app/actions/topics";
 import { createClient } from "@/lib/supabase/server";
+import { FormMessage } from "@/components/form-message";
 import { ImageUploadPreview } from "@/components/image-upload-preview";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 
@@ -12,6 +13,10 @@ import { AccountStatusNotice } from "@/components/account-status-notice";
 type NewDebatePostPageProps = {
   params: Promise<{
     topicId: string;
+  }>;
+  searchParams: Promise<{
+    message?: string;
+    type?: string;
   }>;
 };
 
@@ -355,8 +360,10 @@ function NeedJoinPanel({
 
 export default async function NewDebatePostPage({
   params,
+  searchParams,
 }: NewDebatePostPageProps) {
   const { topicId } = await params;
+  const query = await searchParams;
 
   const supabase = await createClient();
 
@@ -430,6 +437,15 @@ export default async function NewDebatePostPage({
         >
           ‹ 발언 목록으로 돌아가기
         </Link>
+
+        {query.message ? (
+          <FormMessage
+            type={query.type === "success" ? "success" : "error"}
+            className="mt-6"
+          >
+            {query.message}
+          </FormMessage>
+        ) : null}
 
         <div className="mt-8 overflow-hidden rounded-[2rem] border border-[var(--theme-line)] bg-[var(--theme-panel)] shadow-[var(--shadow-card-strong)] transition duration-300">
           <div

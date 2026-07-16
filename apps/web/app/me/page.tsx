@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { waterOlive } from "@/app/actions/olive";
 
 import { AccountStatusNotice } from "@/components/account-status-notice";
+import { FormMessage } from "@/components/form-message";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 
 type Profile = {
@@ -516,21 +517,12 @@ export default async function MePage({ searchParams }: MePageProps) {
     >
       <section className="mx-auto max-w-7xl">
         {query.message ? (
-          <div
-            className={
-              query.type === "error"
-                ? "mb-6 rounded-2xl border bg-[var(--message-error-bg)] p-4 text-sm font-bold text-[var(--message-error-text)]"
-                : "mb-6 rounded-2xl border bg-[var(--message-success-bg)] p-4 text-sm font-bold text-[var(--message-success-text)]"
-            }
-            style={{
-              borderColor:
-                query.type === "error"
-                  ? "var(--message-error-line)"
-                  : "var(--message-success-line)",
-            }}
+          <FormMessage
+            type={query.type === "error" ? "error" : "success"}
+            className="mb-6"
           >
             {query.message}
-          </div>
+          </FormMessage>
         ) : null}
 
         <AccountStatusNotice

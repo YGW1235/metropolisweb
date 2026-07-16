@@ -39,7 +39,12 @@ export async function moderateReport(formData: FormData) {
   });
 
   if (error) {
-    redirect(`/admin/reports?message=${encodeURIComponent(error.message)}`);
+    console.error("Moderate report failed", error);
+    redirect(
+      `/admin/reports?message=${encodeURIComponent(
+        "신고 처리에 실패했습니다. 잠시 후 다시 시도해주세요.",
+      )}&type=error`,
+    );
   }
 
   revalidatePath("/admin/reports");

@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { createContactInquiry } from "@/app/actions/contact";
+import { FormMessage } from "@/components/form-message";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { createClient } from "@/lib/supabase/server";
 
@@ -56,15 +57,12 @@ export default async function ContactPage({
         </div>
 
         {params.message ? (
-          <div
-            className={
-              params.type === "error"
-                ? "mb-6 rounded-lg border border-[var(--message-error-line)] bg-[var(--message-error-bg)] p-4 text-sm font-bold text-[var(--message-error-text)]"
-                : "mb-6 rounded-lg border border-[var(--message-success-line)] bg-[var(--message-success-bg)] p-4 text-sm font-bold text-[var(--message-success-text)]"
-            }
+          <FormMessage
+            type={params.type === "error" ? "error" : "success"}
+            className="mb-6"
           >
             {params.message}
-          </div>
+          </FormMessage>
         ) : null}
 
         <form

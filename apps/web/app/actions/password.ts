@@ -69,12 +69,17 @@ export async function requestPasswordReset(formData: FormData) {
   });
 
   if (error) {
-    redirectWithMessage("/forgot-password", error.message, "error");
+    console.error("Password reset request failed", error);
+    redirectWithMessage(
+      "/forgot-password",
+      "요청을 처리하지 못했습니다. 이메일을 확인한 뒤 다시 시도해주세요.",
+      "error",
+    );
   }
 
   redirectWithMessage(
     "/forgot-password",
-    "비밀번호 재설정 메일을 보냈습니다. 메일함과 스팸함을 확인해주세요.",
+    "비밀번호 재설정 메일을 보냈습니다. 메일함을 확인해주세요.",
     "success",
   );
 }
@@ -108,7 +113,12 @@ export async function updatePasswordAfterReset(formData: FormData) {
   });
 
   if (error) {
-    redirectWithMessage("/reset-password", error.message, "error");
+    console.error("Password update after reset failed", error);
+    redirectWithMessage(
+      "/reset-password",
+      "비밀번호를 변경하지 못했습니다. 재설정 링크를 다시 확인해주세요.",
+      "error",
+    );
   }
 
   redirectWithMessage(
@@ -165,7 +175,12 @@ export async function changeMyPassword(formData: FormData) {
   });
 
   if (error) {
-    redirectWithMessage("/me/password", error.message, "error");
+    console.error("My password update failed", error);
+    redirectWithMessage(
+      "/me/password",
+      "비밀번호를 변경하지 못했습니다. 잠시 후 다시 시도해주세요.",
+      "error",
+    );
   }
 
   redirectWithMessage("/me", "비밀번호가 변경되었습니다.", "success");

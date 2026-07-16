@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { updatePasswordAfterReset } from "@/app/actions/password";
+import { FormMessage } from "@/components/form-message";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { createClient } from "@/lib/supabase/server";
 
@@ -36,22 +37,19 @@ export default async function ResetPasswordPage({
       </div>
 
       {params.message ? (
-        <div
-          className={
-            params.type === "error"
-              ? "mt-6 rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-100"
-              : "mt-6 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-100"
-          }
+        <FormMessage
+          type={params.type === "error" ? "error" : "success"}
+          className="mt-6"
         >
           {params.message}
-        </div>
+        </FormMessage>
       ) : null}
 
       {!user ? (
-        <div className="mt-6 rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-4 text-sm text-yellow-100">
+        <FormMessage type="warning" className="mt-6">
           비밀번호 재설정 세션이 없습니다. 비밀번호 찾기에서 재설정 메일을
           다시 요청해주세요.
-        </div>
+        </FormMessage>
       ) : (
         <form
           action={updatePasswordAfterReset}

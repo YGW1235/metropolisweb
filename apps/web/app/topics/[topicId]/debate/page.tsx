@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { joinTopic } from "@/app/actions/topics";
+import { FormMessage } from "@/components/form-message";
 import { createClient } from "@/lib/supabase/server";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 
@@ -449,21 +450,12 @@ export default async function DebatePage({
         </Link>
 
         {query.message ? (
-          <div
-            className={
-              query.type === "success"
-                ? "mt-6 rounded-2xl border bg-[var(--message-success-bg)] p-4 text-sm font-bold text-[var(--message-success-text)]"
-                : "mt-6 rounded-2xl border bg-[var(--message-error-bg)] p-4 text-sm font-bold text-[var(--message-error-text)]"
-            }
-            style={{
-              borderColor:
-                query.type === "success"
-                  ? "var(--message-success-line)"
-                  : "var(--message-error-line)",
-            }}
+          <FormMessage
+            type={query.type === "success" ? "success" : "error"}
+            className="mt-6"
           >
             {query.message}
-          </div>
+          </FormMessage>
         ) : null}
 
         <div className="mt-8 overflow-hidden rounded-[2rem] border border-[var(--theme-line)] bg-[var(--theme-panel-strong)] shadow-[var(--shadow-card-strong)] transition duration-300">
@@ -666,12 +658,9 @@ export default async function DebatePage({
           </div>
 
           {postsError ? (
-            <div
-              className="mt-5 rounded-2xl border bg-[var(--message-error-bg)] p-4 text-sm text-[var(--message-error-text)]"
-              style={{ borderColor: "var(--message-error-line)" }}
-            >
-              게시글을 불러오지 못했습니다: {postsError.message}
-            </div>
+            <FormMessage type="error" className="mt-5">
+              게시글을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.
+            </FormMessage>
           ) : null}
 
           <div className="mt-5 overflow-hidden rounded-2xl border border-[var(--theme-line)]">

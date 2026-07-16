@@ -63,7 +63,12 @@ export async function setReportTargetAuthorStatus(formData: FormData) {
   );
 
   if (error) {
-    redirectWithMessage("/admin/reports", error.message, "error");
+    console.error("Set report target author status failed", error);
+    redirectWithMessage(
+      "/admin/reports",
+      "신고 대상 작성자 상태를 변경하지 못했습니다. 잠시 후 다시 시도해주세요.",
+      "error",
+    );
   }
 
   revalidatePath("/admin/reports");
@@ -97,7 +102,12 @@ export async function setUserStatus(formData: FormData) {
   });
 
   if (error) {
-    redirectWithMessage("/admin/users", error.message, "error");
+    console.error("Set user status failed", error);
+    redirectWithMessage(
+      "/admin/users",
+      "유저 상태를 변경하지 못했습니다. 잠시 후 다시 시도해주세요.",
+      "error",
+    );
   }
 
   revalidatePath("/admin/users");

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { updateProfile } from "@/app/actions/profile";
+import { FormMessage } from "@/components/form-message";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { createClient } from "@/lib/supabase/server";
 
@@ -97,21 +98,12 @@ export default async function ProfileSettingsPage({
         </div>
 
         {query.message ? (
-          <div
-            className={
-              query.type === "error"
-                ? "mt-6 rounded-2xl border bg-[var(--message-error-bg)] p-4 text-sm font-bold text-[var(--message-error-text)]"
-                : "mt-6 rounded-2xl border bg-[var(--message-success-bg)] p-4 text-sm font-bold text-[var(--message-success-text)]"
-            }
-            style={{
-              borderColor:
-                query.type === "error"
-                  ? "var(--message-error-line)"
-                  : "var(--message-success-line)",
-            }}
+          <FormMessage
+            type={query.type === "error" ? "error" : "success"}
+            className="mt-6"
           >
             {query.message}
-          </div>
+          </FormMessage>
         ) : null}
 
         <div className="mt-8 overflow-hidden rounded-[2rem] border border-[var(--theme-line)] bg-[var(--theme-panel-strong)] shadow-[var(--shadow-card-strong)] transition duration-300">

@@ -126,9 +126,10 @@ export async function createNotice(formData: FormData) {
     .single();
 
   if (error) {
+    console.error("Create notice failed", error);
     redirectWithMessage(
       "/admin/notices/new",
-      `공지를 작성하지 못했습니다: ${error.message}`,
+      "공지를 작성하지 못했습니다. 입력 내용을 확인한 뒤 다시 시도해주세요.",
       "error",
     );
   }
@@ -205,9 +206,10 @@ export async function updateNotice(formData: FormData) {
     .eq("id", noticeId);
 
   if (error) {
+    console.error("Update notice failed", error);
     redirectWithMessage(
       redirectTo,
-      `공지를 수정하지 못했습니다: ${error.message}`,
+      "공지를 수정하지 못했습니다. 입력 내용을 확인한 뒤 다시 시도해주세요.",
       "error",
     );
   }
@@ -240,9 +242,10 @@ export async function deleteNotice(formData: FormData) {
     .eq("id", noticeId);
 
   if (error) {
+    console.error("Delete notice failed", error);
     redirectWithMessage(
       redirectTo,
-      `공지를 삭제하지 못했습니다: ${error.message}`,
+      "공지를 삭제하지 못했습니다. 잠시 후 다시 시도해주세요.",
       "error",
     );
   }

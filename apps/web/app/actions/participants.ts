@@ -32,8 +32,11 @@ export async function joinTopic(formData: FormData) {
   });
 
   if (error) {
+    console.error("Legacy join topic action failed", error);
     redirect(
-      `/topics/${topicId}?message=${encodeURIComponent(error.message)}`,
+      `/topics/${topicId}?message=${encodeURIComponent(
+        "참여를 처리하지 못했습니다. 잠시 후 다시 시도해주세요.",
+      )}&type=error`,
     );
   }
 

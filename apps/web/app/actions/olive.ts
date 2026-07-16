@@ -64,9 +64,10 @@ export async function waterOlive(formData?: FormData) {
   const { data, error } = await supabase.rpc("water_olive");
 
   if (error) {
+    console.error("Water olive failed", error);
     redirectWithMessage(
       redirectTo,
-      `올리브 가지에 물을 주지 못했습니다: ${error.message}`,
+      "올리브 가지에 물을 주지 못했습니다. 잠시 후 다시 시도해주세요.",
       "error",
     );
   }

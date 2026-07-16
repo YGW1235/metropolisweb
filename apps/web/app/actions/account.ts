@@ -55,7 +55,12 @@ export async function requestAccountDeletion(formData: FormData) {
   });
 
   if (error) {
-    redirectWithMessage("/me/delete", error.message, "error");
+    console.error("Account deletion request failed", error);
+    redirectWithMessage(
+      "/me/delete",
+      "계정 탈퇴 요청을 처리하지 못했습니다. 잠시 후 다시 시도해주세요.",
+      "error",
+    );
   }
 
   await supabase.auth.signOut();

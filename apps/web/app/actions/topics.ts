@@ -150,7 +150,12 @@ export async function joinTopic(formData: FormData) {
   });
 
   if (error) {
-    redirectWithMessage(`/topics/${topicId}`, error.message, "error");
+    console.error("Join topic failed", error);
+    redirectWithMessage(
+      `/topics/${topicId}`,
+      "참여를 처리하지 못했습니다. 잠시 후 다시 시도해주세요.",
+      "error",
+    );
   }
 
   revalidatePath("/topics");
@@ -199,7 +204,12 @@ export async function createTopic(formData: FormData) {
     .single();
 
   if (error) {
-    redirectWithMessage("/admin/topics/new", error.message, "error");
+    console.error("Create topic failed", error);
+    redirectWithMessage(
+      "/admin/topics/new",
+      "주제를 생성하지 못했습니다. 입력 내용을 확인한 뒤 다시 시도해주세요.",
+      "error",
+    );
   }
 
   if (!topic) {
@@ -254,7 +264,12 @@ export async function updateTopicStatus(formData: FormData) {
     .single();
 
   if (error) {
-    redirectWithMessage("/admin/topics", error.message, "error");
+    console.error("Update topic status failed", error);
+    redirectWithMessage(
+      "/admin/topics",
+      "주제 상태를 변경하지 못했습니다. 잠시 후 다시 시도해주세요.",
+      "error",
+    );
   }
 
   if (!topic) {
@@ -329,9 +344,10 @@ export async function updateTopic(formData: FormData) {
     .single();
 
   if (error) {
+    console.error("Update topic failed", error);
     redirectWithMessage(
       `/admin/topics/${topicId}/edit`,
-      error.message,
+      "주제를 수정하지 못했습니다. 입력 내용을 확인한 뒤 다시 시도해주세요.",
       "error",
     );
   }
@@ -385,7 +401,12 @@ export async function archiveTopic(formData: FormData) {
     .single();
 
   if (error) {
-    redirectWithMessage("/admin/topics", error.message, "error");
+    console.error("Archive topic failed", error);
+    redirectWithMessage(
+      "/admin/topics",
+      "주제를 보관 처리하지 못했습니다. 잠시 후 다시 시도해주세요.",
+      "error",
+    );
   }
 
   if (!topic) {

@@ -78,7 +78,12 @@ export async function createContactInquiry(formData: FormData) {
   });
 
   if (error) {
-    redirectWithMessage("/contact", error.message, "error");
+    console.error("Create contact inquiry failed", error);
+    redirectWithMessage(
+      "/contact",
+      "문의를 접수하지 못했습니다. 잠시 후 다시 시도해주세요.",
+      "error",
+    );
   }
 
   await sendContactInquiryNotification({
@@ -91,7 +96,7 @@ export async function createContactInquiry(formData: FormData) {
 
   redirectWithMessage(
     "/contact",
-    "문의가 접수되었습니다. 입력하신 이메일로 확인 후 답변드리겠습니다.",
+    "문의가 접수되었습니다. 확인 후 필요한 경우 답변드리겠습니다.",
     "success",
   );
 }
@@ -114,7 +119,12 @@ export async function updateContactInquiry(formData: FormData) {
   });
 
   if (error) {
-    redirectWithMessage("/admin/inquiries", error.message, "error");
+    console.error("Update contact inquiry failed", error);
+    redirectWithMessage(
+      "/admin/inquiries",
+      "문의 상태를 변경하지 못했습니다. 잠시 후 다시 시도해주세요.",
+      "error",
+    );
   }
 
   revalidatePath("/admin/inquiries");

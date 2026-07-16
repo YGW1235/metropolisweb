@@ -50,10 +50,11 @@ export async function createReport(formData: FormData) {
   });
 
   if (error) {
+    console.error("Create report failed", error);
     redirect(
-      `/topics/${topicId}/debate?message=${encodeURIComponent(error.message)}${
-        anchor ? `#${anchor}` : ""
-      }`,
+      `/topics/${topicId}/debate?message=${encodeURIComponent(
+        "신고를 접수하지 못했습니다. 잠시 후 다시 시도해주세요.",
+      )}&type=error${anchor ? `#${anchor}` : ""}`,
     );
   }
 
@@ -61,8 +62,8 @@ export async function createReport(formData: FormData) {
   revalidatePath("/admin/reports");
 
   redirect(
-    `/topics/${topicId}/debate?message=${encodeURIComponent("신고가 접수되었습니다.")}${
-      anchor ? `#${anchor}` : ""
-    }`,
+    `/topics/${topicId}/debate?message=${encodeURIComponent(
+      "신고가 접수되었습니다.",
+    )}&type=success${anchor ? `#${anchor}` : ""}`,
   );
 }

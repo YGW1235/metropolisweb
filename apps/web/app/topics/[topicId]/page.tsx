@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { joinTopic } from "@/app/actions/topics";
+import { FormMessage } from "@/components/form-message";
 import { createClient } from "@/lib/supabase/server";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 
@@ -538,21 +539,12 @@ export default async function TopicDetailPage({
           </div>
 
           {query.message ? (
-            <div
-              className={
-                query.type === "success"
-                  ? "mt-8 rounded-2xl border bg-[var(--message-success-bg)] p-4 text-sm font-bold text-[var(--message-success-text)]"
-                  : "mt-8 rounded-2xl border bg-[var(--message-error-bg)] p-4 text-sm font-bold text-[var(--message-error-text)]"
-              }
-              style={{
-                borderColor:
-                  query.type === "success"
-                    ? "var(--message-success-line)"
-                    : "var(--message-error-line)",
-              }}
+            <FormMessage
+              type={query.type === "success" ? "success" : "error"}
+              className="mt-8"
             >
               {query.message}
-            </div>
+            </FormMessage>
           ) : null}
         </div>
       </section>

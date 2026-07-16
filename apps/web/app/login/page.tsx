@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import { FormMessage } from "@/components/form-message";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 
 import { headers } from "next/headers"; 
@@ -264,22 +265,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         </div>
 
         {query.message ? (
-          <div
-            role={query.type === "success" ? "status" : "alert"}
-            className={
-              query.type === "success"
-                ? "mt-6 rounded-2xl border bg-[var(--message-success-bg)] p-4 text-sm font-bold text-[var(--message-success-text)]"
-                : "mt-6 rounded-2xl border bg-[var(--message-error-bg)] p-4 text-sm font-bold text-[var(--message-error-text)]"
-            }
-            style={{
-              borderColor:
-                query.type === "success"
-                  ? "var(--message-success-line)"
-                  : "var(--message-error-line)",
-            }}
+          <FormMessage
+            type={query.type === "success" ? "success" : "error"}
+            className="mt-6"
           >
             {query.message}
-          </div>
+          </FormMessage>
         ) : null}
 
         <div className="mt-8 overflow-hidden rounded-[2rem] border border-[var(--theme-line)] bg-[var(--theme-panel-strong)] shadow-[var(--shadow-card-strong)] transition duration-300">
