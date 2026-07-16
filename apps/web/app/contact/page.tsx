@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { createContactInquiry } from "@/app/actions/contact";
+import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { createClient } from "@/lib/supabase/server";
 
 type SearchParams = Promise<{
@@ -139,12 +140,12 @@ export default async function ContactPage({
               </span>
             </label>
 
-            <button
-              type="submit"
+            <PendingSubmitButton
+              pendingText="전송 중..."
               className="theme-button-primary rounded-lg px-4 py-3 text-sm font-semibold"
             >
               문의 접수하기
-            </button>
+            </PendingSubmitButton>
           </div>
         </form>
       </section>

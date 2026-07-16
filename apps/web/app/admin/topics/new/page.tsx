@@ -1,4 +1,5 @@
 import { createTopic } from "@/app/actions/topics";
+import { PendingSubmitButton } from "@/components/pending-submit-button";
 
 type NewTopicPageProps = {
   searchParams: Promise<{
@@ -130,9 +131,12 @@ export default async function NewTopicPage({ searchParams }: NewTopicPageProps) 
             </div>
           </div>
 
-          <button className="w-full rounded-lg bg-blue-500 px-5 py-3 font-medium text-white hover:bg-blue-400">
+          <PendingSubmitButton
+            pendingText="저장 중..."
+            className="w-full rounded-lg bg-blue-500 px-5 py-3 font-medium text-white hover:bg-blue-400"
+          >
             주제 생성
-          </button>
+          </PendingSubmitButton>
         </form>
       </section>
     </main>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { changeMyPassword } from "@/app/actions/password";
+import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { createClient } from "@/lib/supabase/server";
 
 type SearchParams = Promise<{
@@ -87,12 +88,12 @@ export default async function MyPasswordPage({
           />
         </label>
 
-        <button
-          type="submit"
+        <PendingSubmitButton
+          pendingText="변경 중..."
           className="rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500"
         >
           비밀번호 변경하기
-        </button>
+        </PendingSubmitButton>
       </form>
     </main>
   );

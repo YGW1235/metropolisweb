@@ -26,7 +26,13 @@ export async function signUp(formData: FormData) {
   });
 
   if (error) {
-    redirect(`/login?message=${encodeURIComponent(error.message)}`);
+    console.error("Sign up failed", error);
+    const params = new URLSearchParams({
+      message:
+        "회원가입에 실패했습니다. 입력한 이메일과 비밀번호를 다시 확인해주세요.",
+      type: "error",
+    });
+    redirect(`/login?${params.toString()}`);
   }
 
   revalidatePath("/", "layout");
@@ -45,7 +51,12 @@ export async function signIn(formData: FormData) {
   });
 
   if (error) {
-    redirect(`/login?message=${encodeURIComponent(error.message)}`);
+    console.error("Login failed", error);
+    const params = new URLSearchParams({
+      message: "로그인에 실패했습니다. 이메일과 비밀번호를 다시 확인해주세요.",
+      type: "error",
+    });
+    redirect(`/login?${params.toString()}`);
   }
 
   revalidatePath("/", "layout");

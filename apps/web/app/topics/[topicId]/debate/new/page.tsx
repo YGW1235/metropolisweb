@@ -5,6 +5,7 @@ import { createDebatePost } from "@/app/actions/posts";
 import { joinTopic } from "@/app/actions/topics";
 import { createClient } from "@/lib/supabase/server";
 import { ImageUploadPreview } from "@/components/image-upload-preview";
+import { PendingSubmitButton } from "@/components/pending-submit-button";
 
 import { AccountStatusNotice } from "@/components/account-status-notice";
 
@@ -149,13 +150,13 @@ function JoinButton({
       <input type="hidden" name="topic_id" value={topicId} />
       <input type="hidden" name="side" value={side} />
 
-      <button
-        type="submit"
+      <PendingSubmitButton
+        pendingText="참여 중..."
         disabled={disabled}
         className={`inline-flex w-full items-center justify-center border px-4 py-3 text-sm font-black shadow-[var(--shadow-button)] transition duration-300 hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
       >
         {disabledLabel ?? children}
-      </button>
+      </PendingSubmitButton>
     </form>
   );
 }
@@ -552,8 +553,8 @@ export default async function NewDebatePostPage({
                 <ImageUploadPreview />
 
                 <div className="flex flex-col gap-3 sm:flex-row">
-                  <button
-                    type="submit"
+                  <PendingSubmitButton
+                    pendingText="작성 중..."
                     className={
                       isAthena
                         ? "inline-flex flex-1 items-center justify-center border border-[var(--theme-gold)] bg-[var(--theme-gold)] px-5 py-3 text-sm font-black text-[var(--theme-accent-contrast)] shadow-[var(--shadow-button)] transition duration-300 hover:opacity-85"
@@ -561,7 +562,7 @@ export default async function NewDebatePostPage({
                     }
                   >
                     발언 기록하기
-                  </button>
+                  </PendingSubmitButton>
 
                   <Link
                     href={`/topics/${topic.id}/debate`}

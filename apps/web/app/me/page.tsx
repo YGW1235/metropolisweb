@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { waterOlive } from "@/app/actions/olive";
 
 import { AccountStatusNotice } from "@/components/account-status-notice";
+import { PendingSubmitButton } from "@/components/pending-submit-button";
 
 type Profile = {
   display_name: string | null;
@@ -365,14 +366,15 @@ function OliveCard({
       </div>
 
       <form action={waterOlive} className="mt-6">
-        <button
+        <PendingSubmitButton
+          pendingText="물 주는 중..."
           disabled={alreadyWateredToday}
           className="inline-flex w-full items-center justify-center border border-[var(--theme-gold)] bg-[var(--theme-gold)] px-5 py-3 text-sm font-black text-[var(--theme-accent-contrast)] shadow-[var(--shadow-button)] transition duration-300 hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-45"
         >
           {alreadyWateredToday
             ? "오늘은 이미 물을 주었습니다"
             : "오늘의 물 주기"}
-        </button>
+        </PendingSubmitButton>
       </form>
 
       <Link

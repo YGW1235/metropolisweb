@@ -1,11 +1,10 @@
 "use client";
 
-import type { MouseEvent, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 
-type ConfirmSubmitButtonProps = {
+type PendingSubmitButtonProps = {
   children: ReactNode;
-  confirmMessage: string;
   pendingText?: ReactNode;
   className?: string;
   disabled?: boolean;
@@ -13,40 +12,24 @@ type ConfirmSubmitButtonProps = {
   ariaLabel?: string;
 };
 
-export function ConfirmSubmitButton({
+export function PendingSubmitButton({
   children,
-  confirmMessage,
   pendingText = "처리 중...",
   className,
   disabled,
   title,
   ariaLabel,
-}: ConfirmSubmitButtonProps) {
+}: PendingSubmitButtonProps) {
   const { pending } = useFormStatus();
   const isDisabled = pending || Boolean(disabled);
-
-  function handleClick(event: MouseEvent<HTMLButtonElement>) {
-    if (isDisabled) {
-      event.preventDefault();
-      return;
-    }
-
-    const confirmed = window.confirm(confirmMessage);
-
-    if (!confirmed) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-  }
 
   return (
     <button
       type="submit"
-      onClick={handleClick}
       disabled={isDisabled}
       aria-disabled={isDisabled}
-      title={title ?? confirmMessage}
       aria-label={ariaLabel}
+      title={title}
       className={[
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-gold)] disabled:cursor-not-allowed disabled:opacity-60",
         className,

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import { PendingSubmitButton } from "@/components/pending-submit-button";
 
 import { headers } from "next/headers"; 
 
@@ -44,12 +45,13 @@ function redirectWithMessage(
   message: string,
   type: "success" | "error" = "error",
 ) {
-  const params = new URLSearchParams({
-    message,
-    type,
-  });
+  const [pathname, queryString] = path.split("?");
+  const params = new URLSearchParams(queryString ?? "");
 
-  redirect(`${path}?${params.toString()}`);
+  params.set("message", message);
+  params.set("type", type);
+
+  redirect(`${pathname}?${params.toString()}`);
 }
 
 function getSafeRedirectTo(value: string | undefined) {
@@ -91,9 +93,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     });
 
     if (error) {
+      console.error("Login failed", error);
       redirectWithMessage(
         `/login?redirectTo=${encodeURIComponent(nextPath)}`,
-        error.message,
+        "로그인에 실패했습니다. 이메일과 비밀번호를 다시 확인해주세요.",
         "error",
       );
     }
@@ -174,7 +177,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     });
 
     if (error) {
-      redirectWithMessage("/login", error.message, "error");
+      console.error("Sign up failed", error);
+      redirectWithMessage(
+        "/login",
+        "회원가입에 실패했습니다. 입력한 이메일과 비밀번호를 다시 확인해주세요.",
+        "error",
+      );
     }
 
     redirectWithMessage(
@@ -214,7 +222,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   });
 
   if (error) {
-    redirectWithMessage("/login", error.message, "error");
+    console.error("Verification email resend failed", error);
+    redirectWithMessage(
+      "/login",
+      "인증 메일을 다시 보내지 못했습니다. 이메일을 확인한 뒤 잠시 후 다시 시도해주세요.",
+      "error",
+    );
   }
 
   redirectWithMessage(
@@ -252,6 +265,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
         {query.message ? (
           <div
+            role={query.type === "success" ? "status" : "alert"}
             className={
               query.type === "success"
                 ? "mt-6 rounded-2xl border bg-[var(--message-success-bg)] p-4 text-sm font-bold text-[var(--message-success-text)]"
@@ -358,9 +372,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                 />
               </div>
 
-              <button className="w-full border border-[var(--theme-gold)] bg-[var(--theme-gold)] px-5 py-3 text-sm font-black text-[var(--theme-accent-contrast)] shadow-[var(--shadow-button)] transition duration-300 hover:opacity-85">
+              <PendingSubmitButton
+                pendingText="로그인 중..."
+                className="w-full border border-[var(--theme-gold)] bg-[var(--theme-gold)] px-5 py-3 text-sm font-black text-[var(--theme-accent-contrast)] shadow-[var(--shadow-button)] transition duration-300 hover:opacity-85"
+              >
                 로그인
-              </button>
+              </PendingSubmitButton>
             </form>
             <div className="mt-4 text-right">
               <Link
@@ -438,9 +455,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                 </span>
               </label>
 
-              <button className="w-full border border-[var(--theme-blue)] bg-[var(--theme-blue)] px-5 py-3 text-sm font-black text-[var(--theme-accent-contrast)] shadow-[var(--shadow-button)] transition duration-300 hover:opacity-85">
+              <PendingSubmitButton
+                pendingText="가입 처리 중..."
+                className="w-full border border-[var(--theme-blue)] bg-[var(--theme-blue)] px-5 py-3 text-sm font-black text-[var(--theme-accent-contrast)] shadow-[var(--shadow-button)] transition duration-300 hover:opacity-85"
+              >
                 회원가입
-              </button>
+              </PendingSubmitButton>
             </form>
 
             <div className="theme-panel mt-6 rounded-2xl p-5">
@@ -462,12 +482,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                   />
                 </label>
 
-                <button
-                  type="submit"
+                <PendingSubmitButton
+                  pendingText="전송 중..."
                   className="rounded-lg border border-[var(--theme-blue)] px-4 py-2 text-sm font-semibold text-[var(--theme-blue)] transition hover:bg-[var(--theme-surface-hover)]"
                 >
                   인증 메일 다시 보내기
-                </button>
+                </PendingSubmitButton>
               </form>
             </div>
           </div>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { waterOlive } from "@/app/actions/olive";
+import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { createClient } from "@/lib/supabase/server";
 
 type OlivePageProps = {
@@ -384,14 +385,15 @@ export default async function OlivePage({ searchParams }: OlivePageProps) {
             <form action={waterOlive} className="mt-8">
               <input type="hidden" name="redirect_to" value="/olive" />
 
-              <button
+              <PendingSubmitButton
+                pendingText="물 주는 중..."
                 disabled={alreadyWateredToday}
                 className="inline-flex w-full items-center justify-center border border-[var(--theme-gold)] bg-[var(--theme-gold)] px-5 py-3 text-sm font-black text-[var(--theme-accent-contrast)] shadow-[var(--shadow-button)] transition duration-300 hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-45"
               >
                 {alreadyWateredToday
                   ? "오늘은 이미 물을 주었습니다"
                   : "오늘의 물 주기"}
-              </button>
+              </PendingSubmitButton>
             </form>
 
             <p className="mt-3 text-center text-xs font-bold text-[var(--theme-soft)]">

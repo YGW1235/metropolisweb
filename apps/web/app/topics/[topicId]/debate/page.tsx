@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 
 import { joinTopic } from "@/app/actions/topics";
 import { createClient } from "@/lib/supabase/server";
+import { PendingSubmitButton } from "@/components/pending-submit-button";
 
 const PAGE_SIZE = 10;
 
@@ -228,12 +229,12 @@ function JoinButton({
       <input type="hidden" name="topic_id" value={topicId} />
       <input type="hidden" name="side" value={side} />
 
-      <button
-        type="submit"
+      <PendingSubmitButton
+        pendingText="참여 중..."
         className={`inline-flex w-full items-center justify-center border px-4 py-2.5 text-xs font-black shadow-[var(--shadow-button)] transition duration-300 hover:opacity-85 ${className}`}
       >
         {children}
-      </button>
+      </PendingSubmitButton>
     </form>
   );
 }

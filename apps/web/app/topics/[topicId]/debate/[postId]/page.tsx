@@ -9,6 +9,8 @@ import {
   deleteDebatePost,
 } from "@/app/actions/posts";
 import { createClient } from "@/lib/supabase/server";
+import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
+import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { PostImageViewer } from "@/components/post-image-viewer";
 
 type PostDetailPageProps = {
@@ -139,12 +141,12 @@ function JoinButton({
       <input type="hidden" name="topic_id" value={topicId} />
       <input type="hidden" name="side" value={side} />
 
-      <button
-        type="submit"
+      <PendingSubmitButton
+        pendingText="참여 중..."
         className={`inline-flex w-full items-center justify-center border px-4 py-2.5 text-xs font-black shadow-[var(--shadow-button)] transition duration-300 hover:opacity-85 ${className}`}
       >
         {children}
-      </button>
+      </PendingSubmitButton>
     </form>
   );
 }
@@ -299,9 +301,12 @@ function ReportPostForm({
           placeholder="상세 내용을 입력하세요. 선택 사항입니다."
         />
 
-        <button className="border border-[var(--message-error-line)] bg-[var(--message-error-bg)] px-4 py-2 text-xs font-black text-[var(--message-error-text)] transition hover:opacity-80">
+        <PendingSubmitButton
+          pendingText="신고 중..."
+          className="border border-[var(--message-error-line)] bg-[var(--message-error-bg)] px-4 py-2 text-xs font-black text-[var(--message-error-text)] transition hover:opacity-80"
+        >
           신고 접수
-        </button>
+        </PendingSubmitButton>
       </form>
     </details>
   );
@@ -349,9 +354,12 @@ function ReportCommentForm({
           placeholder="상세 내용. 선택 사항입니다."
         />
 
-        <button className="border border-[var(--message-error-line)] bg-[var(--message-error-bg)] px-3 py-2 text-xs font-black text-[var(--message-error-text)] transition hover:opacity-80">
+        <PendingSubmitButton
+          pendingText="신고 중..."
+          className="border border-[var(--message-error-line)] bg-[var(--message-error-bg)] px-3 py-2 text-xs font-black text-[var(--message-error-text)] transition hover:opacity-80"
+        >
           신고 접수
-        </button>
+        </PendingSubmitButton>
       </form>
     </details>
   );
@@ -404,9 +412,13 @@ function CommentCard({
                 <input type="hidden" name="topic_id" value={topicId} />
                 <input type="hidden" name="post_id" value={postId} />
                 <input type="hidden" name="comment_id" value={comment.id} />
-                <button className="border border-[var(--message-error-line)] bg-[var(--message-error-bg)] px-3 py-2 text-xs font-black text-[var(--message-error-text)] transition hover:opacity-80">
+                <ConfirmSubmitButton
+                  confirmMessage="내 댓글을 삭제하시겠습니까? 삭제 후에는 공개 댓글 목록에서 제거됩니다."
+                  pendingText="삭제 중..."
+                  className="border border-[var(--message-error-line)] bg-[var(--message-error-bg)] px-3 py-2 text-xs font-black text-[var(--message-error-text)] transition hover:opacity-80"
+                >
                   내 댓글 삭제
-                </button>
+                </ConfirmSubmitButton>
               </form>
             ) : null}
 
@@ -634,9 +646,13 @@ export default async function PostDetailPage({
                     <input type="hidden" name="topic_id" value={topic.id} />
                     <input type="hidden" name="post_id" value={post.id} />
 
-                    <button className="border border-[var(--message-error-line)] bg-[var(--message-error-bg)] px-4 py-2 text-xs font-black text-[var(--message-error-text)] transition hover:opacity-80">
+                    <ConfirmSubmitButton
+                      confirmMessage="내 발언을 삭제하시겠습니까? 첨부 이미지가 있으면 함께 삭제될 수 있습니다."
+                      pendingText="삭제 중..."
+                      className="border border-[var(--message-error-line)] bg-[var(--message-error-bg)] px-4 py-2 text-xs font-black text-[var(--message-error-text)] transition hover:opacity-80"
+                    >
                       내 발언 삭제
-                    </button>
+                    </ConfirmSubmitButton>
                   </form>
                 ) : null}
 
@@ -720,9 +736,12 @@ export default async function PostDetailPage({
                 placeholder="반론 또는 댓글을 입력하세요."
               />
 
-              <button className="w-full border border-[var(--theme-gold)] bg-[var(--theme-gold)] px-5 py-3 text-sm font-black text-[var(--theme-accent-contrast)] shadow-[var(--shadow-button)] transition duration-300 hover:opacity-85">
+              <PendingSubmitButton
+                pendingText="댓글 작성 중..."
+                className="w-full border border-[var(--theme-gold)] bg-[var(--theme-gold)] px-5 py-3 text-sm font-black text-[var(--theme-accent-contrast)] shadow-[var(--shadow-button)] transition duration-300 hover:opacity-85"
+              >
                 댓글 등록
-              </button>
+              </PendingSubmitButton>
             </form>
           ) : user ? (
             <div className="mt-6 rounded-2xl border border-[var(--theme-line)] bg-[var(--theme-surface)] p-5 text-sm leading-7 text-[var(--theme-muted)]">

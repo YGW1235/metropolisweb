@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { createNotice } from "@/app/actions/notices";
+import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { createClient } from "@/lib/supabase/server";
 
 type AdminNoticeNewPageProps = {
@@ -190,9 +191,12 @@ export default async function AdminNoticeNewPage({
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row">
-              <button className="inline-flex flex-1 items-center justify-center border border-[var(--theme-gold)] bg-[var(--theme-gold)] px-5 py-3 text-sm font-black text-[var(--theme-accent-contrast)] shadow-[var(--shadow-button)] transition duration-300 hover:opacity-85">
+              <PendingSubmitButton
+                pendingText="게시 중..."
+                className="inline-flex flex-1 items-center justify-center border border-[var(--theme-gold)] bg-[var(--theme-gold)] px-5 py-3 text-sm font-black text-[var(--theme-accent-contrast)] shadow-[var(--shadow-button)] transition duration-300 hover:opacity-85"
+              >
                 공지 게시하기
-              </button>
+              </PendingSubmitButton>
 
               <Link
                 href="/admin"

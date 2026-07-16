@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { requestAccountDeletion } from "@/app/actions/account";
+import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { createClient } from "@/lib/supabase/server";
 
 type SearchParams = Promise<{
@@ -141,12 +142,13 @@ export default async function DeleteAccountPage({
           </span>
         </label>
 
-        <button
-          type="submit"
+        <ConfirmSubmitButton
+          confirmMessage="계정 탈퇴 요청을 제출하시겠습니까? 제출 후 계정 이용 제한 처리 절차가 진행될 수 있습니다."
+          pendingText="요청 중..."
           className="rounded-lg bg-red-600 px-4 py-3 text-sm font-semibold text-white hover:bg-red-500"
         >
           계정 탈퇴하기
-        </button>
+        </ConfirmSubmitButton>
       </form>
     </main>
   );

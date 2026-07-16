@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { signOut } from "@/app/actions/auth";
+import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { createClient } from "@/lib/supabase/server";
 
@@ -177,9 +178,12 @@ export async function SiteHeader() {
               </Link>
 
               <form action={signOut}>
-                <button className="rounded-full border border-[var(--theme-line)] bg-[var(--theme-surface)] px-3 py-2 text-sm font-black text-[var(--theme-muted)] transition duration-300 hover:bg-[var(--theme-surface-hover)] hover:text-[var(--theme-text)]">
+                <PendingSubmitButton
+                  pendingText="로그아웃 중..."
+                  className="rounded-full border border-[var(--theme-line)] bg-[var(--theme-surface)] px-3 py-2 text-sm font-black text-[var(--theme-muted)] transition duration-300 hover:bg-[var(--theme-surface-hover)] hover:text-[var(--theme-text)]"
+                >
                   로그아웃
-                </button>
+                </PendingSubmitButton>
               </form>
             </div>
           ) : (

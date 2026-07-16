@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { requestPasswordReset } from "@/app/actions/password";
+import { PendingSubmitButton } from "@/components/pending-submit-button";
 
 type SearchParams = Promise<{
   message?: string;
@@ -54,12 +55,12 @@ export default async function ForgotPasswordPage({
           />
         </label>
 
-        <button
-          type="submit"
+        <PendingSubmitButton
+          pendingText="전송 중..."
           className="rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500"
         >
           재설정 메일 보내기
-        </button>
+        </PendingSubmitButton>
       </form>
     </main>
   );

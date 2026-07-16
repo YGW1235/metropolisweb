@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { joinTopic } from "@/app/actions/topics";
 import { createClient } from "@/lib/supabase/server";
+import { PendingSubmitButton } from "@/components/pending-submit-button";
 
 import { AccountStatusNotice } from "@/components/account-status-notice";
 
@@ -333,8 +334,8 @@ function JoinOptionCard({
               <input type="hidden" name="topic_id" value={topicId} />
               <input type="hidden" name="side" value={side} />
 
-              <button
-                type="submit"
+              <PendingSubmitButton
+                pendingText="참여 중..."
                 disabled={disabled}
                 className={`inline-flex w-full items-center justify-center border px-6 py-3 text-sm font-black shadow-[var(--shadow-button)] transition duration-300 hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-45 ${buttonClass}`}
               >
@@ -344,7 +345,7 @@ function JoinOptionCard({
                     : isAthena
                       ? "아테나 진영 선택"
                       : "포세이돈 진영 선택")}
-              </button>
+              </PendingSubmitButton>
             </form>
           )}
         </div>
