@@ -92,16 +92,32 @@ export default async function Home() {
     .order("score", { ascending: false })
     .order("like_count", { ascending: false })
     .order("created_at", { ascending: false })
-    .limit(5);
+    .limit(50);
 
-  const popularOpinions = popularOpinionsData ?? [];
+  const popularOpinionCandidates = popularOpinionsData ?? [];
+  const popularOpinionTopicIds = Array.from(
+    new Set(popularOpinionCandidates.map((opinion) => opinion.topic_id)),
+  );
+
+  const { data: opinionTopicsData } =
+    popularOpinionTopicIds.length > 0
+      ? await supabase
+          .from("casual_topics")
+          .select("id, title, option_a, option_b")
+          .eq("status", "active")
+          .in("id", popularOpinionTopicIds)
+      : { data: [] };
+
+  const topicById = new Map(
+    (opinionTopicsData ?? []).map((topic) => [topic.id, topic]),
+  );
+
+  const popularOpinions = popularOpinionCandidates
+    .filter((opinion) => topicById.has(opinion.topic_id))
+    .slice(0, 5);
 
   const opinionUserIds = Array.from(
     new Set(popularOpinions.map((opinion) => opinion.user_id)),
-  );
-
-  const opinionTopicIds = Array.from(
-    new Set(popularOpinions.map((opinion) => opinion.topic_id)),
   );
 
   const { data: opinionProfilesData } =
@@ -112,20 +128,8 @@ export default async function Home() {
           .in("user_id", opinionUserIds)
       : { data: [] };
 
-  const { data: opinionTopicsData } =
-    opinionTopicIds.length > 0
-      ? await supabase
-          .from("casual_topics")
-          .select("id, title, option_a, option_b")
-          .in("id", opinionTopicIds)
-      : { data: [] };
-
   const profileByUserId = new Map(
     (opinionProfilesData ?? []).map((profile) => [profile.user_id, profile]),
-  );
-
-  const topicById = new Map(
-    (opinionTopicsData ?? []).map((topic) => [topic.id, topic]),
   );
 
   const todayTotalVotes = todayTopic

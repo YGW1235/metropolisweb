@@ -89,12 +89,12 @@ export default async function UserProfilePage({
     .eq("user_id", profile.user_id)
     .eq("is_hidden", false)
     .order("created_at", { ascending: false })
-    .limit(30);
+    .limit(100);
 
-  const opinions = opinionsData ?? [];
+  const opinionCandidates = opinionsData ?? [];
 
   const topicIds = Array.from(
-    new Set(opinions.map((opinion) => opinion.topic_id)),
+    new Set(opinionCandidates.map((opinion) => opinion.topic_id)),
   );
 
   const { data: topicsData } =
@@ -102,12 +102,17 @@ export default async function UserProfilePage({
       ? await supabase
           .from("casual_topics")
           .select("id, title, option_a, option_b, status")
+          .eq("status", "active")
           .in("id", topicIds)
       : { data: [] };
 
   const topicById = new Map(
     (topicsData ?? []).map((topic) => [topic.id, topic]),
   );
+
+  const opinions = opinionCandidates
+    .filter((opinion) => topicById.has(opinion.topic_id))
+    .slice(0, 30);
 
   const totalLikes = opinions.reduce(
     (sum, opinion) => sum + Number(opinion.like_count ?? 0),
