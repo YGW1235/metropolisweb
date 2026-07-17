@@ -109,6 +109,10 @@ function getTargetLink({
     return { href: "/admin/announcements", label: "공지 관리" };
   }
 
+  if (targetType === "inquiry") {
+    return { href: "/admin/inquiries", label: "문의 관리" };
+  }
+
   if (targetType === "opinion" || targetType === "comment") {
     const topicId = getMetadataString(metadata, "topicId");
 

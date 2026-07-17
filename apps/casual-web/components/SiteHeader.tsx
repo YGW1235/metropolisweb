@@ -66,6 +66,10 @@ export async function SiteHeader() {
               인기 의견
             </Link>
 
+            <Link href="/contact" className="hover:text-stone-950">
+              문의
+            </Link>
+
             {user && (
               <Link href="/notifications" className="hover:text-stone-950">
                 알림
