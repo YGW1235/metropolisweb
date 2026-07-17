@@ -35,9 +35,9 @@ type SearchParams = Promise<{
 type SortMode = "trending" | "hot" | "new" | "views";
 
 const SORT_OPTIONS: { label: string; value: SortMode }[] = [
-  { label: "급상승", value: "trending" },
-  { label: "누적 인기", value: "hot" },
   { label: "최신", value: "new" },
+  { label: "급상승", value: "trending" },
+  { label: "공감 순", value: "hot" },
   { label: "조회 많은 순", value: "views" },
 ];
 
@@ -56,7 +56,7 @@ function getSortMode(value?: string): SortMode {
     return value;
   }
 
-  return "trending";
+  return "new";
 }
 
 function getSearchQuery(value?: string) {
