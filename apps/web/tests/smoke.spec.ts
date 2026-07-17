@@ -26,3 +26,16 @@ for (const { path, name } of publicPages) {
     await expect(page).toHaveTitle(/Metropolis/i);
   });
 }
+
+test("not found page renders", async ({ page }) => {
+  const response = await page.goto("/this-page-should-not-exist", {
+    waitUntil: "domcontentloaded",
+  });
+
+  expect(response, "404 page should return a response").not.toBeNull();
+  expect(response?.status(), "missing page should return 404").toBe(404);
+
+  await expect(page.locator("body")).toBeVisible();
+  await expect(page.locator("main").first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: /페이지를 찾을 수 없습니다/ })).toBeVisible();
+});
