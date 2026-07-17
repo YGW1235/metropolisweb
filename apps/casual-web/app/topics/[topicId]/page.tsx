@@ -398,7 +398,7 @@ export default async function TopicDetailPage({
   const hasNextPage = opinionPage * OPINIONS_PER_PAGE < opinionCount;
 
   return (
-    <main className="min-h-screen bg-[#fff7ed] text-[#2f2118]">
+    <main className="casual-page-bg min-h-screen text-[#2f2118]">
       <ViewTracker topicId={topicDetail.id} />
       <SiteHeader />
       <PublicShell>

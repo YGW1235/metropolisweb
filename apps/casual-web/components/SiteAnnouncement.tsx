@@ -94,7 +94,7 @@ export async function SiteAnnouncement() {
   const hasCompleteLink = Boolean(linkText && safeLink);
 
   return (
-    <section className="bg-[#fff7ed] px-4 py-3 sm:px-6 lg:px-8">
+    <section className="casual-page-bg px-4 py-3 sm:px-6 lg:px-8">
       <div className="mx-auto w-full max-w-[1400px]">
         <div
           className={`rounded-2xl border px-4 py-3 shadow-[0_4px_14px_rgba(120,53,15,0.035)] sm:rounded-3xl sm:px-5 sm:py-4 ${toneClass.box}`}

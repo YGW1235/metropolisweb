@@ -383,7 +383,7 @@ export default async function ReportPage({
   const preview = await loadReportPreview(supabase, targetType, targetId);
 
   return (
-    <main className="min-h-screen bg-[#fff7ed] px-6 py-10 text-[#2f2118]">
+    <main className="casual-page-bg min-h-screen px-6 py-10 text-[#2f2118]">
       <section className="mx-auto max-w-2xl">
         <Link href={returnTo} className="text-sm font-black text-orange-700">
           ← 돌아가기

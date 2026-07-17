@@ -208,7 +208,7 @@ export default async function TopicsPage({
   );
 
   return (
-    <main className="min-h-screen bg-[#fff7ed] text-[#2f2118]">
+    <main className="casual-page-bg min-h-screen text-[#2f2118]">
       <SiteHeader />
       <PublicShell activeTagSlug={requestedTagSlug}>
       <section className="w-full">

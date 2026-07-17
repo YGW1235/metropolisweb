@@ -15,7 +15,7 @@ export default async function SignupPage({
   const params = await searchParams;
 
   return (
-    <main className="min-h-screen bg-[#fff7ed] px-6 py-10 text-[#2f2118]">
+    <main className="casual-page-bg min-h-screen px-6 py-10 text-[#2f2118]">
       <section className="mx-auto max-w-md">
         <Link href="/" className="text-sm font-black text-orange-700">
           ← 심포지온

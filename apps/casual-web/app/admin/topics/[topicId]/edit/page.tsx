@@ -97,7 +97,7 @@ export default async function EditAdminTopicPage({
   );
 
   return (
-    <main className="min-h-screen bg-[#fff7ed] text-[#2f2118]">
+    <main className="casual-page-bg min-h-screen text-[#2f2118]">
       <SiteHeader />
       <section className="mx-auto max-w-4xl">
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3">

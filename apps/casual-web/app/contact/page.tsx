@@ -88,7 +88,7 @@ export default async function ContactPage({
   }
 
   return (
-    <main className="min-h-screen bg-[#fff7ed] text-[#2f2118]">
+    <main className="casual-page-bg min-h-screen text-[#2f2118]">
       <SiteHeader />
 
       <PublicShell>

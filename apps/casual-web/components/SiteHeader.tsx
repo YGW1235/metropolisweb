@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { SiteAnnouncement } from "@/components/SiteAnnouncement";
+import { BackgroundColorPicker } from "@/components/BackgroundColorPicker";
 
 export async function SiteHeader() {
   const supabase = await createClient();
@@ -114,6 +115,8 @@ export async function SiteHeader() {
                 </Link>
               </>
             )}
+
+            <BackgroundColorPicker />
           </div>
         </div>
       </header>

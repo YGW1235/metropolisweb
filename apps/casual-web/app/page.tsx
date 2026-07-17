@@ -146,7 +146,7 @@ export default async function Home() {
     : 0;
 
   return (
-    <main className="min-h-screen bg-[#fff7ed] text-[#2f2118]">
+    <main className="casual-page-bg min-h-screen text-[#2f2118]">
       <SiteHeader />
       <PublicShell>
       <section className="flex min-h-screen flex-col py-4 lg:py-6">

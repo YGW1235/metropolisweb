@@ -985,7 +985,7 @@ export default async function AdminReportsPage({
       : "필터를 변경하거나 전체 조건으로 다시 확인해보세요.";
 
   return (
-    <main className="min-h-screen bg-[#fff7ed] pb-24 text-[#2f2118]">
+    <main className="casual-page-bg min-h-screen pb-24 text-[#2f2118]">
       <SiteHeader />
       <section className="mx-auto max-w-6xl px-4 sm:px-6">
         <section className="mt-8 rounded-3xl border border-orange-100 bg-white p-5 shadow-sm sm:p-6">

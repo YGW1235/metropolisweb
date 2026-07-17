@@ -143,7 +143,7 @@ export default async function AdminTopicsPage({
   );
 
   return (
-    <main className="min-h-screen bg-[#fff7ed] text-[#2f2118]">
+    <main className="casual-page-bg min-h-screen text-[#2f2118]">
       <SiteHeader />
       <section className="mx-auto max-w-6xl">
         <section className="mt-8 rounded-3xl border border-orange-100 bg-white p-6 shadow-sm">
