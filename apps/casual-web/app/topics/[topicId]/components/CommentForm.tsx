@@ -1,4 +1,5 @@
 import { createComment } from "@/app/topics/actions";
+import { SubmitButton } from "@/components/SubmitButton";
 
 export function CommentForm({
   isLoggedIn,
@@ -36,9 +37,12 @@ export function CommentForm({
         />
 
         <div className="mt-2 flex justify-end">
-          <button className="rounded-full bg-stone-900 px-4 py-2 text-xs font-black text-white transition hover:-translate-y-0.5">
+          <SubmitButton
+            className="rounded-full bg-stone-900 px-4 py-2 text-xs font-black text-white transition hover:-translate-y-0.5"
+            pendingText="댓글 등록 중..."
+          >
             댓글 작성
-          </button>
+          </SubmitButton>
         </div>
       </form>
     </details>

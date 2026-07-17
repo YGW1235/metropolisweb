@@ -1,4 +1,5 @@
 import { deleteOpinion, updateOpinion } from "@/app/topics/actions";
+import { SubmitButton } from "@/components/SubmitButton";
 
 import type { Opinion } from "./types";
 
@@ -45,18 +46,24 @@ export function OpinionEditBox({
         </label>
 
         <div className="mt-2 flex flex-wrap justify-end gap-2">
-          <button className="rounded-full bg-stone-950 px-4 py-2 text-xs font-black text-white transition hover:-translate-y-0.5">
+          <SubmitButton
+            className="rounded-full bg-stone-950 px-4 py-2 text-xs font-black text-white transition hover:-translate-y-0.5"
+            pendingText="저장 중..."
+          >
             수정 저장
-          </button>
+          </SubmitButton>
         </div>
       </form>
 
       <form action={deleteOpinion} className="mt-2 flex justify-end">
         <input type="hidden" name="topicId" value={topicId} />
         <input type="hidden" name="opinionId" value={opinion.id} />
-        <button className="rounded-full bg-red-50 px-4 py-2 text-xs font-black text-red-700 transition hover:bg-red-100">
+        <SubmitButton
+          className="rounded-full bg-red-50 px-4 py-2 text-xs font-black text-red-700 transition hover:bg-red-100"
+          pendingText="삭제 중..."
+        >
           의견 삭제
-        </button>
+        </SubmitButton>
       </form>
     </details>
   );

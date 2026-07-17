@@ -15,6 +15,7 @@ import {
 } from "@/lib/casual-tags";
 
 import { SiteHeader } from "@/components/SiteHeader";
+import { SubmitButton } from "@/components/SubmitButton";
 import { TopicTagBadges } from "@/components/TopicTagBadges";
 import { TopicTagCheckboxes } from "@/components/TopicTagCheckboxes";
 
@@ -298,9 +299,12 @@ export default async function AdminTopicsPage({
             </div>
 
             <div className="flex justify-end">
-              <button className="rounded-full bg-stone-950 px-6 py-3 text-sm font-black text-white transition hover:-translate-y-0.5">
+              <SubmitButton
+                className="rounded-full bg-stone-950 px-6 py-3 text-sm font-black text-white transition hover:-translate-y-0.5"
+                pendingText="주제 생성 중..."
+              >
                 주제 생성
-              </button>
+              </SubmitButton>
             </div>
           </form>
         </section>
@@ -398,9 +402,12 @@ export default async function AdminTopicsPage({
                       {!topic.is_today && topic.status === "active" && (
                         <form action={setTodayTopic}>
                           <input type="hidden" name="topicId" value={topic.id} />
-                          <button className="rounded-full bg-orange-500 px-4 py-2 text-sm font-black text-white transition hover:-translate-y-0.5">
+                          <SubmitButton
+                            className="rounded-full bg-orange-500 px-4 py-2 text-sm font-black text-white transition hover:-translate-y-0.5"
+                            pendingText="처리 중..."
+                          >
                             오늘의 논쟁
-                          </button>
+                          </SubmitButton>
                         </form>
                       )}
 
@@ -408,9 +415,12 @@ export default async function AdminTopicsPage({
                         <form action={changeTopicStatus}>
                           <input type="hidden" name="topicId" value={topic.id} />
                           <input type="hidden" name="status" value="active" />
-                          <button className="rounded-full bg-green-600 px-4 py-2 text-sm font-black text-white transition hover:-translate-y-0.5">
+                          <SubmitButton
+                            className="rounded-full bg-green-600 px-4 py-2 text-sm font-black text-white transition hover:-translate-y-0.5"
+                            pendingText="처리 중..."
+                          >
                             활성화
-                          </button>
+                          </SubmitButton>
                         </form>
                       )}
 
@@ -418,9 +428,12 @@ export default async function AdminTopicsPage({
                         <form action={changeTopicStatus}>
                           <input type="hidden" name="topicId" value={topic.id} />
                           <input type="hidden" name="status" value="closed" />
-                          <button className="rounded-full bg-yellow-100 px-4 py-2 text-sm font-black text-yellow-800 transition hover:bg-yellow-200">
+                          <SubmitButton
+                            className="rounded-full bg-yellow-100 px-4 py-2 text-sm font-black text-yellow-800 transition hover:bg-yellow-200"
+                            pendingText="처리 중..."
+                          >
                             종료
-                          </button>
+                          </SubmitButton>
                         </form>
                       )}
 
@@ -432,9 +445,12 @@ export default async function AdminTopicsPage({
                             name="status"
                             value="archived"
                           />
-                          <button className="rounded-full bg-red-50 px-4 py-2 text-sm font-black text-red-700 transition hover:bg-red-100">
+                          <SubmitButton
+                            className="rounded-full bg-red-50 px-4 py-2 text-sm font-black text-red-700 transition hover:bg-red-100"
+                            pendingText="처리 중..."
+                          >
                             보관
-                          </button>
+                          </SubmitButton>
                         </form>
                       )}
                     </div>

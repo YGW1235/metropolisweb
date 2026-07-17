@@ -106,6 +106,38 @@ export async function createInquiry(formData: FormData) {
   }
 
   const recentThreshold = new Date(Date.now() - 60_000).toISOString();
+  const duplicateQuery = supabase
+    .from("casual_inquiries")
+    .select("id")
+    .eq("category", category)
+    .eq("subject", subject)
+    .eq("body", body)
+    .gt("created_at", recentThreshold)
+    .limit(1);
+
+  if (user) {
+    duplicateQuery.eq("user_id", user.id);
+  } else {
+    duplicateQuery.eq("email", email);
+  }
+
+  const { data: duplicateInquiries, error: duplicateError } =
+    await duplicateQuery;
+
+  if (duplicateError) {
+    redirectWithMessage(
+      "문의 제출 상태를 확인하지 못했습니다. 잠시 후 다시 시도해주세요.",
+      "error",
+    );
+  }
+
+  if ((duplicateInquiries ?? []).length > 0) {
+    redirectWithMessage(
+      "이미 같은 내용이 제출되었습니다. 잠시 후 확인해주세요.",
+      "success",
+    );
+  }
+
   const recentQuery = supabase
     .from("casual_inquiries")
     .select("id")

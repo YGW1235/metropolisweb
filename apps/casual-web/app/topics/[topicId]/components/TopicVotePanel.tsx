@@ -1,10 +1,11 @@
 import Link from "next/link";
 
 import { toggleTopicBookmark, voteTopic } from "@/app/topics/actions";
+import { SubmitButton } from "@/components/SubmitButton";
+import { TopicTagBadges } from "@/components/TopicTagBadges";
 import type { TopicTag } from "@/lib/casual-tags";
 
 import type { CurrentVote, TopicDetail } from "./types";
-import { TopicTagBadges } from "@/components/TopicTagBadges";
 
 function getPercent(value: number, total: number) {
   if (total <= 0) return 0;
@@ -36,10 +37,11 @@ function VoteButton({
     <form action={voteTopic}>
       <input type="hidden" name="topicId" value={topicId} />
       <input type="hidden" name="choice" value={choice} />
-      <button
+      <SubmitButton
         className={`w-full rounded-3xl px-4 py-5 text-left transition hover:-translate-y-0.5 sm:px-6 sm:py-6 ${
           isSelected ? selectedClass : defaultClass
         }`}
+        pendingText="투표 중..."
       >
         <span className="block text-sm font-black opacity-80">
           {choice.toUpperCase()}
@@ -52,7 +54,7 @@ function VoteButton({
             내가 선택한 입장
           </span>
         )}
-      </button>
+      </SubmitButton>
     </form>
   );
 }
@@ -98,15 +100,16 @@ export function TopicVotePanel({
 
         <form action={toggleTopicBookmark} className="shrink-0">
           <input type="hidden" name="topicId" value={topic.id} />
-          <button
+          <SubmitButton
             className={`w-full rounded-full px-5 py-3 text-sm font-black transition hover:-translate-y-0.5 sm:w-auto ${
               isBookmarked
                 ? "bg-orange-500 text-white shadow-lg shadow-orange-100"
                 : "border border-orange-200 bg-orange-50 text-orange-800 hover:bg-orange-100"
             }`}
+            pendingText="저장 중..."
           >
             {isBookmarked ? "저장됨" : "주제 저장"}
-          </button>
+          </SubmitButton>
         </form>
       </div>
 

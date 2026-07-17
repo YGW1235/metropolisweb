@@ -300,6 +300,34 @@ export async function createOpinion(formData: FormData) {
 
   const opinionRateLimitCutoff = new Date(Date.now() - 30_000).toISOString();
 
+  const { data: duplicateOpinions, error: duplicateOpinionsError } =
+    await supabase
+      .from("casual_opinions")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("topic_id", topicId)
+      .eq("choice", vote.choice)
+      .eq("body", body)
+      .eq("is_hidden", false)
+      .gt("created_at", opinionRateLimitCutoff)
+      .limit(1);
+
+  if (duplicateOpinionsError) {
+    redirectWithMessage(
+      `/topics/${topicId}`,
+      "의견 제출 상태를 확인하지 못했습니다. 잠시 후 다시 시도해주세요.",
+      "error",
+    );
+  }
+
+  if ((duplicateOpinions ?? []).length > 0) {
+    redirectWithMessage(
+      `/topics/${topicId}`,
+      "이미 같은 내용이 제출되었습니다. 잠시 후 확인해주세요.",
+      "success",
+    );
+  }
+
   const { data: recentOpinions, error: recentOpinionsError } = await supabase
     .from("casual_opinions")
     .select("id")
@@ -638,6 +666,33 @@ export async function createComment(formData: FormData) {
   }
 
   const commentRateLimitCutoff = new Date(Date.now() - 15_000).toISOString();
+
+  const { data: duplicateComments, error: duplicateCommentsError } =
+    await supabase
+      .from("casual_comments")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("opinion_id", opinionId)
+      .eq("body", body)
+      .eq("is_hidden", false)
+      .gt("created_at", commentRateLimitCutoff)
+      .limit(1);
+
+  if (duplicateCommentsError) {
+    redirectWithMessage(
+      `/topics/${topicId}`,
+      "댓글 제출 상태를 확인하지 못했습니다. 잠시 후 다시 시도해주세요.",
+      "error",
+    );
+  }
+
+  if ((duplicateComments ?? []).length > 0) {
+    redirectWithMessage(
+      `/topics/${topicId}`,
+      "이미 같은 내용이 제출되었습니다. 잠시 후 확인해주세요.",
+      "success",
+    );
+  }
 
   const { data: recentComments, error: recentCommentsError } = await supabase
     .from("casual_comments")

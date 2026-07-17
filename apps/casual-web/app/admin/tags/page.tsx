@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import { createTopicTag, deleteTopicTag } from "@/app/admin/tags/actions";
 import { SiteHeader } from "@/components/SiteHeader";
+import { SubmitButton } from "@/components/SubmitButton";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -204,9 +205,12 @@ export default async function AdminTagsPage({
             </div>
 
             <div className="flex items-end">
-              <button className="w-full rounded-full bg-stone-950 px-6 py-3 text-sm font-black text-white transition hover:-translate-y-0.5 sm:w-auto">
+              <SubmitButton
+                className="w-full rounded-full bg-stone-950 px-6 py-3 text-sm font-black text-white transition hover:-translate-y-0.5 sm:w-auto"
+                pendingText="태그 생성 중..."
+              >
                 태그 추가
-              </button>
+              </SubmitButton>
             </div>
           </form>
         </section>
@@ -269,9 +273,12 @@ export default async function AdminTagsPage({
                           <p className="mb-2 max-w-[12rem] text-xs font-bold leading-5 text-stone-400">
                             사용 중이지 않은 태그만 삭제됩니다.
                           </p>
-                          <button className="w-full rounded-full border border-red-100 bg-red-50 px-4 py-2 text-sm font-black text-red-700 transition hover:bg-red-100">
+                          <SubmitButton
+                            className="w-full rounded-full border border-red-100 bg-red-50 px-4 py-2 text-sm font-black text-red-700 transition hover:bg-red-100"
+                            pendingText="삭제 중..."
+                          >
                             삭제
-                          </button>
+                          </SubmitButton>
                         </form>
                       ) : (
                         <div className="shrink-0 rounded-2xl bg-stone-50 px-4 py-3 text-xs font-bold leading-5 text-stone-500">

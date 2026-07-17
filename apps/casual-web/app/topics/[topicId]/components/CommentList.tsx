@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { deleteComment, updateComment } from "@/app/topics/actions";
+import { SubmitButton } from "@/components/SubmitButton";
 
 import { CommentForm } from "./CommentForm";
 import type { Comment, PublicProfile } from "./types";
@@ -127,9 +128,12 @@ function CommentItem({
                     />
 
                     <div className="mt-2 flex justify-end">
-                      <button className="rounded-full bg-stone-950 px-4 py-2 text-xs font-black text-white transition hover:-translate-y-0.5">
+                      <SubmitButton
+                        className="rounded-full bg-stone-950 px-4 py-2 text-xs font-black text-white transition hover:-translate-y-0.5"
+                        pendingText="저장 중..."
+                      >
                         수정 저장
-                      </button>
+                      </SubmitButton>
                     </div>
                   </form>
 
@@ -137,9 +141,12 @@ function CommentItem({
                     <input type="hidden" name="topicId" value={topicId} />
                     <input type="hidden" name="commentId" value={comment.id} />
 
-                    <button className="rounded-full bg-red-50 px-4 py-2 text-xs font-black text-red-700 transition hover:bg-red-100">
+                    <SubmitButton
+                      className="rounded-full bg-red-50 px-4 py-2 text-xs font-black text-red-700 transition hover:bg-red-100"
+                      pendingText="삭제 중..."
+                    >
                       댓글 삭제
-                    </button>
+                    </SubmitButton>
                   </form>
                 </div>
               </details>

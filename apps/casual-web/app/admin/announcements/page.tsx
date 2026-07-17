@@ -8,6 +8,7 @@ import {
   updateAnnouncementStatus,
 } from "@/app/admin/announcements/actions";
 import { SiteHeader } from "@/components/SiteHeader";
+import { SubmitButton } from "@/components/SubmitButton";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -294,9 +295,12 @@ export default async function AdminAnnouncementsPage({
             </div>
 
             <div className="flex justify-end">
-              <button className="rounded-full bg-stone-950 px-6 py-3 text-sm font-black text-white transition hover:-translate-y-0.5">
+              <SubmitButton
+                className="rounded-full bg-stone-950 px-6 py-3 text-sm font-black text-white transition hover:-translate-y-0.5"
+                pendingText="공지 생성 중..."
+              >
                 공지 생성
-              </button>
+              </SubmitButton>
             </div>
           </form>
         </section>
@@ -378,9 +382,12 @@ export default async function AdminAnnouncementsPage({
                       </select>
                     </div>
 
-                    <button className="w-full rounded-full bg-stone-950 px-4 py-2 text-sm font-black text-white transition hover:-translate-y-0.5">
+                    <SubmitButton
+                      className="w-full rounded-full bg-stone-950 px-4 py-2 text-sm font-black text-white transition hover:-translate-y-0.5"
+                      pendingText="저장 중..."
+                    >
                       상태 저장
-                    </button>
+                    </SubmitButton>
                   </form>
 
                   {announcement.status !== "archived" && (
@@ -390,9 +397,12 @@ export default async function AdminAnnouncementsPage({
                         name="announcementId"
                         value={announcement.id}
                       />
-                      <button className="w-full rounded-full bg-stone-100 px-4 py-2 text-sm font-black text-stone-700 transition hover:bg-stone-200">
+                      <SubmitButton
+                        className="w-full rounded-full bg-stone-100 px-4 py-2 text-sm font-black text-stone-700 transition hover:bg-stone-200"
+                        pendingText="처리 중..."
+                      >
                         보관 처리
-                      </button>
+                      </SubmitButton>
                     </form>
                   )}
                 </div>

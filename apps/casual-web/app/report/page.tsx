@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { createReport } from "@/app/report/actions";
+import { SubmitButton } from "@/components/SubmitButton";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -461,9 +462,12 @@ export default async function ReportPage({
                   취소
                 </Link>
 
-                <button className="rounded-full bg-red-600 px-6 py-3 text-sm font-black text-white transition hover:-translate-y-0.5">
+                <SubmitButton
+                  className="rounded-full bg-red-600 px-6 py-3 text-sm font-black text-white transition hover:-translate-y-0.5"
+                  pendingText="신고 접수 중..."
+                >
                   신고 접수
-                </button>
+                </SubmitButton>
               </div>
             </form>
           ) : (

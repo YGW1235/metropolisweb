@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { TopicTag } from "@/lib/casual-tags";
 
 import { SiteHeader } from "@/components/SiteHeader";
+import { SubmitButton } from "@/components/SubmitButton";
 import { TopicTagCheckboxes } from "@/components/TopicTagCheckboxes";
 
 export const dynamic = "force-dynamic";
@@ -218,9 +219,12 @@ export default async function EditAdminTopicPage({
             </div>
 
             <div className="flex justify-end">
-              <button className="rounded-full bg-stone-950 px-6 py-3 text-sm font-black text-white transition hover:-translate-y-0.5">
+              <SubmitButton
+                className="rounded-full bg-stone-950 px-6 py-3 text-sm font-black text-white transition hover:-translate-y-0.5"
+                pendingText="저장 중..."
+              >
                 수정 저장
-              </button>
+              </SubmitButton>
             </div>
           </form>
         </section>

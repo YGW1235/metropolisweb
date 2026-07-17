@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import { updateUserModeration } from "@/app/admin/users/actions";
 import { SiteHeader } from "@/components/SiteHeader";
+import { SubmitButton } from "@/components/SubmitButton";
 import {
   getCasualUserStatusLabel,
   normalizeCasualUserStatus,
@@ -334,9 +335,12 @@ export default async function AdminUsersPage({
                       </div>
                     </div>
 
-                    <button className="mt-4 w-full rounded-full bg-stone-950 px-5 py-3 text-sm font-black text-white transition hover:-translate-y-0.5">
+                    <SubmitButton
+                      className="mt-4 w-full rounded-full bg-stone-950 px-5 py-3 text-sm font-black text-white transition hover:-translate-y-0.5"
+                      pendingText="저장 중..."
+                    >
                       상태 저장
-                    </button>
+                    </SubmitButton>
                   </form>
                 </div>
               </article>

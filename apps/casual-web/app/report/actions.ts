@@ -115,7 +115,11 @@ export async function createReport(formData: FormData) {
     .limit(1);
 
   if (openReportsError) {
-    redirectWithMessage(returnTo, openReportsError.message, "error");
+    redirectWithMessage(
+      returnTo,
+      "신고 상태를 확인하지 못했습니다. 잠시 후 다시 시도해주세요.",
+      "error",
+    );
   }
 
   if ((openReports ?? []).length > 0) {
@@ -128,6 +132,34 @@ export async function createReport(formData: FormData) {
 
   const reportRateLimitCutoff = new Date(Date.now() - 60_000).toISOString();
 
+  const { data: duplicateReports, error: duplicateReportsError } =
+    await supabase
+      .from("casual_reports")
+      .select("id")
+      .eq("reporter_id", user.id)
+      .eq("target_type", targetType)
+      .eq("target_id", targetId)
+      .eq("reason", reason)
+      .eq("details", details)
+      .gt("created_at", reportRateLimitCutoff)
+      .limit(1);
+
+  if (duplicateReportsError) {
+    redirectWithMessage(
+      returnTo,
+      "신고 상태를 확인하지 못했습니다. 잠시 후 다시 시도해주세요.",
+      "error",
+    );
+  }
+
+  if ((duplicateReports ?? []).length > 0) {
+    redirectWithMessage(
+      returnTo,
+      "이미 같은 내용이 제출되었습니다. 잠시 후 확인해주세요.",
+      "success",
+    );
+  }
+
   const { data: recentReports, error: recentReportsError } = await supabase
     .from("casual_reports")
     .select("id")
@@ -136,7 +168,11 @@ export async function createReport(formData: FormData) {
     .limit(1);
 
   if (recentReportsError) {
-    redirectWithMessage(returnTo, recentReportsError.message, "error");
+    redirectWithMessage(
+      returnTo,
+      "신고 상태를 확인하지 못했습니다. 잠시 후 다시 시도해주세요.",
+      "error",
+    );
   }
 
   if ((recentReports ?? []).length > 0) {
@@ -156,7 +192,12 @@ export async function createReport(formData: FormData) {
   });
 
   if (error) {
-    redirectWithMessage(returnTo, error.message, "error");
+    console.error("Failed to create casual report:", error.message);
+    redirectWithMessage(
+      returnTo,
+      "신고 접수에 실패했습니다. 잠시 후 다시 시도해주세요.",
+      "error",
+    );
   }
 
   revalidatePath("/admin/reports");

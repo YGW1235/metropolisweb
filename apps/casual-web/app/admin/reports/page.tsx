@@ -15,6 +15,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 
 import { SiteHeader } from "@/components/SiteHeader";
+import { SubmitButton } from "@/components/SubmitButton";
 
 export const metadata: Metadata = {
   title: "신고 관리",
@@ -684,9 +685,12 @@ function ReportActions({
           <form action={resolveReport} className="space-y-2">
             <input type="hidden" name="reportId" value={report.id} />
             <AdminNoteInput />
-            <button className="w-full rounded-full bg-green-600 px-4 py-2 text-sm font-black text-white transition hover:-translate-y-0.5">
+            <SubmitButton
+              className="w-full rounded-full bg-green-600 px-4 py-2 text-sm font-black text-white transition hover:-translate-y-0.5"
+              pendingText="처리 중..."
+            >
               신고 처리완료
-            </button>
+            </SubmitButton>
           </form>
 
           {canHideOpinion && (
@@ -694,9 +698,12 @@ function ReportActions({
               <input type="hidden" name="reportId" value={report.id} />
               <input type="hidden" name="targetId" value={report.target_id} />
               <AdminNoteInput />
-              <button className="w-full rounded-full bg-red-600 px-4 py-2 text-sm font-black text-white transition hover:-translate-y-0.5">
+              <SubmitButton
+                className="w-full rounded-full bg-red-600 px-4 py-2 text-sm font-black text-white transition hover:-translate-y-0.5"
+                pendingText="처리 중..."
+              >
                 의견 숨김 + 처리완료
-              </button>
+              </SubmitButton>
             </form>
           )}
 
@@ -705,9 +712,12 @@ function ReportActions({
               <input type="hidden" name="reportId" value={report.id} />
               <input type="hidden" name="targetId" value={report.target_id} />
               <AdminNoteInput />
-              <button className="w-full rounded-full bg-red-600 px-4 py-2 text-sm font-black text-white transition hover:-translate-y-0.5">
+              <SubmitButton
+                className="w-full rounded-full bg-red-600 px-4 py-2 text-sm font-black text-white transition hover:-translate-y-0.5"
+                pendingText="처리 중..."
+              >
                 댓글 숨김 + 처리완료
-              </button>
+              </SubmitButton>
             </form>
           )}
 
@@ -716,18 +726,24 @@ function ReportActions({
               <input type="hidden" name="reportId" value={report.id} />
               <input type="hidden" name="targetId" value={report.target_id} />
               <AdminNoteInput />
-              <button className="w-full rounded-full bg-red-600 px-4 py-2 text-sm font-black text-white transition hover:-translate-y-0.5">
+              <SubmitButton
+                className="w-full rounded-full bg-red-600 px-4 py-2 text-sm font-black text-white transition hover:-translate-y-0.5"
+                pendingText="처리 중..."
+              >
                 주제 종료 + 처리완료
-              </button>
+              </SubmitButton>
             </form>
           )}
 
           <form action={dismissReport} className="space-y-2">
             <input type="hidden" name="reportId" value={report.id} />
             <AdminNoteInput />
-            <button className="w-full rounded-full bg-stone-200 px-4 py-2 text-sm font-black text-stone-800 transition hover:bg-stone-300">
+            <SubmitButton
+              className="w-full rounded-full bg-stone-200 px-4 py-2 text-sm font-black text-stone-800 transition hover:bg-stone-300"
+              pendingText="처리 중..."
+            >
               신고 기각
-            </button>
+            </SubmitButton>
           </form>
         </div>
       ) : (
@@ -746,18 +762,24 @@ function ReportActions({
       {canUnhideOpinion && (
         <form action={unhideOpinion}>
           <input type="hidden" name="targetId" value={report.target_id} />
-          <button className="w-full rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-black text-stone-700 transition hover:bg-stone-50">
+          <SubmitButton
+            className="w-full rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-black text-stone-700 transition hover:bg-stone-50"
+            pendingText="처리 중..."
+          >
             의견 숨김 해제
-          </button>
+          </SubmitButton>
         </form>
       )}
 
       {canUnhideComment && (
         <form action={unhideComment}>
           <input type="hidden" name="targetId" value={report.target_id} />
-          <button className="w-full rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-black text-stone-700 transition hover:bg-stone-50">
+          <SubmitButton
+            className="w-full rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-black text-stone-700 transition hover:bg-stone-50"
+            pendingText="처리 중..."
+          >
             댓글 숨김 해제
-          </button>
+          </SubmitButton>
         </form>
       )}
     </aside>

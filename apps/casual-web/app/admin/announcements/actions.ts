@@ -133,6 +133,34 @@ export async function createAnnouncement(formData: FormData) {
 
   const { supabase } = await requireAdmin();
 
+  const duplicateAnnouncementCutoff = new Date(
+    Date.now() - 60_000,
+  ).toISOString();
+  const { data: duplicateAnnouncements, error: duplicateAnnouncementsError } =
+    await supabase
+      .from("casual_announcements")
+      .select("id")
+      .eq("title", title)
+      .eq("body", body)
+      .gt("created_at", duplicateAnnouncementCutoff)
+      .limit(1);
+
+  if (duplicateAnnouncementsError) {
+    redirectWithMessage(
+      "/admin/announcements",
+      "공지 생성 상태를 확인하지 못했습니다. 잠시 후 다시 시도해주세요.",
+      "error",
+    );
+  }
+
+  if ((duplicateAnnouncements ?? []).length > 0) {
+    redirectWithMessage(
+      "/admin/announcements",
+      "이미 같은 내용이 제출되었습니다. 잠시 후 확인해주세요.",
+      "success",
+    );
+  }
+
   const { data: announcement, error } = await supabase
     .from("casual_announcements")
     .insert({

@@ -4,6 +4,7 @@ import {
   clearOpinionReaction,
   reactOpinion,
 } from "@/app/topics/actions";
+import { SubmitButton } from "@/components/SubmitButton";
 
 import { CommentList } from "./CommentList";
 import { OpinionEditBox } from "./OpinionEditBox";
@@ -164,39 +165,44 @@ export function OpinionCard({
           <input type="hidden" name="topicId" value={topicId} />
           <input type="hidden" name="opinionId" value={opinion.id} />
           <input type="hidden" name="reactionType" value="like" />
-          <button
+          <SubmitButton
             className={`rounded-full px-3 py-2 text-xs font-black leading-none ${
               myReaction === "like"
                 ? "bg-orange-500 text-white"
                 : "bg-white text-stone-700"
             }`}
+            pendingText="처리 중..."
           >
             ▲ {opinion.like_count}
-          </button>
+          </SubmitButton>
         </form>
 
         <form action={reactOpinion}>
           <input type="hidden" name="topicId" value={topicId} />
           <input type="hidden" name="opinionId" value={opinion.id} />
           <input type="hidden" name="reactionType" value="dislike" />
-          <button
+          <SubmitButton
             className={`rounded-full px-3 py-2 text-xs font-black leading-none ${
               myReaction === "dislike"
                 ? "bg-stone-900 text-white"
                 : "bg-white text-stone-700"
             }`}
+            pendingText="처리 중..."
           >
             ▼ {opinion.dislike_count}
-          </button>
+          </SubmitButton>
         </form>
 
         {myReaction && (
           <form action={clearOpinionReaction}>
             <input type="hidden" name="topicId" value={topicId} />
             <input type="hidden" name="opinionId" value={opinion.id} />
-            <button className="rounded-full bg-white px-3 py-2 text-xs font-black text-stone-500">
+            <SubmitButton
+              className="rounded-full bg-white px-3 py-2 text-xs font-black text-stone-500"
+              pendingText="처리 중..."
+            >
               취소
-            </button>
+            </SubmitButton>
           </form>
         )}
 

@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { createOpinion } from "@/app/topics/actions";
+import { SubmitButton } from "@/components/SubmitButton";
 
 import type { CurrentVote, TopicDetail } from "./types";
 
@@ -63,9 +64,12 @@ export function OpinionForm({
             </label>
 
             <div className="mt-3 flex justify-end">
-              <button className="rounded-full bg-stone-950 px-5 py-3 text-sm font-black text-white transition hover:-translate-y-0.5">
+              <SubmitButton
+                className="rounded-full bg-stone-950 px-5 py-3 text-sm font-black text-white transition hover:-translate-y-0.5"
+                pendingText="의견 등록 중..."
+              >
                 의견 남기기
-              </button>
+              </SubmitButton>
             </div>
           </div>
         </form>

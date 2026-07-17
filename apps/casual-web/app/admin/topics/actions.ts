@@ -158,6 +158,33 @@ export async function createTopic(formData: FormData) {
 
   const { supabase, user } = await requireAdmin();
 
+  const duplicateTopicCutoff = new Date(Date.now() - 60_000).toISOString();
+  const { data: duplicateTopics, error: duplicateTopicsError } = await supabase
+    .from("casual_topics")
+    .select("id")
+    .eq("created_by", user.id)
+    .eq("title", title)
+    .eq("option_a", optionA)
+    .eq("option_b", optionB)
+    .gt("created_at", duplicateTopicCutoff)
+    .limit(1);
+
+  if (duplicateTopicsError) {
+    redirectWithMessage(
+      "/admin/topics",
+      "주제 생성 상태를 확인하지 못했습니다. 잠시 후 다시 시도해주세요.",
+      "error",
+    );
+  }
+
+  if ((duplicateTopics ?? []).length > 0) {
+    redirectWithMessage(
+      "/admin/topics",
+      "이미 같은 내용이 제출되었습니다. 잠시 후 확인해주세요.",
+      "success",
+    );
+  }
+
   if (isToday) {
     await supabase
       .from("casual_topics")

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { createInquiry } from "@/app/contact/actions";
 import { PublicShell } from "@/components/PublicShell";
 import { SiteHeader } from "@/components/SiteHeader";
+import { SubmitButton } from "@/components/SubmitButton";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -205,9 +206,12 @@ export default async function ContactPage({
               <p className="text-xs font-bold leading-5 text-stone-500">
                 문의 처리에 필요한 범위 안에서 입력한 연락처와 내용이 저장됩니다.
               </p>
-              <button className="rounded-full bg-stone-950 px-5 py-3 text-sm font-black text-white transition hover:-translate-y-0.5">
+              <SubmitButton
+                className="rounded-full bg-stone-950 px-5 py-3 text-sm font-black text-white transition hover:-translate-y-0.5"
+                pendingText="문의 접수 중..."
+              >
                 문의 보내기
-              </button>
+              </SubmitButton>
             </div>
           </form>
 

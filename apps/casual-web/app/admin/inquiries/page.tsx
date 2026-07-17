@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import { updateInquiryStatus } from "@/app/admin/inquiries/actions";
 import { SiteHeader } from "@/components/SiteHeader";
+import { SubmitButton } from "@/components/SubmitButton";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -319,9 +320,12 @@ export default async function AdminInquiriesPage({
                   />
                 </label>
 
-                <button className="self-end rounded-2xl bg-stone-950 px-5 py-3 text-sm font-black text-white transition hover:-translate-y-0.5">
+                <SubmitButton
+                  className="self-end rounded-2xl bg-stone-950 px-5 py-3 text-sm font-black text-white transition hover:-translate-y-0.5"
+                  pendingText="처리 중..."
+                >
                   저장
-                </button>
+                </SubmitButton>
               </form>
             </article>
           ))}
