@@ -8,12 +8,17 @@ import {
   getCasualUserStatus,
   type CasualUserPermission,
 } from "@/lib/casual-user-status";
+import {
+  CASUAL_OPINION_BODY_EMPTY_MESSAGE,
+  CASUAL_OPINION_BODY_MAX_LENGTH,
+  CASUAL_OPINION_BODY_MIN_LENGTH,
+  CASUAL_OPINION_BODY_TOO_LONG_MESSAGE,
+} from "@/lib/casual-opinion-constraints";
 import { createClient } from "@/lib/supabase/server";
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
 const OPINION_IMAGE_BUCKET = "casual-opinion-images";
-const MAX_OPINION_BODY_LENGTH = 5000;
 const MAX_OPINION_IMAGE_COUNT = 3;
 const MAX_OPINION_IMAGE_SIZE = 5 * 1024 * 1024;
 const OPINION_IMAGE_TYPES = new Set([
@@ -23,14 +28,52 @@ const OPINION_IMAGE_TYPES = new Set([
   "image/gif",
 ]);
 
-function getString(formData: FormData, key: string) {
+function getRawString(formData: FormData, key: string) {
   const value = formData.get(key);
 
   if (typeof value !== "string") {
     return "";
   }
 
-  return value.trim();
+  return value;
+}
+
+function getString(formData: FormData, key: string) {
+  return getRawString(formData, key).trim();
+}
+
+function getOpinionBody(formData: FormData) {
+  const rawBody = getRawString(formData, "body");
+
+  return {
+    body: rawBody.trim(),
+    rawBody,
+  };
+}
+
+function validateOpinionBody({
+  body,
+  rawBody,
+  returnPath,
+}: {
+  body: string;
+  rawBody: string;
+  returnPath: string;
+}) {
+  if (body.length < CASUAL_OPINION_BODY_MIN_LENGTH) {
+    redirectWithMessage(returnPath, CASUAL_OPINION_BODY_EMPTY_MESSAGE, "error");
+  }
+
+  if (
+    rawBody.length > CASUAL_OPINION_BODY_MAX_LENGTH ||
+    body.length > CASUAL_OPINION_BODY_MAX_LENGTH
+  ) {
+    redirectWithMessage(
+      returnPath,
+      CASUAL_OPINION_BODY_TOO_LONG_MESSAGE,
+      "error",
+    );
+  }
 }
 
 function getOpinionImageFiles(formData: FormData) {
@@ -243,20 +286,14 @@ export async function voteTopic(formData: FormData) {
 
 export async function createOpinion(formData: FormData) {
   const topicId = getString(formData, "topicId");
-  const body = getString(formData, "body");
+  const { body, rawBody } = getOpinionBody(formData);
   const imageFiles = getOpinionImageFiles(formData);
 
   if (!topicId) {
     redirectWithMessage("/topics", "주제 정보가 올바르지 않습니다.", "error");
   }
 
-  if (body.length < 1 || body.length > MAX_OPINION_BODY_LENGTH) {
-    redirectWithMessage(
-      `/topics/${topicId}`,
-      "의견은 1자 이상 5,000자 이하로 입력해주세요.",
-      "error",
-    );
-  }
+  validateOpinionBody({ body, rawBody, returnPath: `/topics/${topicId}` });
 
   validateOpinionImages(imageFiles, `/topics/${topicId}`);
 
@@ -770,20 +807,14 @@ export async function createComment(formData: FormData) {
 export async function updateOpinion(formData: FormData) {
   const topicId = getString(formData, "topicId");
   const opinionId = getString(formData, "opinionId");
-  const body = getString(formData, "body");
+  const { body, rawBody } = getOpinionBody(formData);
   const confirmReset = formData.get("confirmReset") === "on";
 
   if (!topicId || !opinionId) {
     redirectWithMessage("/topics", "의견 정보가 올바르지 않습니다.", "error");
   }
 
-  if (body.length < 1 || body.length > MAX_OPINION_BODY_LENGTH) {
-    redirectWithMessage(
-      `/topics/${topicId}`,
-      "의견은 1자 이상 5,000자 이하로 입력해주세요.",
-      "error",
-    );
-  }
+  validateOpinionBody({ body, rawBody, returnPath: `/topics/${topicId}` });
 
   if (!confirmReset) {
     redirectWithMessage(
@@ -795,18 +826,103 @@ export async function updateOpinion(formData: FormData) {
 
   const supabase = await createClient();
 
-  const { error } = await supabase.rpc("update_own_casual_opinion", {
-    p_opinion_id: opinionId,
-    p_body: body,
-  });
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
 
-  if (error) {
-    console.error("Failed to update casual opinion:", error.message);
+  if (userError || !user) {
+    redirectWithMessage("/login", "의견을 수정하려면 로그인이 필요합니다.", "error");
+  }
+
+  const { data: opinion, error: opinionError } = await supabase
+    .from("casual_opinions")
+    .select("id, user_id, topic_id, is_hidden")
+    .eq("id", opinionId)
+    .eq("topic_id", topicId)
+    .maybeSingle();
+
+  if (opinionError) {
+    console.error("Failed to read casual opinion before update:", opinionError);
     redirectWithMessage(
       `/topics/${topicId}`,
       "의견을 수정하지 못했습니다. 잠시 후 다시 시도해주세요.",
       "error",
     );
+  }
+
+  if (!opinion) {
+    redirectWithMessage(
+      `/topics/${topicId}`,
+      "수정할 의견을 찾을 수 없습니다.",
+      "error",
+    );
+  }
+
+  if (opinion.user_id !== user.id) {
+    redirectWithMessage(
+      `/topics/${topicId}`,
+      "내 의견만 수정할 수 있습니다.",
+      "error",
+    );
+  }
+
+  if (opinion.is_hidden) {
+    redirectWithMessage(
+      `/topics/${topicId}`,
+      "숨김 처리된 의견은 수정할 수 없습니다.",
+      "error",
+    );
+  }
+
+  const { error: reactionResetError } = await supabase
+    .from("casual_opinion_reactions")
+    .delete()
+    .eq("opinion_id", opinionId);
+
+  if (reactionResetError) {
+    console.error(
+      "Failed to reset casual opinion reactions before update:",
+      reactionResetError,
+    );
+  }
+
+  const { data: updatedOpinion, error: updateError } = await supabase
+    .from("casual_opinions")
+    .update({
+      body,
+      dislike_count: 0,
+      like_count: 0,
+      score: 0,
+    })
+    .eq("id", opinionId)
+    .eq("topic_id", topicId)
+    .eq("user_id", user.id)
+    .select("id")
+    .maybeSingle();
+
+  if (updateError || !updatedOpinion) {
+    console.error(
+      "Failed to update casual opinion:",
+      updateError ?? "No updated row returned",
+    );
+
+    const { error: rpcError } = await supabase.rpc(
+      "update_own_casual_opinion",
+      {
+        p_opinion_id: opinionId,
+        p_body: body,
+      },
+    );
+
+    if (rpcError) {
+      console.error("Failed to update casual opinion with fallback:", rpcError);
+      redirectWithMessage(
+        `/topics/${topicId}`,
+        "의견을 수정하지 못했습니다. 잠시 후 다시 시도해주세요.",
+        "error",
+      );
+    }
   }
 
   revalidatePath("/");

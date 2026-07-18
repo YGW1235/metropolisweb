@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 
+import { CASUAL_OPINION_BODY_PREVIEW_LENGTH } from "@/lib/casual-opinion-constraints";
+
 function getPreviewBody(body: string, previewLength: number) {
   if (body.length <= previewLength) {
     return body;
@@ -22,7 +24,7 @@ function getPreviewBody(body: string, previewLength: number) {
 
 export function ExpandableOpinionBody({
   body,
-  previewLength = 500,
+  previewLength = CASUAL_OPINION_BODY_PREVIEW_LENGTH,
 }: {
   body: string;
   previewLength?: number;

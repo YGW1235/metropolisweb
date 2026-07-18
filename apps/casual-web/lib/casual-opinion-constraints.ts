@@ -1,0 +1,9 @@
+export const CASUAL_OPINION_BODY_MIN_LENGTH = 1;
+export const CASUAL_OPINION_BODY_MAX_LENGTH = 5000;
+export const CASUAL_OPINION_BODY_PREVIEW_LENGTH = 500;
+export const CASUAL_OPINION_BODY_MAX_LENGTH_LABEL = "5,000";
+
+export const CASUAL_OPINION_BODY_EMPTY_MESSAGE =
+  "의견 내용을 입력해주세요.";
+export const CASUAL_OPINION_BODY_TOO_LONG_MESSAGE =
+  "의견은 최대 5,000자까지 작성할 수 있습니다.";

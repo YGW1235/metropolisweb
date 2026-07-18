@@ -2,6 +2,10 @@ import Link from "next/link";
 
 import { createOpinion } from "@/app/topics/actions";
 import { SubmitButton } from "@/components/SubmitButton";
+import {
+  CASUAL_OPINION_BODY_MAX_LENGTH,
+  CASUAL_OPINION_BODY_MAX_LENGTH_LABEL,
+} from "@/lib/casual-opinion-constraints";
 
 import type { CurrentVote, TopicDetail } from "./types";
 
@@ -25,7 +29,8 @@ export function OpinionForm({
         </summary>
 
         <p className="mt-3 text-xs font-bold text-stone-500">
-          최대 5,000자까지 작성할 수 있고, 이미지 3장까지 첨부할 수 있습니다.
+          최대 {CASUAL_OPINION_BODY_MAX_LENGTH_LABEL}자까지 작성할 수 있고,
+          이미지 3장까지 첨부할 수 있습니다.
         </p>
 
         <form action={createOpinion} className="mt-4">
@@ -38,13 +43,15 @@ export function OpinionForm({
                   ? `"${topic.option_a}" 입장으로 의견 작성`
                   : `"${topic.option_b}" 입장으로 의견 작성`}
               </p>
-              <p className="text-xs font-bold text-stone-500">최대 5,000자</p>
+              <p className="text-xs font-bold text-stone-500">
+                최대 {CASUAL_OPINION_BODY_MAX_LENGTH_LABEL}자
+              </p>
             </div>
 
             <textarea
               name="body"
               required
-              maxLength={5000}
+              maxLength={CASUAL_OPINION_BODY_MAX_LENGTH}
               className="min-h-28 w-full resize-none rounded-2xl border border-orange-100 bg-white px-4 py-3 text-sm leading-6 outline-none focus:border-orange-400"
               placeholder="내 선택의 이유를 짧게 남겨보세요."
             />

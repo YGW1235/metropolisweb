@@ -1,5 +1,9 @@
 import { deleteOpinion, updateOpinion } from "@/app/topics/actions";
 import { SubmitButton } from "@/components/SubmitButton";
+import {
+  CASUAL_OPINION_BODY_MAX_LENGTH,
+  CASUAL_OPINION_BODY_MAX_LENGTH_LABEL,
+} from "@/lib/casual-opinion-constraints";
 
 import type { Opinion } from "./types";
 
@@ -28,12 +32,13 @@ export function OpinionEditBox({
         <textarea
           name="body"
           required
-          maxLength={5000}
+          maxLength={CASUAL_OPINION_BODY_MAX_LENGTH}
           defaultValue={opinion.body}
           className="min-h-24 w-full resize-none rounded-2xl border border-stone-200 bg-white px-3 py-3 text-sm leading-6 outline-none focus:border-orange-400"
         />
         <p className="mt-2 text-xs font-bold text-stone-500">
-          최대 5,000자까지 작성할 수 있습니다.
+          최대 {CASUAL_OPINION_BODY_MAX_LENGTH_LABEL}자까지 작성할 수
+          있습니다.
         </p>
 
         <label className="mt-3 flex items-start gap-2 rounded-2xl bg-white p-3 text-xs font-bold leading-5 text-stone-600">
