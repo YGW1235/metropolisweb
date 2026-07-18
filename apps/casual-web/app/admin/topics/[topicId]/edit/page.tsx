@@ -8,6 +8,7 @@ import type { TopicTag } from "@/lib/casual-tags";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SubmitButton } from "@/components/SubmitButton";
 import { TopicTagCheckboxes } from "@/components/TopicTagCheckboxes";
+import { ArchiveTopicControl } from "../../ArchiveTopicControl";
 
 export const dynamic = "force-dynamic";
 
@@ -193,7 +194,9 @@ export default async function EditAdminTopicPage({
                   <option value="draft">초안</option>
                   <option value="active">활성</option>
                   <option value="closed">종료</option>
-                  <option value="archived">보관</option>
+                  {topic.status === "archived" && (
+                    <option value="archived">삭제 처리됨</option>
+                  )}
                 </select>
               </div>
 
@@ -227,6 +230,26 @@ export default async function EditAdminTopicPage({
               </SubmitButton>
             </div>
           </form>
+        </section>
+
+        <section className="mt-8 rounded-3xl border border-red-100 bg-white p-6 shadow-sm">
+          <p className="text-sm font-bold tracking-[0.3em] text-red-700">
+            DANGER ZONE
+          </p>
+          <h2 className="mt-2 text-2xl font-black">위험 구역</h2>
+          <p className="mt-3 text-sm leading-6 text-stone-600">
+            삭제 처리는 실제 DB row를 지우지 않고 주제를 보관 상태로 바꿉니다.
+            공개 페이지와 주제 목록에서는 더 이상 보이지 않습니다.
+          </p>
+
+          <div className="mt-4">
+            <ArchiveTopicControl
+              returnPath={`/admin/topics/${topic.id}/edit`}
+              status={topic.status}
+              topicId={topic.id}
+              topicTitle={topic.title}
+            />
+          </div>
         </section>
       </section>
     </main>

@@ -18,6 +18,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SubmitButton } from "@/components/SubmitButton";
 import { TopicTagBadges } from "@/components/TopicTagBadges";
 import { TopicTagCheckboxes } from "@/components/TopicTagCheckboxes";
+import { ArchiveTopicControl } from "./ArchiveTopicControl";
 
 export const metadata: Metadata = {
   title: "주제 관리",
@@ -437,22 +438,12 @@ export default async function AdminTopicsPage({
                         </form>
                       )}
 
-                      {topic.status !== "archived" && (
-                        <form action={changeTopicStatus}>
-                          <input type="hidden" name="topicId" value={topic.id} />
-                          <input
-                            type="hidden"
-                            name="status"
-                            value="archived"
-                          />
-                          <SubmitButton
-                            className="rounded-full bg-red-50 px-4 py-2 text-sm font-black text-red-700 transition hover:bg-red-100"
-                            pendingText="처리 중..."
-                          >
-                            보관
-                          </SubmitButton>
-                        </form>
-                      )}
+                      <ArchiveTopicControl
+                        returnPath="/admin/topics"
+                        status={topic.status}
+                        topicId={topic.id}
+                        topicTitle={topic.title}
+                      />
                     </div>
                   </div>
                 </article>

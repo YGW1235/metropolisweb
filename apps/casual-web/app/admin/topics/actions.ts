@@ -57,7 +57,9 @@ function redirectWithMessage(
   redirect(`${path}?${params.toString()}`);
 }
 
-async function requireAdmin() {
+async function requireAdmin(
+  adminMessage = "관리자 권한이 필요합니다.",
+) {
   const supabase = await createClient();
 
   const {
@@ -73,7 +75,7 @@ async function requireAdmin() {
     await supabase.rpc("is_casual_admin");
 
   if (adminError || !isAdmin) {
-    redirectWithMessage("/", "관리자 권한이 필요합니다.", "error");
+    redirectWithMessage("/", adminMessage, "error");
   }
 
   return {
@@ -293,6 +295,33 @@ export async function updateTopic(formData: FormData) {
 
   const { supabase } = await requireAdmin();
 
+  const { data: existingTopic, error: existingTopicError } = await supabase
+    .from("casual_topics")
+    .select("id, status")
+    .eq("id", topicId)
+    .maybeSingle();
+
+  if (existingTopicError) {
+    console.error("Failed to read topic before update:", existingTopicError);
+    redirectWithMessage(
+      returnPath,
+      "주제를 수정하지 못했습니다. 잠시 후 다시 시도해주세요.",
+      "error",
+    );
+  }
+
+  if (!existingTopic) {
+    redirectWithMessage(returnPath, "주제를 찾을 수 없습니다.", "error");
+  }
+
+  if (status === "archived" && existingTopic.status !== "archived") {
+    redirectWithMessage(
+      returnPath,
+      "삭제 처리는 위험 구역의 확인 절차를 이용해주세요.",
+      "error",
+    );
+  }
+
   if (isToday) {
     await supabase
       .from("casual_topics")
@@ -407,6 +436,14 @@ export async function changeTopicStatus(formData: FormData) {
     );
   }
 
+  if (status === "archived") {
+    redirectWithMessage(
+      "/admin/topics",
+      "삭제 처리는 확인 절차를 이용해주세요.",
+      "error",
+    );
+  }
+
   const { supabase } = await requireAdmin();
 
   const patch =
@@ -444,4 +481,95 @@ export async function changeTopicStatus(formData: FormData) {
   revalidatePath("/admin/logs");
 
   redirectWithMessage("/admin/topics", "주제 상태를 변경했습니다.", "success");
+}
+
+export async function archiveTopicAsDeleted(formData: FormData) {
+  const topicId = getString(formData, "topicId");
+  const confirmText = getString(formData, "confirmText");
+  const returnPath = getString(formData, "returnPath") || "/admin/topics";
+
+  if (!topicId) {
+    redirectWithMessage(
+      "/admin/topics",
+      "주제 정보가 올바르지 않습니다.",
+      "error",
+    );
+  }
+
+  if (confirmText !== "삭제") {
+    redirectWithMessage(
+      returnPath,
+      "삭제 처리하려면 확인 문구를 정확히 입력해주세요.",
+      "error",
+    );
+  }
+
+  const { supabase } = await requireAdmin(
+    "관리자만 주제를 삭제 처리할 수 있습니다.",
+  );
+
+  const { data: topic, error: readError } = await supabase
+    .from("casual_topics")
+    .select("id, title, status, is_today")
+    .eq("id", topicId)
+    .maybeSingle();
+
+  if (readError) {
+    console.error("Failed to read topic before archive:", readError);
+    redirectWithMessage(
+      returnPath,
+      "주제를 삭제 처리하지 못했습니다. 잠시 후 다시 시도해주세요.",
+      "error",
+    );
+  }
+
+  if (!topic) {
+    redirectWithMessage(returnPath, "주제를 찾을 수 없습니다.", "error");
+  }
+
+  if (topic.status === "archived") {
+    redirectWithMessage(returnPath, "이미 삭제 처리된 주제입니다.", "success");
+  }
+
+  const previousStatus = topic.status;
+  const { error: updateError } = await supabase
+    .from("casual_topics")
+    .update({
+      status: "archived",
+      is_today: false,
+    })
+    .eq("id", topicId);
+
+  if (updateError) {
+    console.error("Failed to archive topic as deleted:", updateError);
+    redirectWithMessage(
+      returnPath,
+      "주제를 삭제 처리하지 못했습니다. 잠시 후 다시 시도해주세요.",
+      "error",
+    );
+  }
+
+  await createAdminAuditLog(supabase, {
+    action: "topic_archived",
+    targetType: "topic",
+    targetId: topicId,
+    message: "주제를 삭제 처리했습니다.",
+    metadata: {
+      title: topic.title,
+      previousStatus,
+      nextStatus: "archived",
+      reason: "admin_delete",
+      isToday: Boolean(topic.is_today),
+    },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/topics");
+  revalidatePath(`/topics/${topicId}`);
+  revalidatePath(`/admin/topics/${topicId}/edit`);
+  revalidatePath("/admin/topics");
+  revalidatePath("/admin/logs");
+  revalidatePath(returnPath);
+
+  redirectWithMessage(returnPath, "주제를 삭제 처리했습니다.", "success");
 }
