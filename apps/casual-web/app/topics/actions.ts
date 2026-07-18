@@ -13,6 +13,7 @@ import { createClient } from "@/lib/supabase/server";
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
 const OPINION_IMAGE_BUCKET = "casual-opinion-images";
+const MAX_OPINION_BODY_LENGTH = 5000;
 const MAX_OPINION_IMAGE_COUNT = 3;
 const MAX_OPINION_IMAGE_SIZE = 5 * 1024 * 1024;
 const OPINION_IMAGE_TYPES = new Set([
@@ -249,10 +250,10 @@ export async function createOpinion(formData: FormData) {
     redirectWithMessage("/topics", "주제 정보가 올바르지 않습니다.", "error");
   }
 
-  if (body.length < 1 || body.length > 500) {
+  if (body.length < 1 || body.length > MAX_OPINION_BODY_LENGTH) {
     redirectWithMessage(
       `/topics/${topicId}`,
-      "의견은 1자 이상 500자 이하로 입력해주세요.",
+      "의견은 1자 이상 5,000자 이하로 입력해주세요.",
       "error",
     );
   }
@@ -287,7 +288,12 @@ export async function createOpinion(formData: FormData) {
     .maybeSingle();
 
   if (voteError) {
-    redirectWithMessage(`/topics/${topicId}`, voteError.message, "error");
+    console.error("Failed to read current vote for opinion:", voteError.message);
+    redirectWithMessage(
+      `/topics/${topicId}`,
+      "투표 상태를 확인하지 못했습니다. 잠시 후 다시 시도해주세요.",
+      "error",
+    );
   }
 
   if (!vote || (vote.choice !== "a" && vote.choice !== "b")) {
@@ -337,9 +343,13 @@ export async function createOpinion(formData: FormData) {
     .limit(1);
 
   if (recentOpinionsError) {
+    console.error(
+      "Failed to check recent casual opinions:",
+      recentOpinionsError.message,
+    );
     redirectWithMessage(
       `/topics/${topicId}`,
-      recentOpinionsError.message,
+      "의견 제출 상태를 확인하지 못했습니다. 잠시 후 다시 시도해주세요.",
       "error",
     );
   }
@@ -364,9 +374,13 @@ export async function createOpinion(formData: FormData) {
     .single();
 
   if (error || !opinion) {
+    if (error) {
+      console.error("Failed to create casual opinion:", error.message);
+    }
+
     redirectWithMessage(
       `/topics/${topicId}`,
-      error?.message ?? "의견을 남기지 못했습니다.",
+      "의견을 남기지 못했습니다. 잠시 후 다시 시도해주세요.",
       "error",
     );
   }
@@ -763,10 +777,10 @@ export async function updateOpinion(formData: FormData) {
     redirectWithMessage("/topics", "의견 정보가 올바르지 않습니다.", "error");
   }
 
-  if (body.length < 1 || body.length > 500) {
+  if (body.length < 1 || body.length > MAX_OPINION_BODY_LENGTH) {
     redirectWithMessage(
       `/topics/${topicId}`,
-      "의견은 1자 이상 500자 이하로 입력해주세요.",
+      "의견은 1자 이상 5,000자 이하로 입력해주세요.",
       "error",
     );
   }
@@ -787,7 +801,12 @@ export async function updateOpinion(formData: FormData) {
   });
 
   if (error) {
-    redirectWithMessage(`/topics/${topicId}`, error.message, "error");
+    console.error("Failed to update casual opinion:", error.message);
+    redirectWithMessage(
+      `/topics/${topicId}`,
+      "의견을 수정하지 못했습니다. 잠시 후 다시 시도해주세요.",
+      "error",
+    );
   }
 
   revalidatePath("/");

@@ -7,6 +7,7 @@ import {
 import { SubmitButton } from "@/components/SubmitButton";
 
 import { CommentList } from "./CommentList";
+import { ExpandableOpinionBody } from "./ExpandableOpinionBody";
 import { OpinionEditBox } from "./OpinionEditBox";
 import { OpinionImageGallery } from "./OpinionImageGallery";
 import type {
@@ -150,9 +151,7 @@ export function OpinionCard({
         </div>
       </div>
 
-      <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-stone-700">
-        {opinion.body}
-      </p>
+      <ExpandableOpinionBody body={opinion.body} />
 
       <OpinionImageGallery images={images} />
 
