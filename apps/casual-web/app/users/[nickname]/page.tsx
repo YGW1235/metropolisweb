@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { SiteHeader } from "@/components/SiteHeader";
+import { VoteTendencyCard } from "@/components/VoteTendencyCard";
 import { DEFAULT_DESCRIPTION, truncateDescription } from "@/lib/site-metadata";
 import { createClient } from "@/lib/supabase/server";
 
@@ -130,9 +131,9 @@ export default async function UserProfilePage({
     <main className="casual-page-bg min-h-screen text-[#2f2118]">
       <SiteHeader />
 
-      <section className="mx-auto max-w-5xl px-6 py-6">
+      <section className="mx-auto min-w-0 max-w-5xl px-6 py-6">
 
-        <section className="mt-6 rounded-[2rem] border border-orange-100 bg-white p-6 shadow-sm">
+        <section className="mt-6 min-w-0 overflow-hidden rounded-[2rem] border border-orange-100 bg-white p-6 shadow-sm">
           <div className="flex flex-wrap items-start gap-5">
             <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-orange-100 text-3xl font-black text-orange-900">
               {profile.nickname.slice(0, 1)}
@@ -142,9 +143,11 @@ export default async function UserProfilePage({
               <p className="text-sm font-bold tracking-[0.3em] text-orange-700">
                 USER PROFILE
               </p>
-              <h1 className="mt-2 text-4xl font-black">{profile.nickname}</h1>
+              <h1 className="mt-2 break-words text-4xl font-black">
+                {profile.nickname}
+              </h1>
 
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-stone-600">
+              <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-6 text-stone-600 [overflow-wrap:anywhere]">
                 {profile.bio || "아직 한 줄 소개가 없습니다."}
               </p>
 
@@ -185,6 +188,10 @@ export default async function UserProfilePage({
           </div>
         </section>
 
+        <div className="mt-8">
+          <VoteTendencyCard title="선택 성향" userId={profile.user_id} />
+        </div>
+
         <section className="mt-8">
           <div className="mb-5 flex items-end justify-between gap-4">
             <div>
@@ -193,7 +200,7 @@ export default async function UserProfilePage({
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid min-w-0 gap-4 md:grid-cols-2">
             {opinions.map((opinion) => {
               const topic = topicById.get(opinion.topic_id);
 
@@ -204,29 +211,29 @@ export default async function UserProfilePage({
                 <Link
                   key={opinion.id}
                   href={`/topics/${opinion.topic_id}`}
-                  className="rounded-3xl border border-orange-100 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+                  className="min-w-0 max-w-full overflow-hidden rounded-3xl border border-orange-100 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
                 >
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-black text-orange-800">
+                  <div className="flex min-w-0 flex-wrap items-center gap-2">
+                    <span className="max-w-full whitespace-normal break-words rounded-full bg-orange-100 px-3 py-1 text-xs font-black text-orange-800 [overflow-wrap:anywhere]">
                       {sideName ?? "선택"}
                     </span>
 
                     {topic?.status && (
-                      <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-black text-stone-600">
+                      <span className="max-w-full whitespace-normal break-words rounded-full bg-stone-100 px-3 py-1 text-xs font-black text-stone-600">
                         {topic.status}
                       </span>
                     )}
                   </div>
 
-                  <h3 className="mt-3 line-clamp-1 text-lg font-black">
+                  <h3 className="mt-3 line-clamp-1 min-w-0 break-words text-lg font-black [overflow-wrap:anywhere]">
                     {topic?.title ?? "주제를 찾을 수 없음"}
                   </h3>
 
-                  <p className="mt-3 line-clamp-4 whitespace-pre-wrap text-sm leading-6 text-stone-700">
+                  <p className="mt-3 line-clamp-4 min-w-0 whitespace-pre-wrap break-words text-sm leading-6 text-stone-700 [overflow-wrap:anywhere]">
                     {opinion.body}
                   </p>
 
-                  <div className="mt-4 flex flex-wrap gap-2 text-xs font-black text-stone-500">
+                  <div className="mt-4 flex min-w-0 flex-wrap gap-2 text-xs font-black text-stone-500">
                     <span>공감 {formatCount(opinion.like_count)}</span>
                     <span>·</span>
                     <span>비공감 {formatCount(opinion.dislike_count)}</span>

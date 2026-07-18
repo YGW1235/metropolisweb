@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { signOut } from "@/app/auth/actions";
 import { SiteHeader } from "@/components/SiteHeader";
 import { TopicTagBadges } from "@/components/TopicTagBadges";
+import { VoteTendencyCard } from "@/components/VoteTendencyCard";
 import {
   buildTagsByTopicId,
   type TopicTag,
@@ -450,6 +451,10 @@ export default async function MyPage() {
             </div>
           </div>
         </section>
+
+        <div className="mt-8">
+          <VoteTendencyCard title="내 선택 성향" userId={user.id} />
+        </div>
 
         <section className="mt-8 rounded-3xl border border-orange-100 bg-white p-6 shadow-sm">
           <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
