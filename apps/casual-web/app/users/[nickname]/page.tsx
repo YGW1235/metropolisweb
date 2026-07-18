@@ -7,10 +7,19 @@ import { VoteTendencyCard } from "@/components/VoteTendencyCard";
 import { DEFAULT_DESCRIPTION, truncateDescription } from "@/lib/site-metadata";
 import { createClient } from "@/lib/supabase/server";
 
+import { ProfileOpinionBody } from "./ProfileOpinionBody";
+
 export const dynamic = "force-dynamic";
+
+const OPINIONS_PER_PAGE = 5;
 
 type PageParams = Promise<{
   nickname: string;
+}>;
+
+type SearchParams = Promise<{
+  opinionPage?: string;
+  [key: string]: string | undefined;
 }>;
 
 export async function generateMetadata({
@@ -60,13 +69,50 @@ function formatDate(value: string | null | undefined) {
   }).format(new Date(value));
 }
 
+function getPageNumber(value?: string) {
+  const parsed = Number(value);
+
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    return 1;
+  }
+
+  return parsed;
+}
+
+function getProfileOpinionHref(
+  nickname: string,
+  page: number,
+  currentParams: { [key: string]: string | undefined },
+) {
+  const encodedNickname = encodeURIComponent(nickname);
+  const params = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(currentParams)) {
+    if (key !== "opinionPage" && value) {
+      params.set(key, value);
+    }
+  }
+
+  if (page > 1) {
+    params.set("opinionPage", String(page));
+  }
+
+  const query = params.toString();
+
+  return query ? `/users/${encodedNickname}?${query}` : `/users/${encodedNickname}`;
+}
+
 export default async function UserProfilePage({
   params,
+  searchParams,
 }: {
   params: PageParams;
+  searchParams: SearchParams;
 }) {
   const { nickname } = await params;
+  const query = await searchParams;
   const decodedNickname = decodeURIComponent(nickname);
+  const requestedOpinionPage = getPageNumber(query.opinionPage);
 
   const supabase = await createClient();
 
@@ -80,52 +126,63 @@ export default async function UserProfilePage({
     notFound();
   }
 
-  const { data: opinionsData } = await supabase
-    .from("casual_opinions")
-    .select(
-      "id, topic_id, choice, body, like_count, dislike_count, score, created_at",
-    )
-    .eq("user_id", profile.user_id)
-    .eq("is_hidden", false)
-    .order("created_at", { ascending: false })
-    .limit(1000);
-
-  const opinionCandidates = opinionsData ?? [];
-
-  const topicIds = Array.from(
-    new Set(opinionCandidates.map((opinion) => opinion.topic_id)),
-  );
-
-  const { data: topicsData } =
-    topicIds.length > 0
-      ? await supabase
-          .from("casual_topics")
-          .select("id, title, option_a, option_b, status")
-          .eq("status", "active")
-          .in("id", topicIds)
-      : { data: [] };
+  const { data: topicsData } = await supabase
+    .from("casual_topics")
+    .select("id, title, option_a, option_b, status")
+    .eq("status", "active");
 
   const topicById = new Map(
     (topicsData ?? []).map((topic) => [topic.id, topic]),
   );
+  const activeTopicIds = (topicsData ?? []).map((topic) => topic.id);
 
-  const publicOpinions = opinionCandidates.filter((opinion) =>
-    topicById.has(opinion.topic_id),
+  const { data: opinionStatsData, count: publicOpinionCountData } =
+    activeTopicIds.length > 0
+      ? await supabase
+          .from("casual_opinions")
+          .select("like_count, dislike_count", { count: "exact" })
+          .eq("user_id", profile.user_id)
+          .eq("is_hidden", false)
+          .in("topic_id", activeTopicIds)
+      : { data: [], count: 0 };
+
+  const publicOpinionCount =
+    publicOpinionCountData ?? (opinionStatsData ?? []).length;
+  const totalOpinionPages = Math.max(
+    1,
+    Math.ceil(publicOpinionCount / OPINIONS_PER_PAGE),
   );
+  const opinionPage = Math.min(requestedOpinionPage, totalOpinionPages);
+  const opinionFrom = (opinionPage - 1) * OPINIONS_PER_PAGE;
+  const opinionTo = opinionFrom + OPINIONS_PER_PAGE - 1;
 
-  const opinions = publicOpinions.slice(0, 30);
+  const { data: opinionsData } =
+    activeTopicIds.length > 0
+      ? await supabase
+          .from("casual_opinions")
+          .select(
+            "id, topic_id, choice, body, like_count, dislike_count, score, created_at",
+          )
+          .eq("user_id", profile.user_id)
+          .eq("is_hidden", false)
+          .in("topic_id", activeTopicIds)
+          .order("created_at", { ascending: false })
+          .range(opinionFrom, opinionTo)
+      : { data: [] };
 
-  const publicOpinionCount = publicOpinions.length;
+  const opinions = opinionsData ?? [];
 
-  const totalLikes = publicOpinions.reduce(
+  const totalLikes = (opinionStatsData ?? []).reduce(
     (sum, opinion) => sum + Number(opinion.like_count ?? 0),
     0,
   );
 
-  const totalDislikes = publicOpinions.reduce(
+  const totalDislikes = (opinionStatsData ?? []).reduce(
     (sum, opinion) => sum + Number(opinion.dislike_count ?? 0),
     0,
   );
+  const hasPreviousOpinionPage = opinionPage > 1;
+  const hasNextOpinionPage = opinionPage < totalOpinionPages;
 
   return (
     <main className="casual-page-bg min-h-screen text-[#2f2118]">
@@ -208,10 +265,9 @@ export default async function UserProfilePage({
                 opinion.choice === "a" ? topic?.option_a : topic?.option_b;
 
               return (
-                <Link
+                <article
                   key={opinion.id}
-                  href={`/topics/${opinion.topic_id}`}
-                  className="min-w-0 max-w-full overflow-hidden rounded-3xl border border-orange-100 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+                  className="w-full min-w-0 max-w-full overflow-hidden rounded-3xl border border-orange-100 bg-white p-5 shadow-sm"
                 >
                   <div className="flex min-w-0 flex-wrap items-center gap-2">
                     <span className="max-w-full whitespace-normal break-words rounded-full bg-orange-100 px-3 py-1 text-xs font-black text-orange-800 [overflow-wrap:anywhere]">
@@ -225,13 +281,16 @@ export default async function UserProfilePage({
                     )}
                   </div>
 
-                  <h3 className="mt-3 line-clamp-1 min-w-0 break-words text-lg font-black [overflow-wrap:anywhere]">
-                    {topic?.title ?? "주제를 찾을 수 없음"}
+                  <h3 className="mt-3 min-w-0 text-lg font-black">
+                    <Link
+                      href={`/topics/${opinion.topic_id}`}
+                      className="line-clamp-2 break-words hover:text-orange-700 [overflow-wrap:anywhere]"
+                    >
+                      {topic?.title ?? "주제를 찾을 수 없음"}
+                    </Link>
                   </h3>
 
-                  <p className="mt-3 line-clamp-4 min-w-0 whitespace-pre-wrap break-words text-sm leading-6 text-stone-700 [overflow-wrap:anywhere]">
-                    {opinion.body}
-                  </p>
+                  <ProfileOpinionBody body={opinion.body} />
 
                   <div className="mt-4 flex min-w-0 flex-wrap gap-2 text-xs font-black text-stone-500">
                     <span>공감 {formatCount(opinion.like_count)}</span>
@@ -242,7 +301,14 @@ export default async function UserProfilePage({
                     <span>·</span>
                     <span>{formatDate(opinion.created_at)}</span>
                   </div>
-                </Link>
+
+                  <Link
+                    href={`/topics/${opinion.topic_id}`}
+                    className="mt-4 inline-flex rounded-full bg-stone-950 px-4 py-2 text-xs font-black text-white transition hover:-translate-y-0.5"
+                  >
+                    주제 보기
+                  </Link>
+                </article>
               );
             })}
           </div>
@@ -253,6 +319,48 @@ export default async function UserProfilePage({
               <p className="mt-2 text-sm text-stone-600">
                 이 사용자가 의견을 작성하면 이곳에 표시됩니다.
               </p>
+            </div>
+          )}
+
+          {publicOpinionCount > OPINIONS_PER_PAGE && (
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-orange-100 bg-white p-3 text-xs font-black text-stone-500 shadow-sm">
+              {hasPreviousOpinionPage ? (
+                <Link
+                  href={getProfileOpinionHref(
+                    profile.nickname,
+                    opinionPage - 1,
+                    query,
+                  )}
+                  className="rounded-full bg-stone-100 px-3 py-2 text-stone-700 hover:bg-orange-100 hover:text-orange-800"
+                >
+                  이전
+                </Link>
+              ) : (
+                <span className="rounded-full bg-stone-50 px-3 py-2 text-stone-300">
+                  이전
+                </span>
+              )}
+
+              <span>
+                {opinionPage} / {totalOpinionPages}
+              </span>
+
+              {hasNextOpinionPage ? (
+                <Link
+                  href={getProfileOpinionHref(
+                    profile.nickname,
+                    opinionPage + 1,
+                    query,
+                  )}
+                  className="rounded-full bg-stone-950 px-3 py-2 text-white hover:bg-orange-700"
+                >
+                  다음
+                </Link>
+              ) : (
+                <span className="rounded-full bg-stone-50 px-3 py-2 text-stone-300">
+                  다음
+                </span>
+              )}
             </div>
           )}
         </section>
