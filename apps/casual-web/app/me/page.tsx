@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { signOut } from "@/app/auth/actions";
+import { ExpandableTextByLines } from "@/components/ExpandableTextByLines";
 import { SiteHeader } from "@/components/SiteHeader";
 import { TopicTagBadges } from "@/components/TopicTagBadges";
 import { VoteTendencyCard } from "@/components/VoteTendencyCard";
@@ -266,17 +267,19 @@ export default async function MyPage() {
   );
 
   return (
-    <main className="casual-page-bg min-h-screen text-[#2f2118]">
+    <main className="casual-page-bg min-h-screen overflow-x-hidden text-[#2f2118]">
       <SiteHeader />
 
-      <section className="mx-auto max-w-6xl px-6 py-6">
-        <header className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="text-sm font-bold tracking-[0.3em] text-orange-700">
+      <section className="mx-auto w-full min-w-0 max-w-6xl overflow-hidden px-6 py-6">
+        <header className="flex min-w-0 flex-wrap items-start justify-between gap-4 overflow-hidden">
+          <div className="min-w-0 max-w-full overflow-hidden">
+            <p className="max-w-full overflow-hidden break-words text-sm font-bold tracking-[0.3em] text-orange-700 [overflow-wrap:anywhere] [word-break:break-word]">
               MY PAGE
             </p>
-            <h1 className="mt-2 text-4xl font-black">내 활동</h1>
-            <p className="mt-3 text-stone-600">
+            <h1 className="mt-2 max-w-full overflow-hidden break-words text-4xl font-black [overflow-wrap:anywhere] [word-break:break-word]">
+              내 활동
+            </h1>
+            <p className="mt-3 max-w-full overflow-hidden break-words text-stone-600 [overflow-wrap:anywhere] [word-break:break-word]">
               내가 참여한 주제와 작성한 의견, 댓글을 모아봅니다.
             </p>
           </div>
@@ -536,14 +539,18 @@ export default async function MyPage() {
           )}
         </section>
 
-        <section className="mt-8 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-          <article className="rounded-3xl border border-orange-100 bg-white p-6 shadow-sm">
-            <div className="mb-5">
-              <p className="text-sm font-bold text-orange-700">MY VOTES</p>
-              <h2 className="mt-1 text-2xl font-black">내가 투표한 주제</h2>
+        <section className="mt-8 grid min-w-0 gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+          <article className="min-w-0 overflow-hidden rounded-3xl border border-orange-100 bg-white p-6 shadow-sm">
+            <div className="mb-5 min-w-0 max-w-full overflow-hidden">
+              <p className="max-w-full overflow-hidden break-words text-sm font-bold text-orange-700 [overflow-wrap:anywhere] [word-break:break-word]">
+                MY VOTES
+              </p>
+              <h2 className="mt-1 max-w-full overflow-hidden break-words text-2xl font-black [overflow-wrap:anywhere] [word-break:break-word]">
+                내가 투표한 주제
+              </h2>
             </div>
 
-            <div className="space-y-3">
+            <div className="min-w-0 space-y-3 overflow-hidden">
               {votes.map((vote) => {
                 const topic = topicById.get(vote.topic_id);
                 const sideName =
@@ -553,21 +560,21 @@ export default async function MyPage() {
                   <Link
                     key={vote.id}
                     href={`/topics/${vote.topic_id}`}
-                    className="block rounded-2xl border border-stone-100 p-4 transition hover:-translate-y-0.5 hover:shadow-sm"
+                    className="block w-full min-w-0 max-w-full overflow-hidden rounded-2xl border border-stone-100 p-4 transition hover:-translate-y-0.5 hover:shadow-sm"
                   >
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-black text-orange-800">
+                    <div className="flex w-full min-w-0 max-w-full flex-wrap items-center gap-2 overflow-hidden">
+                      <span className="min-w-0 max-w-full overflow-hidden break-words rounded-full bg-orange-100 px-3 py-1 text-xs font-black text-orange-800 [overflow-wrap:anywhere] [word-break:break-word]">
                         {sideName ?? "선택"} 선택
                       </span>
 
                       {topic?.status && (
-                        <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-black text-stone-600">
+                        <span className="min-w-0 max-w-full overflow-hidden break-words rounded-full bg-stone-100 px-3 py-1 text-xs font-black text-stone-600 [overflow-wrap:anywhere] [word-break:break-word]">
                           {topic.status}
                         </span>
                       )}
                     </div>
 
-                    <h3 className="mt-3 line-clamp-1 font-black">
+                    <h3 className="mt-3 line-clamp-1 max-w-full overflow-hidden break-words font-black [overflow-wrap:anywhere] [word-break:break-word]">
                       {topic?.title ?? "주제를 찾을 수 없음"}
                     </h3>
 
@@ -586,58 +593,80 @@ export default async function MyPage() {
             </div>
           </article>
 
-          <article className="rounded-3xl border border-orange-100 bg-white p-6 shadow-sm">
-            <div className="mb-5 flex items-end justify-between gap-4">
-              <div>
-                <p className="text-sm font-bold text-orange-700">
+          <article className="min-w-0 overflow-hidden rounded-3xl border border-orange-100 bg-white p-6 shadow-sm">
+            <div className="mb-5 flex min-w-0 flex-wrap items-end justify-between gap-4 overflow-hidden">
+              <div className="min-w-0 max-w-full overflow-hidden">
+                <p className="max-w-full overflow-hidden break-words text-sm font-bold text-orange-700 [overflow-wrap:anywhere] [word-break:break-word]">
                   MY OPINIONS
                 </p>
-                <h2 className="mt-1 text-2xl font-black">내가 작성한 의견</h2>
+                <h2 className="mt-1 max-w-full overflow-hidden break-words text-2xl font-black [overflow-wrap:anywhere] [word-break:break-word]">
+                  내가 작성한 의견
+                </h2>
               </div>
 
-              <span className="rounded-full bg-orange-50 px-4 py-2 text-xs font-black text-orange-700">
+              <span className="min-w-0 max-w-full overflow-hidden break-words rounded-full bg-orange-50 px-4 py-2 text-xs font-black text-orange-700 [overflow-wrap:anywhere] [word-break:break-word]">
                 작성 의견 공감 {formatCount(visibleOpinionLikeCount)}
               </span>
             </div>
 
-            <div className="space-y-3">
+            <div className="min-w-0 space-y-3 overflow-hidden">
               {opinions.map((opinion) => {
                 const topic = topicById.get(opinion.topic_id);
                 const sideName =
                   opinion.choice === "a" ? topic?.option_a : topic?.option_b;
 
                 return (
-                  <Link
+                  <article
                     key={opinion.id}
-                    href={`/topics/${opinion.topic_id}`}
-                    className="block rounded-2xl border border-stone-100 p-4 transition hover:-translate-y-0.5 hover:shadow-sm"
+                    className="w-full min-w-0 max-w-full overflow-hidden rounded-2xl border border-stone-100 p-4 transition hover:-translate-y-0.5 hover:shadow-sm [overflow-wrap:anywhere]"
                   >
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-black text-orange-800">
+                    <div className="flex w-full min-w-0 max-w-full flex-wrap items-center gap-2 overflow-hidden">
+                      <span className="min-w-0 max-w-full overflow-hidden break-words rounded-full bg-orange-100 px-3 py-1 text-xs font-black text-orange-800 [overflow-wrap:anywhere] [word-break:break-word]">
                         {sideName ?? "선택"}
                       </span>
 
-                      <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-black text-stone-600">
+                      <span className="min-w-0 max-w-full overflow-hidden break-words rounded-full bg-stone-100 px-3 py-1 text-xs font-black text-stone-600 [overflow-wrap:anywhere] [word-break:break-word]">
                         점수 {formatCount(opinion.score)}
                       </span>
                     </div>
 
-                    <h3 className="mt-3 line-clamp-1 font-black">
-                      {topic?.title ?? "주제를 찾을 수 없음"}
+                    <h3 className="mt-3 min-w-0 max-w-full overflow-hidden break-words font-black [overflow-wrap:anywhere] [word-break:break-word]">
+                      <Link
+                        href={`/topics/${opinion.topic_id}`}
+                        className="line-clamp-1 block min-w-0 max-w-full overflow-hidden break-words hover:text-orange-700 [overflow-wrap:anywhere] [word-break:break-word]"
+                      >
+                        {topic?.title ?? "주제를 찾을 수 없음"}
+                      </Link>
                     </h3>
 
-                    <p className="mt-3 line-clamp-3 whitespace-pre-wrap text-sm leading-6 text-stone-700">
-                      {opinion.body}
-                    </p>
+                    <ExpandableTextByLines
+                      body={opinion.body}
+                      buttonClassName="mt-2 rounded-full bg-orange-50 px-3 py-1.5 text-xs font-black text-orange-700 ring-1 ring-orange-100 transition hover:bg-orange-100"
+                      containerClassName="mt-3 w-full min-w-0 max-w-full overflow-hidden"
+                      textClassName="w-full min-w-0 max-w-full overflow-hidden whitespace-pre-wrap break-words text-sm leading-6 text-stone-700 [overflow-wrap:anywhere] [word-break:break-word]"
+                    />
 
-                    <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold text-stone-500">
-                      <span>공감 {formatCount(opinion.like_count)}</span>
+                    <div className="mt-3 flex w-full min-w-0 max-w-full flex-wrap gap-2 overflow-hidden text-xs font-bold text-stone-500">
+                      <span className="min-w-0 max-w-full break-words [overflow-wrap:anywhere] [word-break:break-word]">
+                        공감 {formatCount(opinion.like_count)}
+                      </span>
                       <span>·</span>
-                      <span>비공감 {formatCount(opinion.dislike_count)}</span>
+                      <span className="min-w-0 max-w-full break-words [overflow-wrap:anywhere] [word-break:break-word]">
+                        비공감 {formatCount(opinion.dislike_count)}
+                      </span>
                       <span>·</span>
-                      <span>{formatDate(opinion.created_at)}</span>
+                      <span className="min-w-0 max-w-full break-words [overflow-wrap:anywhere] [word-break:break-word]">
+                        {formatDate(opinion.created_at)}
+                      </span>
                     </div>
-                  </Link>
+
+                    <Link
+                      href={`/topics/${opinion.topic_id}`}
+                      className="mt-4 inline-flex max-w-full rounded-full bg-stone-950 px-4 py-2 text-xs font-black text-white transition hover:-translate-y-0.5"
+                    >
+                      주제 보기
+                    </Link>
+                  </article>
                 );
               })}
 
