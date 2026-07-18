@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { signUp } from "@/app/auth/actions";
+import { SubmitButton } from "@/components/SubmitButton";
 
 type SearchParams = Promise<{
   message?: string;
@@ -64,15 +65,37 @@ export default async function SignupPage({
                 name="password"
                 type="password"
                 required
-                minLength={6}
+                minLength={8}
+                maxLength={72}
                 className="mt-2 w-full rounded-2xl border border-stone-200 px-4 py-3 outline-none focus:border-orange-400"
-                placeholder="6자 이상"
+                placeholder="8자 이상"
+              />
+              <p className="mt-2 text-xs font-semibold text-stone-500">
+                8자 이상 72자 이하로 입력해주세요.
+              </p>
+            </div>
+
+            <div>
+              <label className="text-sm font-bold text-stone-700">
+                비밀번호 확인
+              </label>
+              <input
+                name="passwordConfirm"
+                type="password"
+                required
+                minLength={8}
+                maxLength={72}
+                className="mt-2 w-full rounded-2xl border border-stone-200 px-4 py-3 outline-none focus:border-orange-400"
+                placeholder="비밀번호를 한 번 더 입력"
               />
             </div>
 
-            <button className="w-full rounded-2xl bg-stone-950 px-5 py-3 font-black text-white transition hover:-translate-y-0.5">
+            <SubmitButton
+              className="w-full rounded-2xl bg-stone-950 px-5 py-3 font-black text-white transition hover:-translate-y-0.5"
+              pendingText="가입 중..."
+            >
               가입하기
-            </button>
+            </SubmitButton>
           </form>
 
           <p className="mt-6 text-center text-sm text-stone-600">

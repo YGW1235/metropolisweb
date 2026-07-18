@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { signIn } from "@/app/auth/actions";
+import { SubmitButton } from "@/components/SubmitButton";
 
 type SearchParams = Promise<{
   message?: string;
@@ -57,9 +58,17 @@ export default async function LoginPage({
             </div>
 
             <div>
-              <label className="text-sm font-bold text-stone-700">
-                비밀번호
-              </label>
+              <div className="flex items-center justify-between gap-3">
+                <label className="text-sm font-bold text-stone-700">
+                  비밀번호
+                </label>
+                <Link
+                  href="/forgot-password"
+                  className="text-xs font-black text-orange-700 hover:text-orange-900"
+                >
+                  비밀번호를 잊으셨나요?
+                </Link>
+              </div>
               <input
                 name="password"
                 type="password"
@@ -69,9 +78,12 @@ export default async function LoginPage({
               />
             </div>
 
-            <button className="w-full rounded-2xl bg-stone-950 px-5 py-3 font-black text-white transition hover:-translate-y-0.5">
+            <SubmitButton
+              className="w-full rounded-2xl bg-stone-950 px-5 py-3 font-black text-white transition hover:-translate-y-0.5"
+              pendingText="로그인 중..."
+            >
               로그인
-            </button>
+            </SubmitButton>
           </form>
 
           <p className="mt-6 text-center text-sm text-stone-600">

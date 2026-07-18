@@ -15,6 +15,16 @@ function getString(formData: FormData, key: string) {
   return value.trim();
 }
 
+function getRawString(formData: FormData, key: string) {
+  const value = formData.get(key);
+
+  if (typeof value !== "string") {
+    return "";
+  }
+
+  return value;
+}
+
 function redirectWithMessage(
   path: string,
   message: string,
@@ -30,18 +40,27 @@ function redirectWithMessage(
 
 export async function signUp(formData: FormData) {
   const email = getString(formData, "email");
-  const password = getString(formData, "password");
+  const password = getRawString(formData, "password");
+  const passwordConfirm = getRawString(formData, "passwordConfirm");
 
-  if (!email || !password) {
-    redirectWithMessage("/signup", "이메일과 비밀번호를 입력해주세요.", "error");
-  }
-
-  if (password.length < 6) {
+  if (!email || !password || !passwordConfirm) {
     redirectWithMessage(
       "/signup",
-      "비밀번호는 최소 6자 이상이어야 합니다.",
+      "이메일과 비밀번호 확인을 입력해주세요.",
       "error",
     );
+  }
+
+  if (password.length < 8 || password.length > 72) {
+    redirectWithMessage(
+      "/signup",
+      "비밀번호는 8자 이상 72자 이하로 입력해주세요.",
+      "error",
+    );
+  }
+
+  if (password !== passwordConfirm) {
+    redirectWithMessage("/signup", "비밀번호가 일치하지 않습니다.", "error");
   }
 
   const supabase = await createClient();
@@ -52,7 +71,12 @@ export async function signUp(formData: FormData) {
   });
 
   if (error) {
-    redirectWithMessage("/signup", error.message, "error");
+    console.error("Failed to sign up casual user:", error.message);
+    redirectWithMessage(
+      "/signup",
+      "회원가입을 완료하지 못했습니다. 잠시 후 다시 시도해주세요.",
+      "error",
+    );
   }
 
   redirectWithMessage(
