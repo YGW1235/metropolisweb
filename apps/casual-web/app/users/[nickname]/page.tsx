@@ -185,26 +185,26 @@ export default async function UserProfilePage({
   const hasNextOpinionPage = opinionPage < totalOpinionPages;
 
   return (
-    <main className="casual-page-bg min-h-screen text-[#2f2118]">
+    <main className="casual-page-bg min-h-screen overflow-x-hidden text-[#2f2118]">
       <SiteHeader />
 
-      <section className="mx-auto min-w-0 max-w-5xl px-6 py-6">
+      <section className="mx-auto w-full min-w-0 max-w-5xl overflow-hidden px-6 py-6">
 
-        <section className="mt-6 min-w-0 overflow-hidden rounded-[2rem] border border-orange-100 bg-white p-6 shadow-sm">
-          <div className="flex flex-wrap items-start gap-5">
+        <section className="mt-6 w-full min-w-0 max-w-full overflow-hidden rounded-[2rem] border border-orange-100 bg-white p-6 shadow-sm">
+          <div className="flex w-full min-w-0 max-w-full flex-wrap items-start gap-5 overflow-hidden">
             <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-orange-100 text-3xl font-black text-orange-900">
               {profile.nickname.slice(0, 1)}
             </div>
 
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold tracking-[0.3em] text-orange-700">
+            <div className="min-w-0 max-w-full flex-1 overflow-hidden">
+              <p className="max-w-full overflow-hidden break-words text-sm font-bold tracking-[0.3em] text-orange-700 [overflow-wrap:anywhere] [word-break:break-word]">
                 USER PROFILE
               </p>
-              <h1 className="mt-2 break-words text-4xl font-black">
+              <h1 className="mt-2 max-w-full overflow-hidden break-words text-4xl font-black [overflow-wrap:anywhere] [word-break:break-word]">
                 {profile.nickname}
               </h1>
 
-              <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-6 text-stone-600 [overflow-wrap:anywhere]">
+              <p className="mt-3 max-w-full overflow-hidden whitespace-pre-wrap break-words text-sm leading-6 text-stone-600 [overflow-wrap:anywhere] [word-break:break-word]">
                 {profile.bio || "아직 한 줄 소개가 없습니다."}
               </p>
 
@@ -214,29 +214,29 @@ export default async function UserProfilePage({
             </div>
           </div>
 
-          <div className="mt-6 grid gap-3 sm:grid-cols-4">
-            <div className="rounded-2xl bg-orange-50 p-4">
+          <div className="mt-6 grid min-w-0 gap-3 sm:grid-cols-4">
+            <div className="min-w-0 overflow-hidden rounded-2xl bg-orange-50 p-4">
               <p className="text-xs font-black text-orange-700">작성 의견</p>
               <p className="mt-2 text-2xl font-black">
                 {formatCount(publicOpinionCount)}
               </p>
             </div>
 
-            <div className="rounded-2xl bg-orange-50 p-4">
+            <div className="min-w-0 overflow-hidden rounded-2xl bg-orange-50 p-4">
               <p className="text-xs font-black text-orange-700">받은 공감</p>
               <p className="mt-2 text-2xl font-black">
                 {formatCount(totalLikes)}
               </p>
             </div>
 
-            <div className="rounded-2xl bg-stone-50 p-4">
+            <div className="min-w-0 overflow-hidden rounded-2xl bg-stone-50 p-4">
               <p className="text-xs font-black text-stone-600">현재 표시 의견</p>
               <p className="mt-2 text-2xl font-black">
                 {formatCount(opinions.length)}
               </p>
             </div>
 
-            <div className="rounded-2xl bg-stone-50 p-4">
+            <div className="min-w-0 overflow-hidden rounded-2xl bg-stone-50 p-4">
               <p className="text-xs font-black text-stone-600">공감/비공감</p>
               <p className="mt-2 text-2xl font-black">
                 {formatCount(totalLikes)} / {formatCount(totalDislikes)}
@@ -249,15 +249,19 @@ export default async function UserProfilePage({
           <VoteTendencyCard title="선택 성향" userId={profile.user_id} />
         </div>
 
-        <section className="mt-8">
-          <div className="mb-5 flex items-end justify-between gap-4">
-            <div>
-              <p className="text-sm font-bold text-orange-700">OPINIONS</p>
-              <h2 className="mt-1 text-2xl font-black">작성한 의견</h2>
+        <section className="mt-8 min-w-0 max-w-full overflow-hidden">
+          <div className="mb-5 flex min-w-0 flex-wrap items-end justify-between gap-4 overflow-hidden">
+            <div className="min-w-0 max-w-full overflow-hidden">
+              <p className="max-w-full overflow-hidden break-words text-sm font-bold text-orange-700 [overflow-wrap:anywhere] [word-break:break-word]">
+                OPINIONS
+              </p>
+              <h2 className="mt-1 max-w-full overflow-hidden break-words text-2xl font-black [overflow-wrap:anywhere] [word-break:break-word]">
+                작성한 의견
+              </h2>
             </div>
           </div>
 
-          <div className="grid min-w-0 gap-4 md:grid-cols-2">
+          <div className="grid w-full min-w-0 max-w-full gap-4 overflow-hidden md:grid-cols-2">
             {opinions.map((opinion) => {
               const topic = topicById.get(opinion.topic_id);
 
@@ -267,24 +271,24 @@ export default async function UserProfilePage({
               return (
                 <article
                   key={opinion.id}
-                  className="w-full min-w-0 max-w-full overflow-hidden rounded-3xl border border-orange-100 bg-white p-5 shadow-sm"
+                  className="w-full min-w-0 max-w-full overflow-hidden rounded-3xl border border-orange-100 bg-white p-5 shadow-sm [overflow-wrap:anywhere]"
                 >
-                  <div className="flex min-w-0 flex-wrap items-center gap-2">
-                    <span className="max-w-full whitespace-normal break-words rounded-full bg-orange-100 px-3 py-1 text-xs font-black text-orange-800 [overflow-wrap:anywhere]">
+                  <div className="flex w-full min-w-0 max-w-full flex-wrap items-center gap-2 overflow-hidden">
+                    <span className="min-w-0 max-w-full overflow-hidden whitespace-normal break-words rounded-full bg-orange-100 px-3 py-1 text-xs font-black text-orange-800 [overflow-wrap:anywhere] [word-break:break-word]">
                       {sideName ?? "선택"}
                     </span>
 
                     {topic?.status && (
-                      <span className="max-w-full whitespace-normal break-words rounded-full bg-stone-100 px-3 py-1 text-xs font-black text-stone-600">
+                      <span className="min-w-0 max-w-full overflow-hidden whitespace-normal break-words rounded-full bg-stone-100 px-3 py-1 text-xs font-black text-stone-600 [overflow-wrap:anywhere] [word-break:break-word]">
                         {topic.status}
                       </span>
                     )}
                   </div>
 
-                  <h3 className="mt-3 min-w-0 text-lg font-black">
+                  <h3 className="mt-3 min-w-0 max-w-full overflow-hidden break-words text-lg font-black [overflow-wrap:anywhere] [word-break:break-word]">
                     <Link
                       href={`/topics/${opinion.topic_id}`}
-                      className="line-clamp-2 break-words hover:text-orange-700 [overflow-wrap:anywhere]"
+                      className="line-clamp-2 block min-w-0 max-w-full overflow-hidden break-words hover:text-orange-700 [overflow-wrap:anywhere] [word-break:break-word]"
                     >
                       {topic?.title ?? "주제를 찾을 수 없음"}
                     </Link>
@@ -292,19 +296,27 @@ export default async function UserProfilePage({
 
                   <ProfileOpinionBody body={opinion.body} />
 
-                  <div className="mt-4 flex min-w-0 flex-wrap gap-2 text-xs font-black text-stone-500">
-                    <span>공감 {formatCount(opinion.like_count)}</span>
+                  <div className="mt-4 flex w-full min-w-0 max-w-full flex-wrap gap-2 overflow-hidden text-xs font-black text-stone-500">
+                    <span className="min-w-0 max-w-full break-words [overflow-wrap:anywhere] [word-break:break-word]">
+                      공감 {formatCount(opinion.like_count)}
+                    </span>
                     <span>·</span>
-                    <span>비공감 {formatCount(opinion.dislike_count)}</span>
+                    <span className="min-w-0 max-w-full break-words [overflow-wrap:anywhere] [word-break:break-word]">
+                      비공감 {formatCount(opinion.dislike_count)}
+                    </span>
                     <span>·</span>
-                    <span>점수 {formatCount(opinion.score)}</span>
+                    <span className="min-w-0 max-w-full break-words [overflow-wrap:anywhere] [word-break:break-word]">
+                      점수 {formatCount(opinion.score)}
+                    </span>
                     <span>·</span>
-                    <span>{formatDate(opinion.created_at)}</span>
+                    <span className="min-w-0 max-w-full break-words [overflow-wrap:anywhere] [word-break:break-word]">
+                      {formatDate(opinion.created_at)}
+                    </span>
                   </div>
 
                   <Link
                     href={`/topics/${opinion.topic_id}`}
-                    className="mt-4 inline-flex rounded-full bg-stone-950 px-4 py-2 text-xs font-black text-white transition hover:-translate-y-0.5"
+                    className="mt-4 inline-flex max-w-full rounded-full bg-stone-950 px-4 py-2 text-xs font-black text-white transition hover:-translate-y-0.5"
                   >
                     주제 보기
                   </Link>

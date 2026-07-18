@@ -12,9 +12,9 @@ export function ProfileOpinionBody({
     <ExpandableTextByLines
       body={body}
       buttonClassName="mt-2 rounded-full bg-orange-50 px-3 py-1.5 text-xs font-black text-orange-700 ring-1 ring-orange-100 transition hover:bg-orange-100"
-      containerClassName="mt-3 min-w-0"
+      containerClassName="mt-3 w-full min-w-0 max-w-full overflow-hidden"
       maxLines={maxLines}
-      textClassName="min-w-0 whitespace-pre-wrap break-words text-sm leading-6 text-stone-700 [overflow-wrap:anywhere]"
+      textClassName="w-full min-w-0 max-w-full overflow-hidden whitespace-pre-wrap break-words text-sm leading-6 text-stone-700 [overflow-wrap:anywhere] [word-break:break-word]"
     />
   );
 }

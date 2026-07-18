@@ -11,13 +11,18 @@ import {
 import { CASUAL_OPINION_BODY_COLLAPSED_LINES } from "@/lib/casual-opinion-constraints";
 
 const baseTextClassName =
-  "whitespace-pre-wrap break-words text-sm leading-6 text-stone-700 [overflow-wrap:anywhere]";
+  "min-w-0 max-w-full overflow-hidden whitespace-pre-wrap break-words text-sm leading-6 text-stone-700 [overflow-wrap:anywhere] [word-break:break-word]";
+
+const textSafetyStyle: CSSProperties = {
+  overflowWrap: "anywhere",
+  wordBreak: "break-word",
+};
 
 function getClampedStyle(maxLines: number): CSSProperties {
   return {
+    ...textSafetyStyle,
     display: "-webkit-box",
     overflow: "hidden",
-    overflowWrap: "anywhere",
     WebkitBoxOrient: "vertical",
     WebkitLineClamp: maxLines,
   };
@@ -40,6 +45,7 @@ export function ExpandableTextByLines({
   const [canExpand, setCanExpand] = useState(false);
   const contentId = useId();
   const measureRef = useRef<HTMLParagraphElement>(null);
+  const safeTextClassName = `${baseTextClassName} ${textClassName}`;
 
   useEffect(() => {
     const measureElement = measureRef.current;
@@ -79,18 +85,20 @@ export function ExpandableTextByLines({
   }, [body, maxLines]);
 
   return (
-    <div className={`${containerClassName} relative min-w-0`}>
+    <div
+      className={`${containerClassName} relative w-full min-w-0 max-w-full overflow-hidden`}
+    >
       <p
         id={contentId}
-        className={textClassName}
-        style={isExpanded ? { overflowWrap: "anywhere" } : getClampedStyle(maxLines)}
+        className={safeTextClassName}
+        style={isExpanded ? textSafetyStyle : getClampedStyle(maxLines)}
       >
         {body}
       </p>
 
       <p
         aria-hidden="true"
-        className={`${textClassName} pointer-events-none invisible absolute inset-x-0 top-0 -z-10`}
+        className={`${safeTextClassName} pointer-events-none invisible absolute inset-x-0 top-0 -z-10`}
         ref={measureRef}
         style={getClampedStyle(maxLines)}
       >
