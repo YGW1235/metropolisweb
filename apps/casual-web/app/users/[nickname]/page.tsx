@@ -208,7 +208,7 @@ export default async function UserProfilePage({
                 >
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-black text-orange-800">
-                      {sideName ?? "선택"} 측
+                      {sideName ?? "선택"}
                     </span>
 
                     {topic?.status && (

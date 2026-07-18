@@ -161,8 +161,8 @@ async function loadReportPreview(
 
     const choiceLabel =
       opinion.choice === "a"
-        ? topic?.option_a ?? "A측"
-        : topic?.option_b ?? "B측";
+        ? topic?.option_a ?? "A"
+        : topic?.option_b ?? "B";
 
     return {
       found: true,
@@ -300,7 +300,7 @@ function ReportTargetPreview({ preview }: { preview: ReportPreview }) {
           <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-stone-500">
             <span>작성자 {preview.authorNickname}</span>
             <span>·</span>
-            <span>{preview.choiceLabel} 측</span>
+            <span>{preview.choiceLabel}</span>
           </div>
 
           <p className="max-h-56 overflow-hidden whitespace-pre-wrap rounded-2xl bg-white px-4 py-3 text-sm leading-6 text-stone-700">

@@ -273,8 +273,8 @@ function getChoiceLabel(
   optionA?: string,
   optionB?: string,
 ) {
-  if (choice === "a") return optionA ?? "A측";
-  if (choice === "b") return optionB ?? "B측";
+  if (choice === "a") return optionA ?? "A";
+  if (choice === "b") return optionB ?? "B";
   return "선택 정보 없음";
 }
 
@@ -550,7 +550,7 @@ function ReportTargetPreview({ preview }: { preview: TargetPreview }) {
           <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-stone-500">
             <span>의견 작성자 {preview.authorNickname}</span>
             <span>·</span>
-            <span>{preview.choiceLabel} 측</span>
+            <span>{preview.choiceLabel}</span>
           </div>
 
           <p className="max-h-60 overflow-hidden whitespace-pre-wrap rounded-2xl bg-white px-4 py-3 text-sm leading-6 text-stone-700">
@@ -636,7 +636,7 @@ function ReportTargetPreview({ preview }: { preview: TargetPreview }) {
               </p>
               <span className="text-xs font-bold text-stone-400">·</span>
               <p className="text-xs font-bold text-stone-500">
-                {preview.opinionChoiceLabel} 측
+                {preview.opinionChoiceLabel}
               </p>
             </div>
             <p className="mt-3 max-h-32 overflow-hidden whitespace-pre-wrap text-sm leading-6 text-stone-600">

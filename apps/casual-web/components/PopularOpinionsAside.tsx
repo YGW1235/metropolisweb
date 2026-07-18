@@ -107,7 +107,7 @@ export async function PopularOpinionsAside() {
               >
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="rounded-full bg-orange-100 px-2.5 py-1 text-xs font-black text-orange-800">
-                    {sideName ?? "선택"} 측
+                    {sideName ?? "선택"}
                   </span>
                   <span className="text-xs font-bold text-stone-500">
                     {profile?.nickname ?? "알 수 없음"}

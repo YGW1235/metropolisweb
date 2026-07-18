@@ -22,11 +22,11 @@ function getFeedTitle({
   optionBLabel: string;
 }) {
   if (opinionSide === "a") {
-    return `${optionALabel} 측 의견`;
+    return `${optionALabel} 의견`;
   }
 
   if (opinionSide === "b") {
-    return `${optionBLabel} 측 의견`;
+    return `${optionBLabel} 의견`;
   }
 
   return "전체 의견 피드";

@@ -177,7 +177,7 @@ export default async function Home() {
                           {opinionProfile?.nickname ?? "알 수 없음"}
                         </p>
                         <p className="truncate text-xs font-bold text-orange-700">
-                          {sideName ?? "선택"} 측
+                          {sideName ?? "선택"}
                         </p>
                       </div>
                     </div>

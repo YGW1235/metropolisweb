@@ -127,14 +127,14 @@ export function HeroTopicCarousel({
             <div className="rounded-2xl bg-orange-500 px-4 py-4 text-white">
               <p className="break-words text-base font-black">{topic.option_a}</p>
               <p className="mt-1 text-xs font-bold text-orange-100">
-                A측 {aPercent}%
+                {aPercent}%
               </p>
             </div>
 
             <div className="rounded-2xl bg-stone-950 px-4 py-4 text-white">
               <p className="break-words text-base font-black">{topic.option_b}</p>
               <p className="mt-1 text-xs font-bold text-stone-300">
-                B측 {bPercent}%
+                {bPercent}%
               </p>
             </div>
           </div>

@@ -146,7 +146,7 @@ export function OpinionCard({
           <span
             className={`mt-1 inline-flex max-w-full break-words rounded-full px-2.5 py-1 text-xs font-black leading-4 ${styles.badge}`}
           >
-            {optionLabel} 측
+            {optionLabel}
           </span>
         </div>
       </div>
