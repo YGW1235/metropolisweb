@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -6,6 +7,22 @@ import { FormMessage } from "@/components/form-message";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 
 import { headers } from "next/headers"; 
+
+const description =
+  "Metropolis에 로그인하거나 이메일 인증 기반 계정을 만들어 공개 토론에 참여하세요.";
+
+export const metadata: Metadata = {
+  title: "로그인",
+  description,
+  alternates: {
+    canonical: "/login",
+  },
+  openGraph: {
+    title: "로그인",
+    description,
+    url: "/login",
+  },
+};
 
 type LoginPageProps = {
   searchParams: Promise<{

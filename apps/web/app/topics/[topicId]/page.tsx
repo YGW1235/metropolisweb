@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -5,6 +6,8 @@ import { joinTopic } from "@/app/actions/topics";
 import { FormMessage } from "@/components/form-message";
 import { createClient } from "@/lib/supabase/server";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
+import { getSeoDescription } from "@/lib/seo";
+import { createPublicClient } from "@/lib/supabase/public";
 
 import { AccountStatusNotice } from "@/components/account-status-notice";
 
@@ -46,6 +49,66 @@ type MyProfileStatus = {
   status_reason: string | null;
   status_changed_at: string | null;
 };
+
+type TopicMetadata = {
+  title: string;
+  description: string | null;
+};
+
+export async function generateMetadata({
+  params,
+}: Pick<TopicDetailPageProps, "params">): Promise<Metadata> {
+  const { topicId } = await params;
+
+  try {
+    const publicSupabase = createPublicClient();
+    const { data: topic } = await publicSupabase
+      .from("topics")
+      .select("title, description")
+      .eq("id", topicId)
+      .is("deleted_at", null)
+      .in("status", ["open", "active", "closed"])
+      .maybeSingle();
+
+    const topicMetadata = topic as TopicMetadata | null;
+
+    if (!topicMetadata) {
+      return {
+        title: "주제를 찾을 수 없습니다",
+        description: "요청한 토론 주제를 찾을 수 없습니다.",
+        robots: {
+          index: false,
+          follow: false,
+        },
+      };
+    }
+
+    const description = getSeoDescription(topicMetadata.description);
+
+    return {
+      title: topicMetadata.title,
+      description,
+      alternates: {
+        canonical: `/topics/${topicId}`,
+      },
+      openGraph: {
+        title: topicMetadata.title,
+        description,
+        url: `/topics/${topicId}`,
+        type: "article",
+      },
+    };
+  } catch {
+    return {
+      title: "주제를 찾을 수 없습니다",
+      description: "요청한 토론 주제를 찾을 수 없습니다.",
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
+  }
+}
 
 function AthenaIcon() {
   return (

@@ -1,4 +1,21 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+const description =
+  "Metropolis의 개인정보 수집, 이용, 보관, 문의 처리 기준을 안내하는 개인정보처리방침입니다.";
+
+export const metadata: Metadata = {
+  title: "개인정보처리방침",
+  description,
+  alternates: {
+    canonical: "/privacy",
+  },
+  openGraph: {
+    title: "개인정보처리방침",
+    description,
+    url: "/privacy",
+  },
+};
 
 const sections = [
   {

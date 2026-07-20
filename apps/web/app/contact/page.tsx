@@ -1,9 +1,26 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { createContactInquiry } from "@/app/actions/contact";
 import { FormMessage } from "@/components/form-message";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { createClient } from "@/lib/supabase/server";
+
+const description =
+  "Metropolis 계정, 신고, 버그, 운영 관련 문의를 접수하는 페이지입니다.";
+
+export const metadata: Metadata = {
+  title: "문의하기",
+  description,
+  alternates: {
+    canonical: "/contact",
+  },
+  openGraph: {
+    title: "문의하기",
+    description,
+    url: "/contact",
+  },
+};
 
 type SearchParams = Promise<{
   message?: string;

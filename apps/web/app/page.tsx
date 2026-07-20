@@ -1,6 +1,21 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { createClient } from "@/lib/supabase/server";
+import { SITE_DESCRIPTION } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  title: "Metropolis",
+  description: SITE_DESCRIPTION,
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "Metropolis",
+    description: SITE_DESCRIPTION,
+    url: "/",
+  },
+};
 
 type PublicTopic = {
   id: string;

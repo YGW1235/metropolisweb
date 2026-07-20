@@ -1,7 +1,24 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { FormMessage } from "@/components/form-message";
 import { createClient } from "@/lib/supabase/server";
+
+const description =
+  "공개 토론 주제를 살펴보고 아테나, 포세이돈 또는 자동 배정으로 토론에 참여하세요.";
+
+export const metadata: Metadata = {
+  title: "주제 목록",
+  description,
+  alternates: {
+    canonical: "/topics",
+  },
+  openGraph: {
+    title: "주제 목록",
+    description,
+    url: "/topics",
+  },
+};
 
 type TopicsPageProps = {
   searchParams: Promise<{

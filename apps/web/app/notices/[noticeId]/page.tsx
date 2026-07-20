@@ -1,7 +1,10 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import { getSeoDescription } from "@/lib/seo";
+import { createPublicClient } from "@/lib/supabase/public";
 
 type NoticeDetailPageProps = {
   params: Promise<{
@@ -24,6 +27,67 @@ type Notice = {
   updated_at: string;
   view_count: number | string | null;
 };
+
+type NoticeMetadata = {
+  title: string;
+  content: string;
+};
+
+export async function generateMetadata({
+  params,
+}: Pick<NoticeDetailPageProps, "params">): Promise<Metadata> {
+  const { noticeId } = await params;
+
+  try {
+    const publicSupabase = createPublicClient();
+    const { data: publicNoticeRows } = await publicSupabase.rpc(
+      "get_public_notice",
+      {
+        p_notice_id: noticeId,
+      },
+    );
+
+    const notice = Array.isArray(publicNoticeRows)
+      ? ((publicNoticeRows[0] ?? null) as NoticeMetadata | null)
+      : null;
+
+    if (!notice) {
+      return {
+        title: "공지를 찾을 수 없습니다",
+        description: "요청한 공지사항을 찾을 수 없습니다.",
+        robots: {
+          index: false,
+          follow: false,
+        },
+      };
+    }
+
+    const description = getSeoDescription(notice.content);
+
+    return {
+      title: notice.title,
+      description,
+      alternates: {
+        canonical: `/notices/${noticeId}`,
+      },
+      openGraph: {
+        title: notice.title,
+        description,
+        url: `/notices/${noticeId}`,
+        type: "article",
+      },
+    };
+  } catch {
+    return {
+      title: "공지를 찾을 수 없습니다",
+      description: "요청한 공지사항을 찾을 수 없습니다.",
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
+  }
+}
 
 function formatDateTime(value: string | null) {
   if (!value) return "날짜 없음";
