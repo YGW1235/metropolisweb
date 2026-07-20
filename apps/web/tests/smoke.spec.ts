@@ -10,6 +10,8 @@ const publicPages = [
   { path: "/privacy", name: "privacy" },
 ];
 
+const notFoundPath = "/this-page-should-not-exist";
+
 for (const { path, name } of publicPages) {
   test(`${name} page renders`, async ({ page }) => {
     const response = await page.goto(path, { waitUntil: "domcontentloaded" });
@@ -28,7 +30,7 @@ for (const { path, name } of publicPages) {
 }
 
 test("not found page renders", async ({ page }) => {
-  const response = await page.goto("/this-page-should-not-exist", {
+  const response = await page.goto(notFoundPath, {
     waitUntil: "domcontentloaded",
   });
 
@@ -37,5 +39,7 @@ test("not found page renders", async ({ page }) => {
 
   await expect(page.locator("body")).toBeVisible();
   await expect(page.locator("main").first()).toBeVisible();
-  await expect(page.getByRole("heading", { name: /페이지를 찾을 수 없습니다/ })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: /페이지를 찾을 수 없습니다/ }),
+  ).toBeVisible();
 });
