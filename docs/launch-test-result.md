@@ -231,7 +231,13 @@ secret 값은 이 문서에 기록하지 않습니다.
 - workflow 파일: `.github/workflows/prod-smoke.yml`
 - 운영 주소: `https://metropolisagora.com`
 - 수동 실행 방식: GitHub Actions -> `Production Smoke Test` -> `Run workflow`
-- 실행 결과: `8 passed`
+- 실행 결과: `16 passed`
+
+테스트 구조:
+
+- `Desktop Chrome`: 데스크톱 크롬 환경에서 공개 경로 8개 확인
+- `Mobile Chrome`: Pixel 5 기반 모바일 크롬 환경에서 동일한 공개 경로 8개 확인
+- 모바일 뷰포트 기준: `390 x 844`
 
 테스트 대상:
 
@@ -251,13 +257,14 @@ secret 값은 이 문서에 기록하지 않습니다.
 - Supabase 환경변수
 - Playwright `E2E_BASE_URL`
 - Vercel 배포 상태
+- Desktop/Mobile project 중 어느 쪽에서 실패했는지
 
 404/error 화면 점검:
 
 - 전역 404 화면이 추가되어 없는 주소 접근 시 “페이지를 찾을 수 없습니다” 안내가 표시됩니다.
 - 전역 오류 화면이 추가되어 일반 오류 상황에서 raw error 메시지를 노출하지 않고 “문제가 발생했습니다” 안내와 다시 시도 버튼을 표시합니다.
 
-상태: 사용자 전달 실행 결과 기준 `8 passed`
+상태: 운영 사이트 기준 기대 결과 `16 passed`
 
 ## 14. 최종 런칭 체크
 
@@ -265,7 +272,7 @@ secret 값은 이 문서에 기록하지 않습니다.
 
 ```txt
 [ ] Web CI 성공
-[ ] Production Smoke Test 성공
+[ ] Production Smoke Test 성공(Desktop/Mobile 총 16 passed)
 [ ] Vercel Production Ready
 [ ] https://metropolisagora.com 접속
 [ ] Supabase Auth URL 설정
@@ -280,7 +287,8 @@ secret 값은 이 문서에 기록하지 않습니다.
 [ ] 공지 조회
 [ ] 다크/라이트 모드
 [ ] 404/error 화면
-[ ] 모바일 화면
+[ ] 모바일 smoke test
+[ ] 모바일 수동 화면
 ```
 
 ## 15. 기록란
