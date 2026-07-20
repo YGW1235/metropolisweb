@@ -614,7 +614,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <OliveHomeCta isLoggedIn={Boolean(user)} canWater={canWaterOlive} />
 
       <PublicMotionsSection
         topics={publicTopics}

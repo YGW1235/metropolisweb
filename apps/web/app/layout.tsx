@@ -42,8 +42,8 @@ export const metadata: Metadata = {
     images: [
       {
         url: DEFAULT_OG_IMAGE,
-        width: 1792,
-        height: 1024,
+        width: 1672,
+        height: 941,
         alt: "Metropolis Athena and Poseidon debate scene",
       },
     ],
