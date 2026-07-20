@@ -231,7 +231,7 @@ secret 값은 이 문서에 기록하지 않습니다.
 - workflow 파일: `.github/workflows/prod-smoke.yml`
 - 운영 주소: `https://metropolisagora.com`
 - 수동 실행 방식: GitHub Actions -> `Production Smoke Test` -> `Run workflow`
-- 실행 결과: `7 passed`
+- 실행 결과: `8 passed`
 
 테스트 대상:
 
@@ -242,6 +242,7 @@ secret 값은 이 문서에 기록하지 않습니다.
 - `/notices`
 - `/terms`
 - `/privacy`
+- `/this-page-should-not-exist` - 404 화면 확인
 
 실패 시 확인할 항목:
 
@@ -251,7 +252,12 @@ secret 값은 이 문서에 기록하지 않습니다.
 - Playwright `E2E_BASE_URL`
 - Vercel 배포 상태
 
-상태: 사용자 전달 실행 결과 기준 `7 passed`
+404/error 화면 점검:
+
+- 전역 404 화면이 추가되어 없는 주소 접근 시 “페이지를 찾을 수 없습니다” 안내가 표시됩니다.
+- 전역 오류 화면이 추가되어 일반 오류 상황에서 raw error 메시지를 노출하지 않고 “문제가 발생했습니다” 안내와 다시 시도 버튼을 표시합니다.
+
+상태: 사용자 전달 실행 결과 기준 `8 passed`
 
 ## 14. 최종 런칭 체크
 
@@ -273,6 +279,7 @@ secret 값은 이 문서에 기록하지 않습니다.
 [ ] 문의 접수/관리자 처리
 [ ] 공지 조회
 [ ] 다크/라이트 모드
+[ ] 404/error 화면
 [ ] 모바일 화면
 ```
 
