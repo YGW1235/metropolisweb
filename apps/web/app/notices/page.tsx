@@ -4,7 +4,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 
 const description =
-  "Metropolis 운영 공지와 서비스 변경사항을 확인할 수 있는 공지사항 페이지입니다.";
+  "메트로폴리스 아고라의 운영 공지와 업데이트를 확인하세요.";
 
 export const metadata: Metadata = {
   title: "공지사항",

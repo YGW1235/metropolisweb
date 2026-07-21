@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 const description =
-  "Metropolis 서비스 이용 조건과 운영 기준을 정리한 이용약관입니다.";
+  "메트로폴리스 아고라 서비스 이용 조건과 운영 기준을 정리한 이용약관입니다.";
 
 export const metadata: Metadata = {
   title: "이용약관",

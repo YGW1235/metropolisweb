@@ -2,17 +2,19 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { createClient } from "@/lib/supabase/server";
-import { SITE_DESCRIPTION } from "@/lib/seo";
+
+const description =
+  "하나의 의제를 두고 아테나와 포세이돈의 관점으로 나뉘어 의견을 남기고 토론하는 공개 토론 플랫폼입니다.";
 
 export const metadata: Metadata = {
-  title: "Metropolis",
-  description: SITE_DESCRIPTION,
+  title: "아테나와 포세이돈의 토론장",
+  description,
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "Metropolis",
-    description: SITE_DESCRIPTION,
+    title: "아테나와 포세이돈의 토론장",
+    description,
     url: "/",
   },
 };

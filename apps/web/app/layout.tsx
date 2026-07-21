@@ -44,7 +44,7 @@ export const metadata: Metadata = {
         url: DEFAULT_OG_IMAGE,
         width: 1672,
         height: 941,
-        alt: "Metropolis Athena and Poseidon debate scene",
+        alt: "메트로폴리스 아고라 아테나와 포세이돈 토론 장면",
       },
     ],
   },

@@ -1,9 +1,9 @@
-# Metropolis Web
+# 메트로폴리스 아고라 Web
 
 [![Web CI](https://github.com/YGW1235/metropolisweb/actions/workflows/web-ci.yml/badge.svg)](https://github.com/YGW1235/metropolisweb/actions/workflows/web-ci.yml)
 [![Production Smoke Test](https://github.com/YGW1235/metropolisweb/actions/workflows/prod-smoke.yml/badge.svg)](https://github.com/YGW1235/metropolisweb/actions/workflows/prod-smoke.yml)
 
-역할 기반 토론 플랫폼 **Metropolis**의 웹 애플리케이션입니다. 사용자는 공개된 주제에 참여하거나 관전할 수 있고, 참여자는 아테나/포세이돈 진영 중 하나로 배정되어 발언과 댓글을 남깁니다. 운영자는 주제, 공지, 신고, 유저 상태, 문의, 운영 로그를 관리합니다.
+역할 기반 공개 토론 플랫폼 **메트로폴리스 아고라**의 웹 애플리케이션입니다. 사용자는 공개된 주제에 참여하거나 관전할 수 있고, 참여자는 아테나/포세이돈 진영 중 하나로 배정되어 발언과 댓글을 남깁니다. 운영자는 주제, 공지, 신고, 유저 상태, 문의, 운영 로그를 관리합니다.
 
 ## 운영 주소
 

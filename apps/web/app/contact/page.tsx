@@ -7,7 +7,7 @@ import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { createClient } from "@/lib/supabase/server";
 
 const description =
-  "Metropolis 계정, 신고, 버그, 운영 관련 문의를 접수하는 페이지입니다.";
+  "메트로폴리스 아고라 이용 중 궁금한 점이나 제안 사항을 보내주세요.";
 
 export const metadata: Metadata = {
   title: "문의하기",

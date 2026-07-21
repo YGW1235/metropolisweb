@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
@@ -5,6 +6,8 @@ import { joinTopic } from "@/app/actions/topics";
 import { FormMessage } from "@/components/form-message";
 import { createClient } from "@/lib/supabase/server";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
+import { getSeoDescription } from "@/lib/seo";
+import { createPublicClient } from "@/lib/supabase/public";
 
 const PAGE_SIZE = 10;
 
@@ -32,6 +35,11 @@ type DebatePageProps = {
   }>;
 };
 
+type TopicDebateMetadata = {
+  title: string;
+  description: string | null;
+};
+
 type DebatePost = {
   id: string;
   topic_id: string;
@@ -55,6 +63,60 @@ type Participation = {
   side_index: number | null;
   joined_at: string | null;
 };
+
+export async function generateMetadata({
+  params,
+}: Pick<DebatePageProps, "params">): Promise<Metadata> {
+  const { topicId } = await params;
+  const fallback = {
+    title: "토론장을 찾을 수 없습니다",
+    description: "삭제되었거나 접근할 수 없는 토론장입니다.",
+    robots: {
+      index: false,
+      follow: false,
+    },
+  };
+
+  try {
+    const publicSupabase = createPublicClient();
+    const { data: topic } = await publicSupabase
+      .from("topics")
+      .select("title, description")
+      .eq("id", topicId)
+      .is("deleted_at", null)
+      .in("status", ["open", "active", "closed"])
+      .maybeSingle();
+
+    const topicMetadata = topic as TopicDebateMetadata | null;
+
+    if (!topicMetadata) {
+      return fallback;
+    }
+
+    const title = `${topicMetadata.title} 토론장`;
+    const description = getSeoDescription(
+      topicMetadata.description,
+      "메트로폴리스 아고라의 토론장입니다.",
+      155,
+    );
+
+    return {
+      title,
+      description,
+      alternates: {
+        canonical: `/topics/${topicId}/debate`,
+      },
+      openGraph: {
+        title,
+        description,
+        url: `/topics/${topicId}/debate`,
+        type: "article",
+      },
+    };
+  } catch {
+    return fallback;
+  }
+}
 
 function AthenaIcon() {
   return (
