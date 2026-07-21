@@ -23,6 +23,10 @@ for (const { path, name } of publicPages) {
     ).toBeLessThan(400);
 
     await expect(page.locator("body")).toBeVisible();
+    await expect(page.getByRole("banner")).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: /Metropolis/i }).first(),
+    ).toBeVisible();
     await expect(page.locator("main").first()).toBeVisible();
     await expect(page.locator("h1").first()).toBeVisible();
     await expect(page).toHaveTitle(/Metropolis/i);
@@ -38,6 +42,10 @@ test("not found page renders", async ({ page }) => {
   expect(response?.status(), "missing page should return 404").toBe(404);
 
   await expect(page.locator("body")).toBeVisible();
+  await expect(page.getByRole("banner")).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: /Metropolis/i }).first(),
+  ).toBeVisible();
   await expect(page.locator("main").first()).toBeVisible();
   await expect(
     page.getByRole("heading", { name: /페이지를 찾을 수 없습니다/ }),
