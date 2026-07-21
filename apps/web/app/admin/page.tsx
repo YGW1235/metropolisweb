@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { AdminStateCard } from "@/components/admin-state-card";
+import { SITE_URL } from "@/lib/seo";
 
 type AdminAction = {
   href: string;
@@ -115,7 +116,7 @@ const adminSections: AdminSection[] = [
 ];
 
 const summaryItems = [
-  { label: "운영 주소", value: "https://metropolisagora.com" },
+  { label: "운영 주소", value: SITE_URL },
   { label: "대상 앱", value: "apps/web" },
   { label: "관리 범위", value: "주제 · 공지 · 신고 · 문의 · 유저 · 보안" },
 ];

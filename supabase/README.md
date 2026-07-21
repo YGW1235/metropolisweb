@@ -98,14 +98,14 @@ Authentication -> URL Configuration
 Site URL:
 
 ```txt
-https://metropolisagora.com
+https://www.metropolisagora.com
 ```
 
 Redirect URLs:
 
 ```txt
-https://metropolisagora.com/**
 https://www.metropolisagora.com/**
+https://metropolisagora.com/**
 https://metropolisweb.vercel.app/**
 http://localhost:3000/**
 ```
@@ -188,7 +188,7 @@ debate-images
 
 ## 배포 전 Supabase 체크
 
-- Auth Site URL이 `https://metropolisagora.com`인지
+- Auth Site URL이 `https://www.metropolisagora.com`인지
 - Redirect URLs가 운영/WWW/Vercel/localhost를 포함하는지
 - Email Templates 문구가 운영 도메인 기준인지
 - Resend SMTP 연결이 정상인지

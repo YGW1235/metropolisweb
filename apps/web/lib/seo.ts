@@ -1,4 +1,4 @@
-export const SITE_URL = "https://metropolisagora.com";
+export const SITE_URL = "https://www.metropolisagora.com";
 export const SITE_NAME = "메트로폴리스 아고라";
 export const SITE_DESCRIPTION =
   "아테나와 포세이돈의 관점으로 나뉘어 사회적 의제를 토론하는 공개 토론 플랫폼";

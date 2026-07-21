@@ -2,7 +2,9 @@
 
 기준일: 2026-07-10
 
-운영 주소: `https://metropolisagora.com`
+운영 대표 주소: `https://www.metropolisagora.com`
+
+non-www 주소 `https://metropolisagora.com`은 대표 주소로 리디렉션되는 보조 진입점으로 확인합니다.
 
 대상 앱: `apps/web` - 메트로폴리스 아고라
 
@@ -18,8 +20,8 @@
 | 의존성 설치 | CI에서 repo 루트 `pnpm install --frozen-lockfile` 실행 | 설정됨 |
 | 앱 빌드 | CI에서 `apps/web` 기준 `pnpm build` 실행 | 설정됨 |
 | Vercel 배포 | Vercel 프로젝트 Root Directory가 `apps/web`인지 확인 | 확인 필요 |
-| 운영 도메인 | `https://metropolisagora.com` 접속 확인 | 확인 필요 |
-| WWW 도메인 | `https://www.metropolisagora.com` 리다이렉트 또는 접속 정책 확인 | 확인 필요 |
+| 운영 대표 도메인 | `https://www.metropolisagora.com` 접속 확인 | 확인 필요 |
+| non-www 도메인 | `https://metropolisagora.com`이 `www` 주소로 리디렉션되는지 확인 | 확인 필요 |
 | 환경변수 | Vercel Production env 설정 확인 | 확인 필요 |
 
 필수 환경변수:
@@ -39,9 +41,9 @@ secret 값은 이 문서에 기록하지 않습니다.
 
 | 항목 | 확인 내용 | 상태 |
 | --- | --- | --- |
-| Auth Site URL | `https://metropolisagora.com` | 확인 필요 |
-| Redirect URL | `https://metropolisagora.com/**` | 확인 필요 |
+| Auth Site URL | `https://www.metropolisagora.com` | 확인 필요 |
 | Redirect URL | `https://www.metropolisagora.com/**` | 확인 필요 |
+| Redirect URL | `https://metropolisagora.com/**` | 확인 필요 |
 | Redirect URL | `https://metropolisweb.vercel.app/**` | 확인 필요 |
 | Redirect URL | `http://localhost:3000/**` | 확인 필요 |
 | Email Templates | Supabase Dashboard에서 문구와 링크 확인 | 확인 필요 |
@@ -60,7 +62,7 @@ secret 값은 이 문서에 기록하지 않습니다.
 
 확인할 것:
 
-- 인증 링크가 `metropolisagora.com` 기준으로 동작하는지
+- 인증 링크가 `www.metropolisagora.com` 기준으로 동작하는지
 - 인증 완료 전/후 메시지가 자연스러운지
 - 인증 메일 재발송 폼이 동작하는지
 
@@ -231,7 +233,7 @@ secret 값은 이 문서에 기록하지 않습니다.
 
 - workflow: `Production Smoke Test`
 - workflow 파일: `.github/workflows/prod-smoke.yml`
-- 운영 주소: `https://metropolisagora.com`
+- 운영 주소: `https://www.metropolisagora.com`
 - 수동 실행 방식: GitHub Actions -> `Production Smoke Test` -> `Run workflow`
 - 실행 결과: `16 passed`
 
@@ -276,7 +278,8 @@ secret 값은 이 문서에 기록하지 않습니다.
 [ ] Web CI 성공
 [ ] Production Smoke Test 성공(Desktop/Mobile 총 16 passed)
 [ ] Vercel Production Ready
-[ ] https://metropolisagora.com 접속
+[ ] https://www.metropolisagora.com 접속
+[ ] https://metropolisagora.com -> www 리디렉션
 [ ] Supabase Auth URL 설정
 [ ] Resend SMTP 설정
 [ ] 회원가입/이메일 인증

@@ -1,6 +1,6 @@
 # 메트로폴리스 아고라 관리자 운영 가이드
 
-메트로폴리스 아고라 운영자가 관리자 메뉴에서 확인하고 처리해야 할 일을 정리한 문서입니다. 기준 운영 주소는 `https://metropolisagora.com`이고, 대상 앱은 `apps/web`입니다.
+메트로폴리스 아고라 운영자가 관리자 메뉴에서 확인하고 처리해야 할 일을 정리한 문서입니다. 기준 운영 주소는 `https://www.metropolisagora.com`이고, 대상 앱은 `apps/web`입니다.
 
 이 저장소에 함께 있는 SymposionTalk(`apps/casual-web`)와는 별도 브랜드/앱으로 관리합니다. 이 문서의 관리자 메뉴와 운영 절차는 메트로폴리스 아고라에만 적용합니다.
 
@@ -9,7 +9,7 @@
 관리자 계정으로 로그인한 뒤 아래 주소로 접속합니다.
 
 ```txt
-https://metropolisagora.com/admin
+https://www.metropolisagora.com/admin
 ```
 
 관리자 권한 조건:
@@ -314,7 +314,7 @@ draft -> open -> active -> closed -> archived
 - 로컬 또는 CI에서 `apps/web` 빌드가 성공했는지
 - Vercel Root Directory가 `apps/web`인지
 - Vercel 환경변수가 설정되어 있는지
-- Supabase Auth Site URL이 `https://metropolisagora.com`인지
+- Supabase Auth Site URL이 `https://www.metropolisagora.com`인지
 - Supabase Redirect URLs가 운영/WWW/Vercel/localhost를 포함하는지
 - Resend SMTP가 Supabase Auth에 연결되어 있는지
 - Email Templates 문구와 링크가 운영 도메인 기준인지
@@ -322,7 +322,8 @@ draft -> open -> active -> closed -> archived
 
 배포 후 확인:
 
-- `https://metropolisagora.com` 접속
+- `https://www.metropolisagora.com` 접속
+- `https://metropolisagora.com`이 `www` 주소로 리디렉션되는지 확인
 - 회원가입과 이메일 인증
 - 로그인/로그아웃
 - 비밀번호 재설정
