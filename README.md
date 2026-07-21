@@ -1,11 +1,22 @@
-# 메트로폴리스 아고라 Web
+# metropolisweb Monorepo
 
 [![Web CI](https://github.com/YGW1235/metropolisweb/actions/workflows/web-ci.yml/badge.svg)](https://github.com/YGW1235/metropolisweb/actions/workflows/web-ci.yml)
 [![Production Smoke Test](https://github.com/YGW1235/metropolisweb/actions/workflows/prod-smoke.yml/badge.svg)](https://github.com/YGW1235/metropolisweb/actions/workflows/prod-smoke.yml)
 
+이 저장소는 토론 서비스 계열 앱을 함께 관리하는 pnpm monorepo입니다. GitHub About URL은 하나만 설정할 수 있으므로, README에서 앱별 브랜드와 운영 링크를 분리해 안내합니다.
+
+## 앱과 브랜드
+
+| 경로 | 브랜드 | 설명 | 운영 주소 |
+| --- | --- | --- | --- |
+| `apps/web` | 메트로폴리스 아고라 | 아테나와 포세이돈의 관점으로 나뉘어 사회적 의제를 토론하는 공개 토론 플랫폼 | https://metropolisagora.com |
+| `apps/casual-web` | SymposionTalk | 같은 저장소를 공유하는 별도 앱/브랜드입니다. 메트로폴리스 아고라 문서와 구현 범위를 분리해서 관리합니다. | https://symposiontalk.com |
+
+이 README의 기능, Supabase, 배포, 운영 절차 설명은 별도 표시가 없는 한 `apps/web`의 **메트로폴리스 아고라**를 기준으로 합니다. SymposionTalk 관련 작업은 `apps/casual-web`와 해당 앱 문서를 기준으로 확인합니다.
+
 역할 기반 공개 토론 플랫폼 **메트로폴리스 아고라**의 웹 애플리케이션입니다. 사용자는 공개된 주제에 참여하거나 관전할 수 있고, 참여자는 아테나/포세이돈 진영 중 하나로 배정되어 발언과 댓글을 남깁니다. 운영자는 주제, 공지, 신고, 유저 상태, 문의, 운영 로그를 관리합니다.
 
-## 운영 주소
+## 메트로폴리스 아고라 운영 주소
 
 ```txt
 https://metropolisagora.com
@@ -80,7 +91,7 @@ v0.3.0 후보
 - Resend API를 통한 문의 알림 메일 발송
 - GitHub Actions Web CI
 - pnpm monorepo
-- `apps/web`가 메인 웹 앱
+- `apps/web`가 메트로폴리스 아고라 웹 앱
 
 ## 기술 스택
 
@@ -101,28 +112,30 @@ v0.3.0 후보
 metropolisweb/
 ├─ .github/
 │  └─ workflows/
-│     └─ web-ci.yml
+│     ├─ web-ci.yml
+│     └─ prod-smoke.yml
 ├─ apps/
-│  └─ web/
-│     ├─ app/
-│     │  ├─ actions/
-│     │  ├─ admin/
-│     │  ├─ contact/
-│     │  ├─ forgot-password/
-│     │  ├─ login/
-│     │  ├─ me/
-│     │  ├─ notices/
-│     │  ├─ reset-password/
-│     │  ├─ settings/
-│     │  ├─ topics/
-│     │  ├─ globals.css
-│     │  ├─ layout.tsx
-│     │  └─ page.tsx
-│     ├─ components/
-│     ├─ lib/
-│     ├─ public/
-│     ├─ package.json
-│     └─ next.config.ts
+│  ├─ web/                  # 메트로폴리스 아고라
+│  │  ├─ app/
+│  │  │  ├─ actions/
+│  │  │  ├─ admin/
+│  │  │  ├─ contact/
+│  │  │  ├─ forgot-password/
+│  │  │  ├─ login/
+│  │  │  ├─ me/
+│  │  │  ├─ notices/
+│  │  │  ├─ reset-password/
+│  │  │  ├─ settings/
+│  │  │  ├─ topics/
+│  │  │  ├─ globals.css
+│  │  │  ├─ layout.tsx
+│  │  │  └─ page.tsx
+│  │  ├─ components/
+│  │  ├─ lib/
+│  │  ├─ public/
+│  │  ├─ package.json
+│  │  └─ next.config.ts
+│  └─ casual-web/           # SymposionTalk
 ├─ docs/
 ├─ supabase/
 ├─ pnpm-lock.yaml

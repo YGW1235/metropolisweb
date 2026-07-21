@@ -1,12 +1,14 @@
-# Metropolis 런칭 점검 문서
+# 메트로폴리스 아고라 런칭 점검 문서
 
 기준일: 2026-07-10
 
 운영 주소: `https://metropolisagora.com`
 
-대상 앱: `apps/web`
+대상 앱: `apps/web` - 메트로폴리스 아고라
 
 이 문서는 배포 전후 수동 점검 결과를 기록하기 위한 문서입니다. GitHub Actions나 Vercel 배포 결과처럼 외부 서비스에서 확인해야 하는 항목은 해당 서비스 화면의 최신 상태를 기준으로 확인합니다.
+
+이 저장소에는 `apps/casual-web`의 SymposionTalk도 함께 있을 수 있지만, 이 문서의 점검 범위는 `apps/web`의 메트로폴리스 아고라입니다. SymposionTalk 점검은 별도 앱/브랜드 기준으로 분리해서 기록합니다.
 
 ## 1. 환경 및 배포
 
