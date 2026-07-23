@@ -1,10 +1,9 @@
 export const SITE_NAME = "심포지온";
 
-export const DEFAULT_TITLE =
-  "심포지온 - 가볍게 고르고 짧게 편드는 토론 공간";
+export const DEFAULT_TITLE = "심포지온";
 
 export const DEFAULT_DESCRIPTION =
-  "일상, 취향, 사회 이슈를 가볍게 고르고 짧게 의견을 나누는 캐주얼 찬반 토론 커뮤니티입니다.";
+  "일상의 찬반 주제를 가볍게 고르고, 짧은 의견을 나누는 캐주얼 논쟁 공간입니다. 내 선택이 주류인지 비주류인지 확인해보세요.";
 
 const FALLBACK_SITE_URL = "http://localhost:3001";
 

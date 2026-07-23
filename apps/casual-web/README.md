@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 심포지온 / Symposion
 
-## Getting Started
+심포지온은 일상의 찬반 주제를 가볍게 고르고, 짧은 의견을 나누는 캐주얼 논쟁 공간입니다.
 
-First, run the development server:
+- 운영 도메인: https://symposiontalk.com
+- 앱 위치: `apps/casual-web`
+
+## 주요 기능
+
+- 찬반 주제 투표
+- 의견/댓글 작성
+- 의견 이미지 첨부
+- 공감/비공감
+- 선택 성향 카드
+- 주제 저장
+- 알림
+- 문의
+- 관리자 moderation
+
+## 개발
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm --filter casual-web dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 빌드
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm --filter casual-web build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 주요 환경변수
 
-## Learn More
+```bash
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+NEXT_PUBLIC_SITE_URL=https://symposiontalk.com
+```
 
-To learn more about Next.js, take a look at the following resources:
+## 배포 전 확인
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `/sitemap.xml` 공개 접근 확인
+- `/robots.txt` 공개 접근 확인
+- `/og-image.png` 공유 이미지 접근 확인
+- Supabase Auth Site URL과 Redirect URL 확인
+- Vercel 환경변수 확인
+- Google Search Console 등록과 sitemap 제출

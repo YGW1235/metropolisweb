@@ -1,0 +1,24 @@
+# 심포지온 출시 체크리스트
+
+- [ ] 도메인 `https://symposiontalk.com` 연결 확인
+- [ ] Vercel 환경변수 설정 확인
+- [ ] `NEXT_PUBLIC_SITE_URL=https://symposiontalk.com` 설정 확인
+- [ ] Supabase Auth Site URL 확인
+- [ ] Supabase Auth Redirect URL 확인
+- [ ] `https://symposiontalk.com/sitemap.xml` 접속 확인
+- [ ] `https://symposiontalk.com/robots.txt` 접속 확인
+- [ ] `https://symposiontalk.com/og-image.png` 접속 확인
+- [ ] 카카오톡 공유 미리보기 확인
+- [ ] Discord 공유 미리보기 확인
+- [ ] Threads 공유 미리보기 확인
+- [ ] X 공유 미리보기 확인
+- [ ] Google Search Console 등록
+- [ ] Search Console에 sitemap 제출
+- [ ] 홈 URL 색인 요청
+- [ ] `/topics` URL 색인 요청
+- [ ] 대표 주제 URL 색인 요청
+- [ ] 대표 주제 5개 준비
+- [ ] 문의 기능 확인
+- [ ] 관리자 QA 체크리스트 확인
+- [ ] 신고 처리 흐름 확인
+- [ ] 삭제/숨김 처리 흐름 확인

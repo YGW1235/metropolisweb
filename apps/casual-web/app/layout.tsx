@@ -4,6 +4,7 @@ import {
   DEFAULT_DESCRIPTION,
   DEFAULT_TITLE,
   SITE_NAME,
+  getAbsoluteUrl,
   getMetadataBase,
 } from "@/lib/site-metadata";
 import "./globals.css";
@@ -35,6 +36,13 @@ const backgroundInitScript = `
 })();
 `;
 
+const ogImage = {
+  url: getAbsoluteUrl("/og-image.png"),
+  width: 1200,
+  height: 630,
+  alt: "심포지온 - 오늘의 주제, 당신은 어느 쪽인가요?",
+};
+
 export const metadata: Metadata = {
   metadataBase: getMetadataBase(),
   applicationName: SITE_NAME,
@@ -50,11 +58,13 @@ export const metadata: Metadata = {
     locale: "ko_KR",
     type: "website",
     url: "/",
+    images: [ogImage],
   },
   twitter: {
     card: "summary_large_image",
     title: DEFAULT_TITLE,
     description: DEFAULT_DESCRIPTION,
+    images: [ogImage],
   },
 };
 
