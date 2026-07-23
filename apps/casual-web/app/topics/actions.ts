@@ -13,6 +13,8 @@ import {
   CASUAL_OPINION_BODY_MAX_LENGTH,
   CASUAL_OPINION_BODY_MIN_LENGTH,
   CASUAL_OPINION_BODY_TOO_LONG_MESSAGE,
+  CASUAL_OPINION_IMAGE_TOTAL_UPLOAD_LIMIT_BYTES,
+  CASUAL_OPINION_IMAGE_TOTAL_UPLOAD_LIMIT_LABEL,
 } from "@/lib/casual-opinion-constraints";
 import { createClient } from "@/lib/supabase/server";
 
@@ -102,6 +104,16 @@ function validateOpinionImages(files: File[], returnPath: string) {
     redirectWithMessage(
       returnPath,
       "이미지는 최대 3장까지 첨부할 수 있습니다.",
+      "error",
+    );
+  }
+
+  const totalFileSize = files.reduce((sum, file) => sum + file.size, 0);
+
+  if (totalFileSize > CASUAL_OPINION_IMAGE_TOTAL_UPLOAD_LIMIT_BYTES) {
+    redirectWithMessage(
+      returnPath,
+      `현재 서버 전송 방식에서는 이미지 합계가 ${CASUAL_OPINION_IMAGE_TOTAL_UPLOAD_LIMIT_LABEL} 이하일 때만 제출할 수 있습니다.`,
       "error",
     );
   }
