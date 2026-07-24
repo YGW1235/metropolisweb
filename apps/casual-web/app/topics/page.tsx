@@ -8,6 +8,7 @@ import {
   type TopicTag,
   type TopicTagLink,
 } from "@/lib/casual-tags";
+import { withPerfLog } from "@/lib/perf-log";
 
 import { SiteHeader } from "@/components/SiteHeader";
 import { PublicShell } from "@/components/PublicShell";
@@ -179,7 +180,7 @@ export default async function TopicsPage({
   const { data: topics, error } =
     taggedTopicIds?.length === 0
       ? { data: [], error: null }
-      : await topicsQuery;
+      : await withPerfLog("topics page 목록 조회", async () => await topicsQuery);
 
   if (error) {
     return (

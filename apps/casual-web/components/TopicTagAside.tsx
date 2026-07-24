@@ -1,26 +1,6 @@
 import Link from "next/link";
 
-import { createClient } from "@/lib/supabase/server";
-
-type TopicTag = {
-  id: string;
-  name: string;
-  slug: string;
-};
-
-type TopicTagLink = {
-  tag_id: string;
-  topic_id: string;
-};
-
-type AsideTopic = {
-  id: string;
-  title: string;
-  opinion_count: number | null;
-  view_count: number | null;
-  last_activity_at: string | null;
-  created_at: string | null;
-};
+import { getCachedTopicTagAsideData } from "@/lib/casual-public-cache";
 
 function formatCount(value: number | null | undefined) {
   return new Intl.NumberFormat("ko-KR").format(value ?? 0);
@@ -40,51 +20,11 @@ export async function TopicTagAside({
 }: {
   activeTagSlug?: string;
 }) {
-  const supabase = await createClient();
-
-  const { data: tagsData } = await supabase
-    .from("casual_topic_tags")
-    .select("id, name, slug")
-    .order("name", { ascending: true });
-
-  const tags = (tagsData ?? []) as TopicTag[];
-
-  const { data: activeTopicsData } = await supabase
-    .from("active_casual_topics_with_scores")
-    .select("id, title, opinion_count, view_count, last_activity_at, created_at")
-    .order("trending_score", { ascending: false })
-    .order("last_activity_at", { ascending: false })
-    .limit(1000);
-
-  const activeTopics = (activeTopicsData ?? []) as AsideTopic[];
-  const activeTopicIds = activeTopics.map((topic) => topic.id);
-  const topicById = new Map(activeTopics.map((topic) => [topic.id, topic]));
-
-  const { data: tagLinksData } =
-    activeTopicIds.length > 0
-      ? await supabase
-          .from("casual_topic_tag_links")
-          .select("topic_id, tag_id")
-          .in("topic_id", activeTopicIds)
-      : { data: [] };
-
-  const topicsByTagId = new Map<string, AsideTopic[]>();
-
-  for (const link of (tagLinksData ?? []) as TopicTagLink[]) {
-    const topic = topicById.get(link.topic_id);
-
-    if (!topic) {
-      continue;
-    }
-
-    const existing = topicsByTagId.get(link.tag_id) ?? [];
-    existing.push(topic);
-    topicsByTagId.set(link.tag_id, existing);
-  }
+  const { tags, topicsByTagId } = await getCachedTopicTagAsideData();
 
   const selectedTagSlug = activeTagSlug?.trim();
   const firstTagWithTopics = tags.find(
-    (tag) => (topicsByTagId.get(tag.id) ?? []).length > 0,
+    (tag) => (topicsByTagId[tag.id] ?? []).length > 0,
   );
 
   return (
@@ -97,7 +37,7 @@ export async function TopicTagAside({
 
         <div className="mt-4 space-y-3">
           {tags.map((tag) => {
-            const tagTopics = topicsByTagId.get(tag.id) ?? [];
+            const tagTopics = topicsByTagId[tag.id] ?? [];
             const visibleTopics = tagTopics.slice(0, 5);
             const isActive =
               typeof selectedTagSlug === "string" && selectedTagSlug === tag.slug;

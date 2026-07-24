@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { createClient } from "@/lib/supabase/server";
 import {
-  buildTagsByTopicId,
-  type TopicTag,
-  type TopicTagLink,
-} from "@/lib/casual-tags";
+  getCachedHomeHeroTopics,
+  getCachedPopularOpinions,
+} from "@/lib/casual-public-cache";
 
 import { SiteHeader } from "@/components/SiteHeader";
 import { PublicShell } from "@/components/PublicShell";
@@ -28,110 +26,14 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-function formatCount(value: number) {
-  return new Intl.NumberFormat("ko-KR").format(value);
+function formatCount(value: number | null | undefined) {
+  return new Intl.NumberFormat("ko-KR").format(value ?? 0);
 }
 
 export default async function Home() {
-  const supabase = await createClient();
-
-  const { data: hotTopics } = await supabase
-    .from("active_casual_topics_with_scores")
-    .select(
-      "id, title, description, option_a, option_b, vote_a_count, vote_b_count, opinion_count, comment_count, view_count, hot_score, trending_score, is_today, created_at, last_activity_at",
-    )
-    .order("is_today", { ascending: false })
-    .order("trending_score", { ascending: false })
-    .order("created_at", { ascending: false })
-    .limit(8);
-
-  const visibleTopicIds = Array.from(
-    new Set((hotTopics ?? []).map((topic) => topic.id)),
-  );
-
-  const { data: allTagsData } = await supabase
-    .from("casual_topic_tags")
-    .select("id, name, slug")
-    .order("name", { ascending: true });
-
-  const { data: topicTagLinksData } =
-    visibleTopicIds.length > 0
-      ? await supabase
-          .from("casual_topic_tag_links")
-          .select("topic_id, tag_id")
-          .in("topic_id", visibleTopicIds)
-      : { data: [] };
-
-  const tagsByTopicId = buildTagsByTopicId(
-    visibleTopicIds,
-    (allTagsData ?? []) as TopicTag[],
-    (topicTagLinksData ?? []) as TopicTagLink[],
-  );
-
-  const heroTopics = (hotTopics ?? []).map((topic) => ({
-    id: topic.id,
-    title: topic.title,
-    description: topic.description,
-    option_a: topic.option_a,
-    option_b: topic.option_b,
-    vote_a_count: topic.vote_a_count,
-    vote_b_count: topic.vote_b_count,
-    opinion_count: topic.opinion_count,
-    comment_count: topic.comment_count,
-    view_count: topic.view_count,
-    trending_score: topic.trending_score,
-    is_today: topic.is_today,
-    tags: tagsByTopicId.get(topic.id) ?? [],
-  })) satisfies HeroTopicCarouselTopic[];
-
-  const { data: popularOpinionsData } = await supabase
-    .from("casual_opinions")
-    .select(
-      "id, topic_id, user_id, choice, body, like_count, dislike_count, score, created_at",
-    )
-    .eq("is_hidden", false)
-    .order("score", { ascending: false })
-    .order("like_count", { ascending: false })
-    .order("created_at", { ascending: false })
-    .limit(50);
-
-  const popularOpinionCandidates = popularOpinionsData ?? [];
-  const popularOpinionTopicIds = Array.from(
-    new Set(popularOpinionCandidates.map((opinion) => opinion.topic_id)),
-  );
-
-  const { data: opinionTopicsData } =
-    popularOpinionTopicIds.length > 0
-      ? await supabase
-          .from("casual_topics")
-          .select("id, title, option_a, option_b")
-          .eq("status", "active")
-          .in("id", popularOpinionTopicIds)
-      : { data: [] };
-
-  const topicById = new Map(
-    (opinionTopicsData ?? []).map((topic) => [topic.id, topic]),
-  );
-
-  const popularOpinions = popularOpinionCandidates
-    .filter((opinion) => topicById.has(opinion.topic_id))
-    .slice(0, 5);
-
-  const opinionUserIds = Array.from(
-    new Set(popularOpinions.map((opinion) => opinion.user_id)),
-  );
-
-  const { data: opinionProfilesData } =
-    opinionUserIds.length > 0
-      ? await supabase
-          .from("casual_profiles")
-          .select("user_id, nickname, avatar_url")
-          .in("user_id", opinionUserIds)
-      : { data: [] };
-
-  const profileByUserId = new Map(
-    (opinionProfilesData ?? []).map((profile) => [profile.user_id, profile]),
-  );
+  const heroTopics =
+    (await getCachedHomeHeroTopics()) satisfies HeroTopicCarouselTopic[];
+  const popularOpinions = await getCachedPopularOpinions();
 
   return (
     <main className="casual-page-bg min-h-screen text-[#2f2118]">
@@ -153,13 +55,10 @@ export default async function Home() {
 
             <div className="grid gap-4 lg:grid-cols-5">
               {popularOpinions.map((opinion) => {
-                const opinionProfile = profileByUserId.get(opinion.user_id);
-                const opinionTopic = topicById.get(opinion.topic_id);
-
                 const sideName =
                   opinion.choice === "a"
-                    ? opinionTopic?.option_a
-                    : opinionTopic?.option_b;
+                    ? opinion.topic.option_a
+                    : opinion.topic.option_b;
 
                 return (
                   <Link
@@ -169,15 +68,15 @@ export default async function Home() {
                   >
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100 text-sm font-black text-orange-900">
-                        {(opinionProfile?.nickname ?? "익명").slice(0, 1)}
+                        {(opinion.profile?.nickname ?? "익명").slice(0, 1)}
                       </div>
 
                       <div className="min-w-0">
                         <p className="truncate text-sm font-black">
-                          {opinionProfile?.nickname ?? "알 수 없음"}
+                          {opinion.profile?.nickname ?? "알 수 없음"}
                         </p>
                         <p className="truncate text-xs font-bold text-orange-700">
-                          {sideName ?? "선택"}
+                          {sideName}
                         </p>
                       </div>
                     </div>
@@ -188,7 +87,7 @@ export default async function Home() {
 
                     <div className="mt-4 rounded-2xl bg-stone-50 p-3">
                       <p className="line-clamp-1 text-xs font-bold text-stone-500">
-                        {opinionTopic?.title ?? "주제"}
+                        {opinion.topic.title}
                       </p>
 
                       <div className="mt-2 flex flex-wrap gap-2 text-xs font-black text-stone-600">

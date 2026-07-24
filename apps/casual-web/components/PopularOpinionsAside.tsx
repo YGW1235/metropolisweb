@@ -1,88 +1,13 @@
 import Link from "next/link";
 
-import { createClient } from "@/lib/supabase/server";
-
-type PopularOpinion = {
-  id: string;
-  topic_id: string;
-  user_id: string;
-  choice: "a" | "b";
-  body: string;
-  like_count: number | null;
-  score: number | null;
-  created_at: string;
-};
-
-type OpinionTopic = {
-  id: string;
-  title: string;
-  option_a: string;
-  option_b: string;
-};
-
-type OpinionProfile = {
-  user_id: string;
-  nickname: string;
-};
+import { getCachedPopularOpinions } from "@/lib/casual-public-cache";
 
 function formatCount(value: number | null | undefined) {
   return new Intl.NumberFormat("ko-KR").format(value ?? 0);
 }
 
 export async function PopularOpinionsAside() {
-  const supabase = await createClient();
-
-  const { data: opinionsData } = await supabase
-    .from("casual_opinions")
-    .select(
-      "id, topic_id, user_id, choice, body, like_count, score, created_at",
-    )
-    .eq("is_hidden", false)
-    .order("score", { ascending: false })
-    .order("like_count", { ascending: false })
-    .order("created_at", { ascending: false })
-    .limit(50);
-
-  const opinionCandidates = (opinionsData ?? []) as PopularOpinion[];
-  const topicIds = Array.from(
-    new Set(opinionCandidates.map((opinion) => opinion.topic_id)),
-  );
-
-  const { data: topicsData } =
-    topicIds.length > 0
-      ? await supabase
-          .from("casual_topics")
-          .select("id, title, option_a, option_b")
-          .eq("status", "active")
-          .in("id", topicIds)
-      : { data: [] };
-
-  const topicById = new Map(
-    ((topicsData ?? []) as OpinionTopic[]).map((topic) => [topic.id, topic]),
-  );
-
-  const popularOpinions = opinionCandidates
-    .filter((opinion) => topicById.has(opinion.topic_id))
-    .slice(0, 5);
-
-  const userIds = Array.from(
-    new Set(popularOpinions.map((opinion) => opinion.user_id)),
-  );
-
-  const { data: profilesData } =
-    userIds.length > 0
-      ? await supabase
-          .from("casual_profiles")
-          .select("user_id, nickname")
-          .in("user_id", userIds)
-      : { data: [] };
-
-  const profileByUserId = new Map(
-    ((profilesData ?? []) as OpinionProfile[]).map((profile) => [
-      profile.user_id,
-      profile,
-    ]),
-  );
+  const popularOpinions = await getCachedPopularOpinions();
 
   return (
     <div className="space-y-4 lg:sticky lg:top-24">
@@ -94,10 +19,10 @@ export async function PopularOpinionsAside() {
 
         <div className="mt-4 space-y-3">
           {popularOpinions.map((opinion) => {
-            const topic = topicById.get(opinion.topic_id);
-            const profile = profileByUserId.get(opinion.user_id);
             const sideName =
-              opinion.choice === "a" ? topic?.option_a : topic?.option_b;
+              opinion.choice === "a"
+                ? opinion.topic.option_a
+                : opinion.topic.option_b;
 
             return (
               <Link
@@ -110,7 +35,7 @@ export async function PopularOpinionsAside() {
                     {sideName ?? "선택"}
                   </span>
                   <span className="text-xs font-bold text-stone-500">
-                    {profile?.nickname ?? "알 수 없음"}
+                    {opinion.profile?.nickname ?? "알 수 없음"}
                   </span>
                 </div>
 
@@ -119,7 +44,7 @@ export async function PopularOpinionsAside() {
                 </p>
 
                 <p className="mt-3 line-clamp-1 text-xs font-bold text-stone-500">
-                  {topic?.title ?? "주제"}
+                  {opinion.topic.title}
                 </p>
 
                 <div className="mt-2 flex flex-wrap gap-2 text-xs font-black text-stone-500">

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
 import type { TopicTag } from "@/lib/casual-tags";
+import { withPerfLog } from "@/lib/perf-log";
 import { truncateDescription } from "@/lib/site-metadata";
 
 import { ViewTracker } from "./ViewTracker";
@@ -286,7 +287,10 @@ export default async function TopicDetailPage({
     return opinionQuery;
   }
 
-  const opinionsResult = await getOpinionQuery(opinionPage);
+  const opinionsResult = await withPerfLog(
+    "topic detail 의견 조회",
+    async () => await getOpinionQuery(opinionPage),
+  );
   const opinions = (opinionsResult.data ?? []) as Opinion[];
   const opinionCount = opinionsResult.count ?? 0;
 
